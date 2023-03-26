@@ -4,9 +4,9 @@ from ctypes import *
 import threading
 import time
 import platform
-from USBCAN.Parameters import *
-from USBCAN.Structs import *
-from USBCAN.Functions import *
+from USBCAN.Parameters_USBCAN import *
+from USBCAN.Structs_USBCAN import *
+from USBCAN.Functions_USBCAN import *
 
 USBCAN_Lib = cdll.LoadLibrary("./libusbcan.so") # 调用动态链接库
 

@@ -6,9 +6,9 @@ import sys, os
 from ctypes import *
 USBCAN_Lib = cdll.LoadLibrary("./libusbcan.so") # 调用动态链接库
 
-from USBCAN.Parameters import *
-from USBCAN.Structs import *
-from USBCAN.Functions import *
+from USBCAN.Parameters_USBCAN import *
+from USBCAN.Structs_USBCAN import *
+from USBCAN.Functions_USBCAN import *
 
 if __name__=="__main__":
     msgs = (ZCAN_CAN_OBJ * 1)()
