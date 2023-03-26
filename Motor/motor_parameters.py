@@ -60,4 +60,4 @@ class OD:
 
 SDO_param = SDOParam()
 PDO_param = PDOParam()
-obj_dic = OD()
+od = OD()

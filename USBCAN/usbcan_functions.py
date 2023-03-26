@@ -6,8 +6,8 @@ sys.path.append(BASE_DIR)
 from ctypes import *
 USBCAN_Lib = cdll.LoadLibrary("./libusbcan.so")
 
-from USBCAN.Structs_USBCAN import *
-from USBCAN.Parameters_USBCAN import *
+from USBCAN.usbcan_structs import *
+from USBCAN.usbcan_parameters import *
 
 class DeviceUSBCAN:
     def __init__(self,
