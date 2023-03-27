@@ -6,28 +6,23 @@ import sys, os
 from ctypes import *
 USBCAN_Lib = cdll.LoadLibrary("./libusbcan.so") # 调用动态链接库
 
-from USBCAN.usbcan_parameters import *
-from USBCAN.usbcan_structs import *
-from USBCAN.usbcan_functions import *
+from usbcan.usbcan_functions import *
+from motor.motor_functions import *
 
 if __name__=="__main__":
-    msgs = (ZCAN_CAN_OBJ * 1)()
-    msgs[0].ID = 5
-    msgs[0].DataLen = 1
-    msgs[0].Data[0] = 0x64
-    print(msgs[0].ID)
-    print(type(msgs[0].ID))
-    print(msgs[0].Data[0])
-    print(type(msgs[0].Data[0]))
+    
+    usbcan_1 = UsbCan()
+    motor_1 = Motor(1)
+    motor_2 = Motor(2)
 
-    a = [0x00]*8
-    print(type(a))
-    if type(a) == list:
-        print("a")
-    else: print("b")
-    print(len(a))
+    usbcan_1.Open()
 
-    val = 6459615
-    print(hex(val)[2:].upper())
+    usbcan_1.StartCAN()
+
+    msg = motor_1.Read(od.Index["control_word"], od.SubIndex["control_word"])
+    print(msg["COB-ID"])
+    print(msg["data"])
+    usbcan_1.SendMsgs(msg["COB-ID"], msg["data"])
 
     
+    usbcan_1.Close()
