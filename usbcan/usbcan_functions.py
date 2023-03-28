@@ -7,7 +7,7 @@ from ctypes import *
 USBCAN_Lib = cdll.LoadLibrary("./libusbcan.so")
 
 from usbcan.usbcan_structs import *
-from usbcan.usbcan_parameters import *
+from usbcan.usbcan_params import *
 
 class UsbCan:
     
