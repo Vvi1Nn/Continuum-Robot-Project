@@ -1,19 +1,21 @@
 import threading
 import time
 import platform
-import sys, os
+import sys
+import os
 
 from ctypes import *
 USBCAN_Lib = cdll.LoadLibrary("./libusbcan.so") # 调用动态链接库
 
-from usbcan.usbcan_functions import *
+import usbcan.function as usbcan_func
 
 import motor.function as motor_func
 import motor.protocol as motor_proto 
 
 if __name__=="__main__":
     
-    usbcan_1 = UsbCan()
+    usbcan_1 = usbcan_func.UsbCan()
+
     motor_1 = motor_func.Motor(1)
     motor_2 = motor_func.Motor(2)
 

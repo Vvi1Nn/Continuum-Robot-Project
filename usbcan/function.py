@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+
 import sys, os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR)
@@ -6,22 +7,22 @@ sys.path.append(BASE_DIR)
 from ctypes import *
 USBCAN_Lib = cdll.LoadLibrary("./libusbcan.so")
 
-from usbcan.usbcan_structs import *
-from usbcan.usbcan_params import *
+import usbcan.struct as usbcan_struct
+import usbcan.param as usbcan_param
 
 class UsbCan:
     
     def __init__(self,
-                 DeviceType  = device_param.DEVICE_TYPE["USBCAN2"], 
-                 DeviceIndex = device_param.DEVICE_INDEX["0"],
-                 Channel     = device_param.CHANNEL["0"],
-                 Reserved    = device_param.RESERVED,
-                 Timer0      = init_param.TIMER["250K"][0], 
-                 Timer1      = init_param.TIMER["250K"][1],
-                 AccCode     = init_param.ACC_CODE["default"],
-                 AccMask     = init_param.ACC_MASK["default"],
-                 Filter      = init_param.FILTER["single"],
-                 Mode        = init_param.MODE["normal"],
+                 DeviceType  = usbcan_param.DEVICE_TYPE["USBCAN2"], 
+                 DeviceIndex = usbcan_param.DEVICE_INDEX["0"],
+                 Channel     = usbcan_param.CHANNEL["0"],
+                 Reserved    = usbcan_param.RESERVED,
+                 Timer0      = usbcan_param.TIMER["250K"][0], 
+                 Timer1      = usbcan_param.TIMER["250K"][1],
+                 AccCode     = usbcan_param.ACC_CODE["default"],
+                 AccMask     = usbcan_param.ACC_MASK["default"],
+                 Filter      = usbcan_param.FILTER["single"],
+                 Mode        = usbcan_param.MODE["normal"],
                  ) -> None:
         
         self.DeviceType = DeviceType
@@ -35,9 +36,9 @@ class UsbCan:
         # self.Filter = Filter
         # self.Mode = Mode
 
-        self.DeviceInfo = ZCAN_CAN_BOARD_INFO()
+        self.DeviceInfo = usbcan_struct.ZCAN_CAN_BOARD_INFO()
 
-        self.InitConfig = ZCAN_CAN_INIT_CONFIG()
+        self.InitConfig = usbcan_struct.ZCAN_CAN_INIT_CONFIG()
         self.InitConfig.AccCode  = AccCode
         self.InitConfig.AccMask  = AccMask
         self.InitConfig.Reserved = Reserved
@@ -73,7 +74,7 @@ class UsbCan:
             print("关闭USBCAN失败...")
         return True if close_success == 1 else False
     
-    def GetInfo(self) -> ZCAN_CAN_BOARD_INFO:
+    def GetInfo(self) -> usbcan_struct.ZCAN_CAN_BOARD_INFO:
         try:
             read_info_success = USBCAN_Lib.VCI_ReadBoardInfo(self.DeviceType, self.DeviceIndex, byref(self.DeviceInfo))
             return self.DeviceInfo if read_info_success == 1 else None
@@ -96,14 +97,14 @@ class UsbCan:
 
     def SendMsgs(self, id, data,
                  length      = 1,
-                 data_len    = send_param.DATA_LEN["default"],
-                 time_stamp  = send_param.TIME_STAMP["off"],
-                 time_flag   = send_param.TIME_FLAG["off"],
-                 send_type   = send_param.SEND_TYPE["normal"], 
-                 remote_flag = send_param.REMOTE_FLAG["data"],
-                 extern_flag = send_param.EXTERN_FLAG["standard"],
+                 data_len    = usbcan_param.DATA_LEN["default"],
+                 time_stamp  = usbcan_param.TIME_STAMP["off"],
+                 time_flag   = usbcan_param.TIME_FLAG["off"],
+                 send_type   = usbcan_param.SEND_TYPE["normal"], 
+                 remote_flag = usbcan_param.REMOTE_FLAG["data"],
+                 extern_flag = usbcan_param.EXTERN_FLAG["standard"],
                  ) -> bool:
-        msgs = (ZCAN_CAN_OBJ * length)()
+        msgs = (usbcan_struct.ZCAN_CAN_OBJ * length)()
         for i in range(length):
             msgs[i].ID         = id
             msgs[i].TimeStamp  = time_stamp
