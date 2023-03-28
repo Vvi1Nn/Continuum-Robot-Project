@@ -7,19 +7,19 @@
 该部分的程序均存放在`usbcan`文件夹，包含以下模块：
 
 ### 固定参数字典
-`param_device.py` 设备参数，如设备型号、设备索引、通道号。
+`param_device.py`: 设备参数，如设备型号、设备索引、通道号。
 
-`param_init.py` 初始化参数，包含有波特率、收发模式等通讯前的协议确定。
+`param_init.py`: 初始化参数，包含有波特率、收发模式等通讯前的协议确定。
 
-`param_transmit.py` 发送参数，包含从设备向CAN总线发送消息的参数。
+`param_transmit.py`: 发送参数，包含从设备向CAN总线发送消息的参数。
 
-`param.py` 调用该模块即可实现所有字典的访问！
+`param.py`: 调用该模块即可实现所有字典的访问！
 
 ### 特定参数结构体
-`struct.py` 集成了二次开发API所需要使用的结构体。
+`struct.py`: 集成了二次开发API所需要使用的结构体。
 
 ### 二次开发库
-`function.py` 将二次开发API集成进Class中。
+`function.py`: 将二次开发API集成进Class中。
 
 ## 步进电机
 设备为和利时的闭环步进一体机，支持CANopen协议讯通。
@@ -27,6 +27,6 @@
 该部分的程序均存放在`motor`文件夹，包含以下模块：
 
 ### 通讯协议
-`protocol` 控制电机所需要的所有协议参数，包括对象字典、SDO和PDO通讯的CAN-ID、收发命令的CMD。
+`protocol`: 控制电机所需要的所有协议参数，包括对象字典、SDO和PDO通讯的CAN-ID、收发命令的CMD。
 
-`function` 电机控制信号的生成，即COB-ID和8个字节的消息数据。
+`function`: 电机控制信号的生成，即COB-ID和8个字节的消息数据。
