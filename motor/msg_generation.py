@@ -24,7 +24,6 @@ class Motor:
         value_str = hex(value_int)[2:].upper()
         if len(value_str) < 8:
             value_str = '0'*(8-len(value_str)) + value_str
-            print(value_str)
         value_list = [0x0] * 4
         value_list[0] = int(value_str[6:8], 16)
         value_list[1] = int(value_str[4:6], 16)
@@ -32,7 +31,7 @@ class Motor:
         value_list[3] = int(value_str[0:2], 16)
         return value_list
 
-    def sdo_read(self, flag) -> dict:
+    def sdo_read(self, flag, isSend = False) -> dict:
         if type(flag) != str:
             print("sdo_read(): flag 错误!!!")
             return None
@@ -53,9 +52,11 @@ class Motor:
         data[1] = self.__split_index(index)[0]
         data[2] = self.__split_index(index)[1]
         data[3] = subindex
+        if isSend:
+            self.usbcan.SendMsgs(cob_id, data)
         return {"COB-ID": cob_id, "data": data}
 
-    def sdo_write_32(self, flag, value) -> dict:
+    def sdo_write_32(self, flag, value, isSend = False) -> dict:
         if type(flag) != str:
             print("sdo_write_32(): flag 错误!!!")
             return None
@@ -85,11 +86,6 @@ class Motor:
         value = self.__int2hex(value)
         for i in range(4):
             data[4+i] = value[i]
+        if isSend:
+            self.usbcan.SendMsgs(cob_id, data)
         return {"COB-ID": cob_id, "data": data}
-    
-        
-motor_1 = Motor(1)
-msg = motor_1.sdo_read("control_word")
-print(msg)
-msg = motor_1.sdo_write_32("control_word", 10000)
-print(msg)

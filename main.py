@@ -14,6 +14,8 @@ import motor.protocol as motor_proto
 if __name__=="__main__":
     
     usbcan_1 = UsbCan()
+    usbcan_1.Open()
+    usbcan_1.StartCAN()
 
     motor_1 = Motor(1, usbcan_1)
     motor_2 = Motor(2, usbcan_1)
@@ -25,11 +27,11 @@ if __name__=="__main__":
     motor_8 = Motor(8, usbcan_1)
     motor_9 = Motor(9, usbcan_1)
 
-    usbcan_1.Open()
+    msg = motor_1.sdo_read("control_word", False)
+    print(msg["COB-ID"])
+    print(msg["data"])
 
-    usbcan_1.StartCAN()
-
-    msg = motor_1.sdo_read("control_word")
+    msg = motor_1.sdo_write_32("control_word", 10000, False)
     print(msg["COB-ID"])
     print(msg["data"])
 
@@ -40,4 +42,4 @@ if __name__=="__main__":
     # usbcan_1.SendMsgs(msg["COB-ID"], msg["data"])
 
     
-    usbcan_1.Close()
+    # usbcan_1.Close()

@@ -53,25 +53,25 @@ class UsbCan:
     def Open(self) -> bool:
         open_device_success = USBCAN_Lib.VCI_OpenDevice(self.DeviceType, self.DeviceIndex, self.InitConfig.Reserved)
         if open_device_success == 1:
-            print("USBCAN已成功打开!!!")
+            print("[USBCAN] 已成功打开!!!")
         else:
-            print("无法打开USBCAN...")
+            print("[USBCAN] 无法打开...")
         return True if open_device_success == 1 else False
     
     def Reset(self) -> bool:
         reset_success = USBCAN_Lib.VCI_ResetCAN(self.DeviceType, self.DeviceIndex, self.Channel)
         if reset_success == 1:
-            print("重置USBCAN成功!!!")
+            print("[USBCAN] 重置成功!!!")
         else:
-            print("重置USBCAN失败...")
+            print("[USBCAN] 重置失败...")
         return True if reset_success == 1 else False
     
     def Close(self) -> bool:
         close_success = USBCAN_Lib.VCI_CloseDevice(self.DeviceType, self.DeviceIndex, self.Channel)
         if close_success == 1:
-            print("关闭USBCAN成功!!!")
+            print("[USBCAN] 关闭成功!!!")
         else:
-            print("关闭USBCAN失败...")
+            print("[USBCAN] 关闭失败...")
         return True if close_success == 1 else False
     
     def GetInfo(self) -> usbcan_struct.ZCAN_CAN_BOARD_INFO:
@@ -79,20 +79,20 @@ class UsbCan:
             read_info_success = USBCAN_Lib.VCI_ReadBoardInfo(self.DeviceType, self.DeviceIndex, byref(self.DeviceInfo))
             return self.DeviceInfo if read_info_success == 1 else None
         except:
-            print("【异常】GetInfo() ...")
+            print("[USBCAN] GetInfo()异常...")
             raise
     
     def StartCAN(self) -> bool:
         init_success = USBCAN_Lib.VCI_InitCAN(self.DeviceType, self.DeviceIndex, self.Channel, byref(self.InitConfig))
         if init_success == 1:
-            print("CAN初始化成功!!!")
+            print("[USBCAN] CAN初始化成功!!!")
         else:
-            print("CAN初始化失败...")
+            print("[USBCAN] CAN初始化失败...")
         start_success = USBCAN_Lib.VCI_StartCAN(self.DeviceType, self.DeviceIndex, self.Channel)
         if start_success == 1:
-            print("CAN启动成功!!!")
+            print("[USBCAN] CAN启动成功!!!")
         else:
-            print("CAN启动失败...")
+            print("[USBCAN] CAN启动失败...")
         return True if start_success == 1 else False
 
     def SendMsgs(self, id, data,
@@ -115,20 +115,19 @@ class UsbCan:
             msgs[i].DataLen    = data_len
             if type(data) == list:
                 if len(data) != data_len:
-                    print("数据长度错误!!!")
+                    print("[USBCAN] 数据长度错误!!!")
                     return False
                 else:
                     for j in range(msgs[i].DataLen):
                         msgs[i].Data[j] = data[j]
-                        print(hex(data[j]))
             # elif type(data) == str: # 例如: "40 60 60 00 00 00 00 00"
             #     for j in range(msgs[i].DataLen):
             #         msgs[i].Data[j] = int(data[3*i:3*(i+1)], 16)
         
         send_num = USBCAN_Lib.VCI_Transmit(self.DeviceType, self.DeviceIndex, self.Channel, byref(msgs), length)
         if length == send_num:
-            print("传输成功!!! 数量:{}".format(send_num))
+            print("[USBCAN] 传输成功!!! 数量:{}".format(send_num))
             return True
         else:
-            print("传输失败... 数量:{}".format(send_num))
+            print("[USBCAN] 传输失败... 数量:{}".format(send_num))
             return False
