@@ -7,26 +7,37 @@ import os
 from ctypes import *
 USBCAN_Lib = cdll.LoadLibrary("./libusbcan.so") # 调用动态链接库
 
-import usbcan.function as usbcan_func
-
-import motor.function as motor_func
+from usbcan.function import *
+from motor.msg_generation import *
 import motor.protocol as motor_proto 
 
 if __name__=="__main__":
     
-    usbcan_1 = usbcan_func.UsbCan()
+    usbcan_1 = UsbCan()
 
-    motor_1 = motor_func.Motor(1)
-    motor_2 = motor_func.Motor(2)
+    motor_1 = Motor(1, usbcan_1)
+    motor_2 = Motor(2, usbcan_1)
+    motor_3 = Motor(3, usbcan_1)
+    motor_4 = Motor(4, usbcan_1)
+    motor_5 = Motor(5, usbcan_1)
+    motor_6 = Motor(6, usbcan_1)
+    motor_7 = Motor(7, usbcan_1)
+    motor_8 = Motor(8, usbcan_1)
+    motor_9 = Motor(9, usbcan_1)
 
     usbcan_1.Open()
 
     usbcan_1.StartCAN()
 
-    msg = motor_1.read(motor_proto.OD["control_word"][0], motor_proto.OD["control_word"][1])
+    msg = motor_1.sdo_read("control_word")
     print(msg["COB-ID"])
     print(msg["data"])
-    usbcan_1.SendMsgs(msg["COB-ID"], msg["data"])
+
+    # msg = motor_1.sdo_write_32("control_word")
+    # print(msg["COB-ID"])
+    # print(msg["data"])
+
+    # usbcan_1.SendMsgs(msg["COB-ID"], msg["data"])
 
     
     usbcan_1.Close()
