@@ -119,12 +119,20 @@ if __name__=="__main__":
         msgs[i].ID           =   0x601
         msgs[i].TimeStamp    =   0
         msgs[i].TimeFlag     =   0
-        msgs[i].SendType     =   2
+        msgs[i].SendType     =   0
         msgs[i].RemoteFlag   =   0
         msgs[i].ExternFlag   =   0
         msgs[i].DataLen      =   8
-        for j in range(msgs[i].DataLen):
-            msgs[i].Data[j]      =   100
+        # 查看控制模式
+        msgs[i].Data[0] = 0x40
+        msgs[i].Data[1] = 0x61
+        msgs[i].Data[2] = 0x60
+        msgs[i].Data[3] = 0x00
+        msgs[i].Data[4] = 0x00
+        msgs[i].Data[5] = 0x00
+        msgs[i].Data[6] = 0x00
+        msgs[i].Data[7] = 0x00
+
     sendret  =  lib.VCI_Transmit(USBCAN2,DEVICE_INDEX,CHANNEL,byref(msgs),LEN)
     if LEN == sendret:
         print("transmit success , sendcount is :%d "%sendret)
@@ -139,7 +147,7 @@ if __name__=="__main__":
         ret  =  lib.VCI_GetReceiveNum(USBCAN2,DEVICE_INDEX,CHANNEL)
         if  ret:
             rcv_msgs  =(ZCAN_CAN_OBJ*ret)()
-            ret1     =lib.VCI_Receive(USBCAN2,DEVICE_INDEX,CHANNEL,byref(rcv_msgs),ret,100) 
+            ret1 = lib.VCI_Receive(USBCAN2,DEVICE_INDEX,CHANNEL,byref(rcv_msgs),ret,100) 
             for i in range(ret1):
                     print("GetNum:%d, OrderNUM :%d,Timestamp:%d, id:%s , dlc:%d ,data:%s"%(ret,i,(rcv_msgs[i].TimeStamp),hex(rcv_msgs[i].ID),\
                         rcv_msgs[i].DataLen,''.join(hex(rcv_msgs[i].Data[j])+ ' 'for j in range(rcv_msgs[i].DataLen))))
