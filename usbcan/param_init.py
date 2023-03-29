@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 
-ACC_CODE = {"default": 0,
+ACC_CODE = {"default": 0x00000000,
             }
 
 ACC_MASK = {"default": 0xFFFFFFFF,
