@@ -100,7 +100,8 @@ class UsbCan:
                  data_len    = usbcan_param.DATA_LEN["default"],
                  time_stamp  = usbcan_param.TIME_STAMP["off"],
                  time_flag   = usbcan_param.TIME_FLAG["off"],
-                 send_type   = usbcan_param.SEND_TYPE["normal"], 
+                #  send_type   = usbcan_param.SEND_TYPE["test"],
+                 send_type   = 1,
                  remote_flag = usbcan_param.REMOTE_FLAG["data"],
                  extern_flag = usbcan_param.EXTERN_FLAG["standard"],
                  ) -> bool:
