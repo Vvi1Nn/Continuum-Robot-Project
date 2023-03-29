@@ -89,3 +89,14 @@ class Motor:
         if isSend:
             self.usbcan.SendMsgs(cob_id, data)
         return {"COB-ID": cob_id, "data": data}
+
+    def rpdo_1(self, value):
+        if type(value) != int:
+            print("sdo_write_32(): value 错误!!!")
+            return None
+        if value < 0 or value > 0xFFFFFFFF:
+            print("value超出范围!!!")
+            return None
+        cob_id = protocol.CAN_ID["RPDO_1"] + self.node_id
+
+        pass

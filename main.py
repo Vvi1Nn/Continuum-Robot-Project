@@ -4,12 +4,12 @@ import platform
 import sys
 import os
 
-from ctypes import *
-USBCAN_Lib = cdll.LoadLibrary("./libusbcan.so") # 调用动态链接库
+# from ctypes import *
+# USBCAN_Lib = cdll.LoadLibrary("./libusbcan.so") # 调用动态链接库
 
 from usbcan.function import *
 from motor.msg_generation import *
-import motor.protocol as motor_proto 
+# import motor.protocol as motor_proto 
 
 if __name__=="__main__":
     
@@ -27,13 +27,13 @@ if __name__=="__main__":
     motor_8 = Motor(8, usbcan_1)
     motor_9 = Motor(9, usbcan_1)
 
-    msg = motor_1.sdo_read("control_word", False)
+    msg = motor_1.sdo_read("control_word", True)
     print(msg["COB-ID"])
     print(msg["data"])
 
-    msg = motor_1.sdo_write_32("control_word", 10000, False)
-    print(msg["COB-ID"])
-    print(msg["data"])
+    # msg = motor_1.sdo_write_32("control_word", 10000, False)
+    # print(msg["COB-ID"])
+    # print(msg["data"])
 
     # msg = motor_1.sdo_write_32("control_word")
     # print(msg["COB-ID"])
