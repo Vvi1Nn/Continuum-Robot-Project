@@ -29,4 +29,4 @@
 ### 通讯协议
 `protocol`: 控制电机所需要的所有协议参数，包括对象字典、SDO和PDO通讯的CAN-ID、收发命令的CMD。
 
-`function`: 电机控制信号的生成，即COB-ID和8个字节的消息数据。
+`msg_generation.py`: 电机控制信号的生成，即COB-ID和8个字节的消息数据。
