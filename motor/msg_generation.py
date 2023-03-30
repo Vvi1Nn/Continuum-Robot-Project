@@ -129,13 +129,11 @@ def __int2hex(value_int) -> list:
     return value_list
 
 if __name__ == "__main__":
-    msg_generation_test = True
-    if msg_generation_test:
-        sdo_read(1, "control_mode", True) # 查看控制模式
-        sdo_write_32(1, "control_mode", pro.CONTROL_MODE["position_control"], True) # 位置模式
-        sdo_write_32(1, "acceleration", 1000, True) # 加速度1000
-        sdo_write_32(1, "deceleration", 10000, True) # 减速度10000
-        sdo_write_32(1, "velocity", 100, True) # 速度100
-        sdo_write_32(1, "target_position", 10000, True) # 目标位置10000
-        sdo_write_32(1, "control_word", 0x6F, True) # 相对使能
-        sdo_write_32(1, "control_word", 0x7F, True) # 启动
+    sdo_read(1, "control_mode", True) # 查看控制模式
+    sdo_write_32(1, "control_mode", pro.CONTROL_MODE["position_control"], True) # 位置模式
+    sdo_write_32(1, "acceleration", 1000, True) # 加速度1000
+    sdo_write_32(1, "deceleration", 10000, True) # 减速度10000
+    sdo_write_32(1, "velocity", 100, True) # 速度100
+    sdo_write_32(1, "target_position", 10000, True) # 目标位置10000
+    sdo_write_32(1, "control_word", 0x6F, True) # 相对使能
+    sdo_write_32(1, "control_word", 0x7F, True) # 启动
