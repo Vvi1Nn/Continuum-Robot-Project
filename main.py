@@ -18,16 +18,6 @@ if __name__=="__main__":
    print(usbcan_1)
    usbcan_1.Open()
    usbcan_1.StartCAN()
-   
-   # motor_1 = Motor(1, usbcan_1)
-   # motor_2 = Motor(2, usbcan_1)
-   # motor_3 = Motor(3, usbcan_1)
-   # motor_4 = Motor(4, usbcan_1)
-   # motor_5 = Motor(5, usbcan_1)
-   # motor_6 = Motor(6, usbcan_1)
-   # motor_7 = Motor(7, usbcan_1)
-   # motor_8 = Motor(8, usbcan_1)
-   # motor_9 = Motor(9, usbcan_1)
 
    # msg = motor_1.sdo_read("control_mode", True)
    # print("COB-ID: {}".format(hex(msg["COB-ID"])))

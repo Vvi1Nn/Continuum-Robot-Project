@@ -3,6 +3,12 @@
 from ctypes import *
 import threading
 import time
+
+import usbcan.struct as usbcan_struct
+import usbcan.param as usbcan_param
+import motor.msg_generation as motor_gen
+import motor.protocol as motor_pro
+
 lib = cdll.LoadLibrary("./libusbcan.so")
 
 ZCAN_DEVICE_TYPE  = c_uint32
@@ -19,62 +25,62 @@ CHANNEL       =   ZCAN_CHANNEL(0)
 def input_thread():
     input()
 
-class ZCAN_CAN_BOARD_INFO(Structure):
-    _fields_ = [("hw_Version",c_ushort),
-                ("fw_Version",c_ushort),
-                ("dr_Version",c_ushort),
-                ("in_Version",c_ushort),
-                ("irq_Num",c_ushort),
-                ("can_Num",c_ubyte),
-                ("str_Serial_Num",c_ubyte*20),
-                ("str_hw_Type",c_ubyte*40),
-                ("Reserved",c_ubyte*4)]
+# class ZCAN_CAN_BOARD_INFO(Structure):
+#     _fields_ = [("hw_Version",c_ushort),
+#                 ("fw_Version",c_ushort),
+#                 ("dr_Version",c_ushort),
+#                 ("in_Version",c_ushort),
+#                 ("irq_Num",c_ushort),
+#                 ("can_Num",c_ubyte),
+#                 ("str_Serial_Num",c_ubyte*20),
+#                 ("str_hw_Type",c_ubyte*40),
+#                 ("Reserved",c_ubyte*4)]
 
-    def __str__(self):
-        return "Hardware Version:%s\nFirmware Version:%s\nDriver Version:%s\nInterface:%s\nInterrupt Number:%s\nCAN_number:%d"%(\
-                self.hw_Version,  self.fw_Version,  self.dr_Version,  self.in_Version,  self.irq_Num,  self.can_Num)
+#     def __str__(self):
+#         return "Hardware Version:%s\nFirmware Version:%s\nDriver Version:%s\nInterface:%s\nInterrupt Number:%s\nCAN_number:%d"%(\
+#                 self.hw_Version,  self.fw_Version,  self.dr_Version,  self.in_Version,  self.irq_Num,  self.can_Num)
 
-    def serial(self):
-        serial=''
-        for c in self.str_Serial_Num:
-            if c>0:
-                serial +=chr(c)
-            else:
-                break
-        return serial   
+#     def serial(self):
+#         serial=''
+#         for c in self.str_Serial_Num:
+#             if c>0:
+#                 serial +=chr(c)
+#             else:
+#                 break
+#         return serial   
         
-    def hw_Type(self):
-        hw_Type=''
-        for c in self.str_hw_Type:
-            if c>0:
-                hw_Type +=chr(c)
-            else:
-                break
-        return hw_Type   
+#     def hw_Type(self):
+#         hw_Type=''
+#         for c in self.str_hw_Type:
+#             if c>0:
+#                 hw_Type +=chr(c)
+#             else:
+#                 break
+#         return hw_Type   
 
-class ZCAN_CAN_INIT_CONFIG(Structure):
-    _fields_ = [("AccCode",c_int),
-                ("AccMask",c_int),
-                ("Reserved",c_int),
-                ("Filter",c_ubyte),
-                ("Timing0",c_ubyte),
-                ("Timing1",c_ubyte),
-                ("Mode",c_ubyte)]
+# class ZCAN_CAN_INIT_CONFIG(Structure):
+#     _fields_ = [("AccCode",c_int),
+#                 ("AccMask",c_int),
+#                 ("Reserved",c_int),
+#                 ("Filter",c_ubyte),
+#                 ("Timing0",c_ubyte),
+#                 ("Timing1",c_ubyte),
+#                 ("Mode",c_ubyte)]
 
-class ZCAN_CAN_OBJ(Structure):
-    _fields_ = [("ID",c_uint32),
-                ("TimeStamp",c_uint32),
-                ("TimeFlag",c_uint8),
-                ("SendType",c_byte),
-                ("RemoteFlag",c_byte),
-                ("ExternFlag",c_byte),
-                ("DataLen",c_byte),
-                ("Data",c_ubyte*8),
-                ("Reserved",c_ubyte*3)]
+# class ZCAN_CAN_OBJ(Structure):
+#     _fields_ = [("ID",c_uint32),
+#                 ("TimeStamp",c_uint32),
+#                 ("TimeFlag",c_uint8),
+#                 ("SendType",c_byte),
+#                 ("RemoteFlag",c_byte),
+#                 ("ExternFlag",c_byte),
+#                 ("DataLen",c_byte),
+#                 ("Data",c_ubyte*8),
+#                 ("Reserved",c_ubyte*3)]
 
 def GetDeviceInf(DeviceType,DeviceIndex):
     try:
-        info = ZCAN_CAN_BOARD_INFO()
+        info = usbcan_struct.ZCAN_CAN_BOARD_INFO()
         ret  = lib.VCI_ReadBoardInfo(DeviceType,DeviceIndex,byref(info))
         return info if ret==1 else None
     except:
@@ -82,7 +88,7 @@ def GetDeviceInf(DeviceType,DeviceIndex):
         raise
                 
 def can_start(DEVCIE_TYPE,DEVICE_INDEX,CHANNEL):
-    init_config  = ZCAN_CAN_INIT_CONFIG()
+    init_config  = usbcan_struct.ZCAN_CAN_INIT_CONFIG()
     init_config.AccCode    = 0
     init_config.AccMask    = 0xFFFFFFFF
     init_config.Reserved   = 0
@@ -113,25 +119,88 @@ if __name__=="__main__":
     
     canstart = can_start(4, 0, 0)
     
-    LEN = 1
-    msgs = (ZCAN_CAN_OBJ*LEN)()
+    LEN = 8
+    msgs = (usbcan_struct.ZCAN_CAN_OBJ*LEN)()
     for i in range(LEN):
         msgs[i].ID           =   0x601
         msgs[i].TimeStamp    =   0
         msgs[i].TimeFlag     =   0
-        msgs[i].SendType     =   2
+        msgs[i].SendType     =   usbcan_param.SEND_TYPE["normal"]
         msgs[i].RemoteFlag   =   0
         msgs[i].ExternFlag   =   0
         msgs[i].DataLen      =   8
-        # 查看控制模式
-        msgs[i].Data[0] = 0x40
-        msgs[i].Data[1] = 0x61
-        msgs[i].Data[2] = 0x60
-        msgs[i].Data[3] = 0x00
-        msgs[i].Data[4] = 0x00
-        msgs[i].Data[5] = 0x00
-        msgs[i].Data[6] = 0x00
-        msgs[i].Data[7] = 0x00
+    # 查看控制模式
+    msgs[0].Data[0] = 0x40
+    msgs[0].Data[1] = 0x61
+    msgs[0].Data[2] = 0x60
+    msgs[0].Data[3] = 0x00
+    msgs[0].Data[4] = 0x00
+    msgs[0].Data[5] = 0x00
+    msgs[0].Data[6] = 0x00
+    msgs[0].Data[7] = 0x00
+    # 位置模式
+    msgs[1].Data[0] = 0x2F
+    msgs[1].Data[1] = 0x60
+    msgs[1].Data[2] = 0x60
+    msgs[1].Data[3] = 0x00
+    msgs[1].Data[4] = 0x01
+    msgs[1].Data[5] = 0x00
+    msgs[1].Data[6] = 0x00
+    msgs[1].Data[7] = 0x00
+    # 加速度1000
+    msgs[2].Data[0] = 0x23
+    msgs[2].Data[1] = 0x83
+    msgs[2].Data[2] = 0x60
+    msgs[2].Data[3] = 0x00
+    msgs[2].Data[4] = 0xE8
+    msgs[2].Data[5] = 0x03
+    msgs[2].Data[6] = 0x00
+    msgs[2].Data[7] = 0x00
+    # 减速度10000
+    msgs[3].Data[0] = 0x23
+    msgs[3].Data[1] = 0x84
+    msgs[3].Data[2] = 0x60
+    msgs[3].Data[3] = 0x00
+    msgs[3].Data[4] = 0x10
+    msgs[3].Data[5] = 0x27
+    msgs[3].Data[6] = 0x00
+    msgs[3].Data[7] = 0x00
+    # 速度100
+    msgs[4].Data[0] = 0x23
+    msgs[4].Data[1] = 0x81
+    msgs[4].Data[2] = 0x60
+    msgs[4].Data[3] = 0x00
+    msgs[4].Data[4] = 0x64
+    msgs[4].Data[5] = 0x00
+    msgs[4].Data[6] = 0x00
+    msgs[4].Data[7] = 0x00
+    # 目标位置10000
+    msgs[5].Data[0] = 0x23
+    msgs[5].Data[1] = 0x7A
+    msgs[5].Data[2] = 0x60
+    msgs[5].Data[3] = 0x00
+    msgs[5].Data[4] = 0x10
+    msgs[5].Data[5] = 0x27
+    msgs[5].Data[6] = 0x00
+    msgs[5].Data[7] = 0x00
+    # 相对使能
+    msgs[6].Data[0] = 0x2B
+    msgs[6].Data[1] = 0x40
+    msgs[6].Data[2] = 0x60
+    msgs[6].Data[3] = 0x00
+    msgs[6].Data[4] = 0x6F
+    msgs[6].Data[5] = 0x00
+    msgs[6].Data[6] = 0x00
+    msgs[6].Data[7] = 0x00
+    # 相对运行
+    msgs[7].Data[0] = 0x2B
+    msgs[7].Data[1] = 0x40
+    msgs[7].Data[2] = 0x60
+    msgs[7].Data[3] = 0x00
+    msgs[7].Data[4] = 0x7F
+    msgs[7].Data[5] = 0x00
+    msgs[7].Data[6] = 0x00
+    msgs[7].Data[7] = 0x00
 
     sendret = lib.VCI_Transmit(4, 0, 0, byref(msgs), LEN)
     if LEN == sendret:
@@ -139,14 +208,167 @@ if __name__=="__main__":
     else:
         print("transmit fail, sendcounet is: %d " % sendret)
 
+    LEN = 8
+    # msgs_2 = (usbcan_struct.ZCAN_CAN_OBJ * LEN)()
+    # for i in range(LEN):
+    #     msgs_2[i].ID           =   0x602
+    #     msgs_2[i].TimeStamp    =   usbcan_param.TIME_STAMP["off"]
+    #     msgs_2[i].TimeFlag     =   usbcan_param.TIME_FLAG["off"]
+    #     msgs_2[i].SendType     =   usbcan_param.SEND_TYPE["normal"]
+    #     msgs_2[i].RemoteFlag   =   usbcan_param.REMOTE_FLAG["data"]
+    #     msgs_2[i].ExternFlag   =   usbcan_param.EXTERN_FLAG["standard"]
+    #     msgs_2[i].DataLen      =   usbcan_param.DATA_LEN["default"]
+    #     if i == 0:
+    #         # data = motor_gen.sdo_write_32(1, "control_mode", motor_pro.CONTROL_MODE["position_control"])["data"] # 位置模式
+    #         # print(data)
+    #         # for j in range(msgs_2[i].DataLen):
+    #         #     msgs_2[i].Data[j] = data[j]
+    #         msgs_2[0].Data[0] = 0x2F
+    #         msgs_2[0].Data[1] = 0x60
+    #         msgs_2[0].Data[2] = 0x60
+    #         msgs_2[0].Data[3] = 0x00
+    #         msgs_2[0].Data[4] = 0x01
+    #         msgs_2[0].Data[5] = 0x00
+    #         msgs_2[0].Data[6] = 0x00
+    #         msgs_2[0].Data[7] = 0x00
+    #     elif i == 1:
+    #         data = motor_gen.sdo_write_32(1, "acceleration", 1000)["data"] # 加速度1000
+    #         for j in range(msgs_2[i].DataLen):
+    #             msgs_2[i].Data[j] = data[j]
+    #     elif i == 2:
+    #         data = motor_gen.sdo_write_32(1, "deceleration", 10000)["data"] # 减速度10000
+    #         for j in range(msgs_2[i].DataLen):
+    #             msgs_2[i].Data[j] = data[j]
+    #     elif i == 3:
+    #         data = motor_gen.sdo_write_32(1, "velocity", 100)["data"] # 速度100
+    #         for j in range(msgs_2[i].DataLen):
+    #             msgs_2[i].Data[j] = data[j]
+    #     elif i == 4:
+    #         data = motor_gen.sdo_write_32(1, "deceleration", 10000)["data"] # 减速度10000
+    #         for j in range(msgs_2[i].DataLen):
+    #             msgs_2[i].Data[j] = data[j]
+    #     elif i == 5:
+    #         data = motor_gen.sdo_write_32(1, "target_position", 10000)["data"] # 目标位置10000
+    #         for j in range(msgs_2[i].DataLen):
+    #             msgs_2[i].Data[j] = data[j]
+    #     elif i == 6:
+    #         data = motor_gen.sdo_write_32(1, "control_word", 0x6F)["data"] # 相对使能
+    #         for j in range(msgs_2[i].DataLen):
+    #             msgs_2[i].Data[j] = data[j]
+    #     elif i == 7:
+    #         data = motor_gen.sdo_write_32(1, "control_word", 0x7F)["data"] # 启动
+    #         for j in range(msgs_2[i].DataLen):
+    #             msgs_2[i].Data[j] = data[j]
+    msgs_2 = (usbcan_struct.ZCAN_CAN_OBJ*LEN)()
+    for i in range(LEN):
+        msgs_2[i].ID           =   0x602
+        msgs_2[i].TimeStamp    =   0
+        msgs_2[i].TimeFlag     =   0
+        msgs_2[i].SendType     =   usbcan_param.SEND_TYPE["normal"]
+        msgs_2[i].RemoteFlag   =   0
+        msgs_2[i].ExternFlag   =   0
+        msgs_2[i].DataLen      =   8
+    # 位置模式
+    # msgs_2[1].Data[0] = 0x2F
+    # msgs_2[1].Data[1] = 0x60
+    # msgs_2[1].Data[2] = 0x60
+    # msgs_2[1].Data[3] = 0x00
+    # msgs_2[1].Data[4] = 0x01
+    # msgs_2[1].Data[5] = 0x00
+    # msgs_2[1].Data[6] = 0x00
+    # msgs_2[1].Data[7] = 0x00
+    data = motor_gen.sdo_write_32(1, "acceleration", 1000)["data"] # 加速度1000
+    for j in range(msgs_2[i].DataLen):
+        msgs_2[1].Data[j] = data[j]
+    # 加速度1000
+    # msgs_2[2].Data[0] = 0x23
+    # msgs_2[2].Data[1] = 0x83
+    # msgs_2[2].Data[2] = 0x60
+    # msgs_2[2].Data[3] = 0x00
+    # msgs_2[2].Data[4] = 0xE8
+    # msgs_2[2].Data[5] = 0x03
+    # msgs_2[2].Data[6] = 0x00
+    # msgs_2[2].Data[7] = 0x00
+    data = motor_gen.sdo_write_32(1, "acceleration", 1000)["data"] # 加速度1000
+    for j in range(msgs_2[i].DataLen):
+        msgs_2[2].Data[j] = data[j]
+    # 减速度10000
+    # msgs_2[3].Data[0] = 0x23
+    # msgs_2[3].Data[1] = 0x84
+    # msgs_2[3].Data[2] = 0x60
+    # msgs_2[3].Data[3] = 0x00
+    # msgs_2[3].Data[4] = 0x10
+    # msgs_2[3].Data[5] = 0x27
+    # msgs_2[3].Data[6] = 0x00
+    # msgs_2[3].Data[7] = 0x00
+    data = motor_gen.sdo_write_32(1, "deceleration", 10000)["data"] # 减速度10000
+    for j in range(msgs_2[i].DataLen):
+        msgs_2[3].Data[j] = data[j]
+    # 速度100
+    # msgs_2[4].Data[0] = 0x23
+    # msgs_2[4].Data[1] = 0x81
+    # msgs_2[4].Data[2] = 0x60
+    # msgs_2[4].Data[3] = 0x00
+    # msgs_2[4].Data[4] = 0x64
+    # msgs_2[4].Data[5] = 0x00
+    # msgs_2[4].Data[6] = 0x00
+    # msgs_2[4].Data[7] = 0x00
+    data = motor_gen.sdo_write_32(1, "velocity", 100)["data"] # 速度100
+    for j in range(msgs_2[i].DataLen):
+        msgs_2[4].Data[j] = data[j]
+    # 目标位置10000
+    # msgs_2[5].Data[0] = 0x23
+    # msgs_2[5].Data[1] = 0x7A
+    # msgs_2[5].Data[2] = 0x60
+    # msgs_2[5].Data[3] = 0x00
+    # msgs_2[5].Data[4] = 0x10
+    # msgs_2[5].Data[5] = 0x27
+    # msgs_2[5].Data[6] = 0x00
+    # msgs_2[5].Data[7] = 0x00
+    data = motor_gen.sdo_write_32(1, "target_position", 20000)["data"] # 目标位置10000
+    for j in range(msgs_2[i].DataLen):
+        msgs_2[5].Data[j] = data[j]
+    # 相对使能
+    # msgs_2[6].Data[0] = 0x2B
+    # msgs_2[6].Data[1] = 0x40
+    # msgs_2[6].Data[2] = 0x60
+    # msgs_2[6].Data[3] = 0x00
+    # msgs_2[6].Data[4] = 0x6F
+    # msgs_2[6].Data[5] = 0x00
+    # msgs_2[6].Data[6] = 0x00
+    # msgs_2[6].Data[7] = 0x00
+    data = motor_gen.sdo_write_32(1, "control_word", 0x6F)["data"] # 相对使能
+    for j in range(msgs_2[i].DataLen):
+        msgs_2[6].Data[j] = data[j]
+    # 相对运行
+    # msgs_2[7].Data[0] = 0x2B
+    # msgs_2[7].Data[1] = 0x40
+    # msgs_2[7].Data[2] = 0x60
+    # msgs_2[7].Data[3] = 0x00
+    # msgs_2[7].Data[4] = 0x7F
+    # msgs_2[7].Data[5] = 0x00
+    # msgs_2[7].Data[6] = 0x00
+    # msgs_2[7].Data[7] = 0x00
+    data = motor_gen.sdo_write_32(1, "control_word", 0x7F)["data"] # 启动
+    for j in range(msgs_2[i].DataLen):
+        msgs_2[i].Data[j] = data[j]
+
+    sendret = lib.VCI_Transmit(4, 0, 0, byref(msgs_2), LEN)
+    if LEN == sendret:
+        print("transmit success, sendcount is: %d " % sendret)
+    else:
+        print("transmit fail, sendcounet is: %d " % sendret)
+    
+    
+
     thread = threading.Thread(target = input_thread)
     thread.start()
 
     while True:
         time.sleep(0.1)
-        ret  =  lib.VCI_GetReceiveNum(4, 0, 0)
+        ret = lib.VCI_GetReceiveNum(4, 0, 0)
         if ret:
-            rcv_msgs = (ZCAN_CAN_OBJ*ret)()
+            rcv_msgs = (usbcan_struct.ZCAN_CAN_OBJ*ret)()
             ret1 = lib.VCI_Receive(4, 0, 0, byref(rcv_msgs), ret, 100) 
             for i in range(ret1):
                 print("GetNum:%d, OrderNUM:%d, Timestamp:%d, id:%s, dlc:%d, data:%s"%(ret,i,(rcv_msgs[i].TimeStamp),hex(rcv_msgs[i].ID),\
