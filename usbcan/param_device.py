@@ -11,14 +11,24 @@ ZCAN_Reserved     = c_uint32
 ZCAN_CHANNEL      = c_uint32
 
 
-DEVICE_TYPE = {"USBCAN2": ZCAN_DEVICE_TYPE(4),
+# DEVICE_TYPE = {"USBCAN2": ZCAN_DEVICE_TYPE(4),
+#                }
+
+# DEVICE_INDEX = {"0": ZCAN_DEVICE_INDEX(0),
+#                 }
+
+# CHANNEL = {"0": ZCAN_CHANNEL(0),
+#            "1": ZCAN_CHANNEL(1),
+#            }
+
+DEVICE_TYPE = {"USBCAN2": 4,
                }
 
-DEVICE_INDEX = {"0": ZCAN_DEVICE_INDEX(0),
+DEVICE_INDEX = {"0": 0,
                 }
 
-CHANNEL = {"0": ZCAN_CHANNEL(0),
-           "1": ZCAN_CHANNEL(1),
+CHANNEL = {"0": 0,
+           "1": 1,
            }
 
 RESERVED = 0

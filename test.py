@@ -8,19 +8,9 @@ import usbcan.struct as usbcan_struct
 import usbcan.param as usbcan_param
 import motor.msg_generation as motor_gen
 import motor.protocol as motor_pro
+import motor.function as motor_fun
 
 lib = cdll.LoadLibrary("./libusbcan.so")
-
-ZCAN_DEVICE_TYPE  = c_uint32
-ZCAN_DEVICE_INDEX = c_uint32
-ZCAN_Reserved     = c_uint32
-ZCAN_CHANNEL      = c_uint32
-LEN               = c_uint32
-
-USBCAN2       =   ZCAN_DEVICE_TYPE(4)
-DEVICE_INDEX  =   ZCAN_DEVICE_INDEX(0)
-Reserved      =   ZCAN_Reserved(0)
-CHANNEL       =   ZCAN_CHANNEL(0)
 
 def input_thread():
     input()
@@ -119,155 +109,107 @@ if __name__=="__main__":
     
     canstart = can_start(4, 0, 0)
     
-    LEN = 8
-    msgs = (usbcan_struct.ZCAN_CAN_OBJ*LEN)()
-    for i in range(LEN):
-        msgs[i].ID           =   0x601
-        msgs[i].TimeStamp    =   0
-        msgs[i].TimeFlag     =   0
-        msgs[i].SendType     =   usbcan_param.SEND_TYPE["normal"]
-        msgs[i].RemoteFlag   =   0
-        msgs[i].ExternFlag   =   0
-        msgs[i].DataLen      =   8
-    # 查看控制模式
-    msgs[0].Data[0] = 0x40
-    msgs[0].Data[1] = 0x61
-    msgs[0].Data[2] = 0x60
-    msgs[0].Data[3] = 0x00
-    msgs[0].Data[4] = 0x00
-    msgs[0].Data[5] = 0x00
-    msgs[0].Data[6] = 0x00
-    msgs[0].Data[7] = 0x00
-    # 位置模式
-    msgs[1].Data[0] = 0x2F
-    msgs[1].Data[1] = 0x60
-    msgs[1].Data[2] = 0x60
-    msgs[1].Data[3] = 0x00
-    msgs[1].Data[4] = 0x01
-    msgs[1].Data[5] = 0x00
-    msgs[1].Data[6] = 0x00
-    msgs[1].Data[7] = 0x00
-    # 加速度1000
-    msgs[2].Data[0] = 0x23
-    msgs[2].Data[1] = 0x83
-    msgs[2].Data[2] = 0x60
-    msgs[2].Data[3] = 0x00
-    msgs[2].Data[4] = 0xE8
-    msgs[2].Data[5] = 0x03
-    msgs[2].Data[6] = 0x00
-    msgs[2].Data[7] = 0x00
-    # 减速度10000
-    msgs[3].Data[0] = 0x23
-    msgs[3].Data[1] = 0x84
-    msgs[3].Data[2] = 0x60
-    msgs[3].Data[3] = 0x00
-    msgs[3].Data[4] = 0x10
-    msgs[3].Data[5] = 0x27
-    msgs[3].Data[6] = 0x00
-    msgs[3].Data[7] = 0x00
-    # 速度100
-    msgs[4].Data[0] = 0x23
-    msgs[4].Data[1] = 0x81
-    msgs[4].Data[2] = 0x60
-    msgs[4].Data[3] = 0x00
-    msgs[4].Data[4] = 0x64
-    msgs[4].Data[5] = 0x00
-    msgs[4].Data[6] = 0x00
-    msgs[4].Data[7] = 0x00
-    # 目标位置10000
-    msgs[5].Data[0] = 0x23
-    msgs[5].Data[1] = 0x7A
-    msgs[5].Data[2] = 0x60
-    msgs[5].Data[3] = 0x00
-    msgs[5].Data[4] = 0x10
-    msgs[5].Data[5] = 0x27
-    msgs[5].Data[6] = 0x00
-    msgs[5].Data[7] = 0x00
-    # 相对使能
-    msgs[6].Data[0] = 0x2B
-    msgs[6].Data[1] = 0x40
-    msgs[6].Data[2] = 0x60
-    msgs[6].Data[3] = 0x00
-    msgs[6].Data[4] = 0x6F
-    msgs[6].Data[5] = 0x00
-    msgs[6].Data[6] = 0x00
-    msgs[6].Data[7] = 0x00
-    # 相对运行
-    msgs[7].Data[0] = 0x2B
-    msgs[7].Data[1] = 0x40
-    msgs[7].Data[2] = 0x60
-    msgs[7].Data[3] = 0x00
-    msgs[7].Data[4] = 0x7F
-    msgs[7].Data[5] = 0x00
-    msgs[7].Data[6] = 0x00
-    msgs[7].Data[7] = 0x00
-
-    sendret = lib.VCI_Transmit(4, 0, 0, byref(msgs), LEN)
-    if LEN == sendret:
-        print("transmit success, sendcount is: %d " % sendret)
-    else:
-        print("transmit fail, sendcounet is: %d " % sendret)
-
-    LEN = 8
-    # msgs_2 = (usbcan_struct.ZCAN_CAN_OBJ * LEN)()
+    # LEN = 8
+    # msgs = (usbcan_struct.ZCAN_CAN_OBJ*LEN)()
     # for i in range(LEN):
-    #     msgs_2[i].ID           =   0x602
-    #     msgs_2[i].TimeStamp    =   usbcan_param.TIME_STAMP["off"]
-    #     msgs_2[i].TimeFlag     =   usbcan_param.TIME_FLAG["off"]
-    #     msgs_2[i].SendType     =   usbcan_param.SEND_TYPE["normal"]
-    #     msgs_2[i].RemoteFlag   =   usbcan_param.REMOTE_FLAG["data"]
-    #     msgs_2[i].ExternFlag   =   usbcan_param.EXTERN_FLAG["standard"]
-    #     msgs_2[i].DataLen      =   usbcan_param.DATA_LEN["default"]
-    #     if i == 0:
-    #         # data = motor_gen.sdo_write_32(1, "control_mode", motor_pro.CONTROL_MODE["position_control"])["data"] # 位置模式
-    #         # print(data)
-    #         # for j in range(msgs_2[i].DataLen):
-    #         #     msgs_2[i].Data[j] = data[j]
-    #         msgs_2[0].Data[0] = 0x2F
-    #         msgs_2[0].Data[1] = 0x60
-    #         msgs_2[0].Data[2] = 0x60
-    #         msgs_2[0].Data[3] = 0x00
-    #         msgs_2[0].Data[4] = 0x01
-    #         msgs_2[0].Data[5] = 0x00
-    #         msgs_2[0].Data[6] = 0x00
-    #         msgs_2[0].Data[7] = 0x00
-    #     elif i == 1:
-    #         data = motor_gen.sdo_write_32(1, "acceleration", 1000)["data"] # 加速度1000
-    #         for j in range(msgs_2[i].DataLen):
-    #             msgs_2[i].Data[j] = data[j]
-    #     elif i == 2:
-    #         data = motor_gen.sdo_write_32(1, "deceleration", 10000)["data"] # 减速度10000
-    #         for j in range(msgs_2[i].DataLen):
-    #             msgs_2[i].Data[j] = data[j]
-    #     elif i == 3:
-    #         data = motor_gen.sdo_write_32(1, "velocity", 100)["data"] # 速度100
-    #         for j in range(msgs_2[i].DataLen):
-    #             msgs_2[i].Data[j] = data[j]
-    #     elif i == 4:
-    #         data = motor_gen.sdo_write_32(1, "deceleration", 10000)["data"] # 减速度10000
-    #         for j in range(msgs_2[i].DataLen):
-    #             msgs_2[i].Data[j] = data[j]
-    #     elif i == 5:
-    #         data = motor_gen.sdo_write_32(1, "target_position", 10000)["data"] # 目标位置10000
-    #         for j in range(msgs_2[i].DataLen):
-    #             msgs_2[i].Data[j] = data[j]
-    #     elif i == 6:
-    #         data = motor_gen.sdo_write_32(1, "control_word", 0x6F)["data"] # 相对使能
-    #         for j in range(msgs_2[i].DataLen):
-    #             msgs_2[i].Data[j] = data[j]
-    #     elif i == 7:
-    #         data = motor_gen.sdo_write_32(1, "control_word", 0x7F)["data"] # 启动
-    #         for j in range(msgs_2[i].DataLen):
-    #             msgs_2[i].Data[j] = data[j]
+    #     msgs[i].ID           =   0x601
+    #     msgs[i].TimeStamp    =   0
+    #     msgs[i].TimeFlag     =   0
+    #     msgs[i].SendType     =   usbcan_param.SEND_TYPE["normal"]
+    #     msgs[i].RemoteFlag   =   0
+    #     msgs[i].ExternFlag   =   0
+    #     msgs[i].DataLen      =   8
+    # # 查看控制模式
+    # msgs[0].Data[0] = 0x40
+    # msgs[0].Data[1] = 0x61
+    # msgs[0].Data[2] = 0x60
+    # msgs[0].Data[3] = 0x00
+    # msgs[0].Data[4] = 0x00
+    # msgs[0].Data[5] = 0x00
+    # msgs[0].Data[6] = 0x00
+    # msgs[0].Data[7] = 0x00
+    # # 位置模式
+    # msgs[1].Data[0] = 0x2F
+    # msgs[1].Data[1] = 0x60
+    # msgs[1].Data[2] = 0x60
+    # msgs[1].Data[3] = 0x00
+    # msgs[1].Data[4] = 0x01
+    # msgs[1].Data[5] = 0x00
+    # msgs[1].Data[6] = 0x00
+    # msgs[1].Data[7] = 0x00
+    # # 加速度1000
+    # msgs[2].Data[0] = 0x23
+    # msgs[2].Data[1] = 0x83
+    # msgs[2].Data[2] = 0x60
+    # msgs[2].Data[3] = 0x00
+    # msgs[2].Data[4] = 0xE8
+    # msgs[2].Data[5] = 0x03
+    # msgs[2].Data[6] = 0x00
+    # msgs[2].Data[7] = 0x00
+    # # 减速度10000
+    # msgs[3].Data[0] = 0x23
+    # msgs[3].Data[1] = 0x84
+    # msgs[3].Data[2] = 0x60
+    # msgs[3].Data[3] = 0x00
+    # msgs[3].Data[4] = 0x10
+    # msgs[3].Data[5] = 0x27
+    # msgs[3].Data[6] = 0x00
+    # msgs[3].Data[7] = 0x00
+    # # 速度100
+    # msgs[4].Data[0] = 0x23
+    # msgs[4].Data[1] = 0x81
+    # msgs[4].Data[2] = 0x60
+    # msgs[4].Data[3] = 0x00
+    # msgs[4].Data[4] = 0x64
+    # msgs[4].Data[5] = 0x00
+    # msgs[4].Data[6] = 0x00
+    # msgs[4].Data[7] = 0x00
+    # # 目标位置10000
+    # msgs[5].Data[0] = 0x23
+    # msgs[5].Data[1] = 0x7A
+    # msgs[5].Data[2] = 0x60
+    # msgs[5].Data[3] = 0x00
+    # msgs[5].Data[4] = 0x10
+    # msgs[5].Data[5] = 0x27
+    # msgs[5].Data[6] = 0x00
+    # msgs[5].Data[7] = 0x00
+    # # 相对使能
+    # msgs[6].Data[0] = 0x2B
+    # msgs[6].Data[1] = 0x40
+    # msgs[6].Data[2] = 0x60
+    # msgs[6].Data[3] = 0x00
+    # msgs[6].Data[4] = 0x6F
+    # msgs[6].Data[5] = 0x00
+    # msgs[6].Data[6] = 0x00
+    # msgs[6].Data[7] = 0x00
+    # # 相对运行
+    # msgs[7].Data[0] = 0x2B
+    # msgs[7].Data[1] = 0x40
+    # msgs[7].Data[2] = 0x60
+    # msgs[7].Data[3] = 0x00
+    # msgs[7].Data[4] = 0x7F
+    # msgs[7].Data[5] = 0x00
+    # msgs[7].Data[6] = 0x00
+    # msgs[7].Data[7] = 0x00
+
+    # sendret = lib.VCI_Transmit(4, 0, 0, byref(msgs), LEN)
+    # if LEN == sendret:
+    #     print("transmit success, sendcount is: %d " % sendret)
+    # else:
+    #     print("transmit fail, sendcounet is: %d " % sendret)
+    
+    motor_2 = motor_fun.Motor(2)
+    
+    LEN = 8
     msgs_2 = (usbcan_struct.ZCAN_CAN_OBJ*LEN)()
     for i in range(LEN):
         msgs_2[i].ID           =   0x602
-        msgs_2[i].TimeStamp    =   0
-        msgs_2[i].TimeFlag     =   0
+        msgs_2[i].TimeStamp    =   usbcan_param.TIME_STAMP["off"]
+        msgs_2[i].TimeFlag     =   usbcan_param.TIME_FLAG["off"]
         msgs_2[i].SendType     =   usbcan_param.SEND_TYPE["normal"]
-        msgs_2[i].RemoteFlag   =   0
-        msgs_2[i].ExternFlag   =   0
-        msgs_2[i].DataLen      =   8
+        msgs_2[i].RemoteFlag   =   usbcan_param.REMOTE_FLAG["data"]
+        msgs_2[i].ExternFlag   =   usbcan_param.EXTERN_FLAG["standard"]
+        msgs_2[i].DataLen      =   usbcan_param.DATA_LEN["default"]
     # 位置模式
     # msgs_2[1].Data[0] = 0x2F
     # msgs_2[1].Data[1] = 0x60
@@ -277,9 +219,9 @@ if __name__=="__main__":
     # msgs_2[1].Data[5] = 0x00
     # msgs_2[1].Data[6] = 0x00
     # msgs_2[1].Data[7] = 0x00
-    data = motor_gen.sdo_write_32(1, "acceleration", 1000)["data"] # 加速度1000
-    for j in range(msgs_2[i].DataLen):
-        msgs_2[1].Data[j] = data[j]
+    # data = motor_gen.sdo_write_32(1, "control_mode", motor_pro.CONTROL_MODE["position_control"])["data"] # 位置模式
+    # for j in range(msgs_2[1].DataLen):
+    #     msgs_2[1].Data[j] = data[j]
     # 加速度1000
     # msgs_2[2].Data[0] = 0x23
     # msgs_2[2].Data[1] = 0x83
@@ -290,7 +232,7 @@ if __name__=="__main__":
     # msgs_2[2].Data[6] = 0x00
     # msgs_2[2].Data[7] = 0x00
     data = motor_gen.sdo_write_32(1, "acceleration", 1000)["data"] # 加速度1000
-    for j in range(msgs_2[i].DataLen):
+    for j in range(msgs_2[2].DataLen):
         msgs_2[2].Data[j] = data[j]
     # 减速度10000
     # msgs_2[3].Data[0] = 0x23
@@ -302,7 +244,7 @@ if __name__=="__main__":
     # msgs_2[3].Data[6] = 0x00
     # msgs_2[3].Data[7] = 0x00
     data = motor_gen.sdo_write_32(1, "deceleration", 10000)["data"] # 减速度10000
-    for j in range(msgs_2[i].DataLen):
+    for j in range(msgs_2[3].DataLen):
         msgs_2[3].Data[j] = data[j]
     # 速度100
     # msgs_2[4].Data[0] = 0x23
@@ -314,7 +256,7 @@ if __name__=="__main__":
     # msgs_2[4].Data[6] = 0x00
     # msgs_2[4].Data[7] = 0x00
     data = motor_gen.sdo_write_32(1, "velocity", 100)["data"] # 速度100
-    for j in range(msgs_2[i].DataLen):
+    for j in range(msgs_2[4].DataLen):
         msgs_2[4].Data[j] = data[j]
     # 目标位置10000
     # msgs_2[5].Data[0] = 0x23
@@ -326,7 +268,7 @@ if __name__=="__main__":
     # msgs_2[5].Data[6] = 0x00
     # msgs_2[5].Data[7] = 0x00
     data = motor_gen.sdo_write_32(1, "target_position", 20000)["data"] # 目标位置10000
-    for j in range(msgs_2[i].DataLen):
+    for j in range(msgs_2[5].DataLen):
         msgs_2[5].Data[j] = data[j]
     # 相对使能
     # msgs_2[6].Data[0] = 0x2B
@@ -338,7 +280,7 @@ if __name__=="__main__":
     # msgs_2[6].Data[6] = 0x00
     # msgs_2[6].Data[7] = 0x00
     data = motor_gen.sdo_write_32(1, "control_word", 0x6F)["data"] # 相对使能
-    for j in range(msgs_2[i].DataLen):
+    for j in range(msgs_2[6].DataLen):
         msgs_2[6].Data[j] = data[j]
     # 相对运行
     # msgs_2[7].Data[0] = 0x2B
@@ -350,8 +292,8 @@ if __name__=="__main__":
     # msgs_2[7].Data[6] = 0x00
     # msgs_2[7].Data[7] = 0x00
     data = motor_gen.sdo_write_32(1, "control_word", 0x7F)["data"] # 启动
-    for j in range(msgs_2[i].DataLen):
-        msgs_2[i].Data[j] = data[j]
+    for j in range(msgs_2[7].DataLen):
+        msgs_2[7].Data[j] = data[j]
 
     sendret = lib.VCI_Transmit(4, 0, 0, byref(msgs_2), LEN)
     if LEN == sendret:

@@ -6,7 +6,7 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR)
 
-import motor.protocol as protocol
+import motor.protocol as pro
 
 def sdo_read(node_id, flag, is_print = False) -> dict:
     
@@ -15,22 +15,22 @@ def sdo_read(node_id, flag, is_print = False) -> dict:
         return None
     
     num = 0
-    for key in protocol.OD.keys():
+    for key in pro.OD.keys():
         if flag != key:
             num = num + 1
         else:
             break
-        if num == len(protocol.OD.keys()):
+        if num == len(pro.OD.keys()):
             print("[SDOread] {}不存在!!!".format(flag))
             return None
     
-    index = protocol.OD[flag][0]
-    subindex = protocol.OD[flag][1]
+    index = pro.OD[flag][0]
+    subindex = pro.OD[flag][1]
     
-    cob_id = protocol.CAN_ID["SDO_R"] + node_id
+    cob_id = pro.CAN_ID["SDO_R"] + node_id
     
     data = [0x00] * 8
-    data[0] = protocol.CMD_T["read"]
+    data[0] = pro.CMD_T["read"]
     data[1] = __split_index(index)[0]
     data[2] = __split_index(index)[1]
     data[3] = subindex
@@ -54,12 +54,12 @@ def sdo_write_32(node_id, flag, value, is_print = False) -> dict:
         return None
     
     num = 0
-    for key in protocol.OD.keys():
+    for key in pro.OD.keys():
         if flag != key:
             num = num + 1
         else:
             break
-        if num == len(protocol.OD.keys()):
+        if num == len(pro.OD.keys()):
             print("[SDOwrite32] {}不存在!!!".format(flag))
             return None
     
@@ -71,13 +71,13 @@ def sdo_write_32(node_id, flag, value, is_print = False) -> dict:
         print("[SDOwrite32] value超出范围!!!")
         return None
     
-    index = protocol.OD[flag][0]
-    subindex = protocol.OD[flag][1]
+    index = pro.OD[flag][0]
+    subindex = pro.OD[flag][1]
     
-    cob_id = protocol.CAN_ID["SDO_R"] + node_id
+    cob_id = pro.CAN_ID["SDO_R"] + node_id
     
     data = [0x00] * 8
-    data[0] = protocol.CMD_T["write_32"]
+    data[0] = pro.CMD_T["write_32"]
     data[1] = __split_index(index)[0]
     data[2] = __split_index(index)[1]
     data[3] = subindex
@@ -105,7 +105,7 @@ def rpdo_1(node_id, value) -> dict:
     if value < 0 or value > 0xFFFFFFFF:
         print("value超出范围!!!")
         return None
-    cob_id = protocol.CAN_ID["RPDO_1"] + node_id
+    cob_id = pro.CAN_ID["RPDO_1"] + node_id
 
     pass
 
@@ -132,7 +132,7 @@ if __name__ == "__main__":
     msg_generation_test = True
     if msg_generation_test:
         sdo_read(1, "control_mode", True) # 查看控制模式
-        sdo_write_32(1, "control_mode", protocol.CONTROL_MODE["position_control"], True) # 位置模式
+        sdo_write_32(1, "control_mode", pro.CONTROL_MODE["position_control"], True) # 位置模式
         sdo_write_32(1, "acceleration", 1000, True) # 加速度1000
         sdo_write_32(1, "deceleration", 10000, True) # 减速度10000
         sdo_write_32(1, "velocity", 100, True) # 速度100
