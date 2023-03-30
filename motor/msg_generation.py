@@ -46,7 +46,7 @@ class Motor:
                 return None
         index = protocol.OD[flag][0]
         subindex = protocol.OD[flag][1]
-        cob_id = protocol.CAN_ID["SDO_T"] + self.node_id
+        cob_id = protocol.CAN_ID["SDO_R"] + self.node_id
         data = [0x00] * 8
         data[0] = protocol.CMD_T["read"]
         data[1] = self.__split_index(index)[0]
@@ -77,7 +77,7 @@ class Motor:
             return None
         index = protocol.OD[flag][0]
         subindex = protocol.OD[flag][1]
-        cob_id = protocol.CAN_ID["SDO_T"] + self.node_id
+        cob_id = protocol.CAN_ID["SDO_R"] + self.node_id
         data = [0x00] * 8
         data[0] = protocol.CMD_T["write_32"]
         data[1] = self.__split_index(index)[0]

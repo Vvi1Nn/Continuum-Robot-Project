@@ -100,8 +100,7 @@ class UsbCan:
                  data_len    = usbcan_param.DATA_LEN["default"],
                  time_stamp  = usbcan_param.TIME_STAMP["off"],
                  time_flag   = usbcan_param.TIME_FLAG["off"],
-                #  send_type   = usbcan_param.SEND_TYPE["test"],
-                 send_type   = 1,
+                 send_type   = usbcan_param.SEND_TYPE["single"],
                  remote_flag = usbcan_param.REMOTE_FLAG["data"],
                  extern_flag = usbcan_param.EXTERN_FLAG["standard"],
                  ) -> bool:
@@ -121,9 +120,6 @@ class UsbCan:
                 else:
                     for j in range(msgs[i].DataLen):
                         msgs[i].Data[j] = data[j]
-            # elif type(data) == str: # 例如: "40 60 60 00 00 00 00 00"
-            #     for j in range(msgs[i].DataLen):
-            #         msgs[i].Data[j] = int(data[3*i:3*(i+1)], 16)
         
         send_num = USBCAN_Lib.VCI_Transmit(self.DeviceType, self.DeviceIndex, self.Channel, byref(msgs), length)
         if length == send_num:
@@ -132,3 +128,7 @@ class UsbCan:
         else:
             print("[USBCAN] 传输失败... 数量:{}".format(send_num))
             return False
+    
+    def rcv_msg(self):
+        rcv_num = USBCAN_Lib.VCI_GetReceiveNum(self.DeviceType, self.DeviceIndex, self.Channel)
+        pass

@@ -119,7 +119,7 @@ if __name__=="__main__":
         msgs[i].ID           =   0x601
         msgs[i].TimeStamp    =   0
         msgs[i].TimeFlag     =   0
-        msgs[i].SendType     =   0
+        msgs[i].SendType     =   2
         msgs[i].RemoteFlag   =   0
         msgs[i].ExternFlag   =   0
         msgs[i].DataLen      =   8
@@ -144,16 +144,17 @@ if __name__=="__main__":
 
     while True:
         time.sleep(0.1)
-        ret  =  lib.VCI_GetReceiveNum(USBCAN2,DEVICE_INDEX,CHANNEL)
+        ret  =  lib.VCI_GetReceiveNum(4,0,0)
         if  ret:
             rcv_msgs  =(ZCAN_CAN_OBJ*ret)()
-            ret1 = lib.VCI_Receive(USBCAN2,DEVICE_INDEX,CHANNEL,byref(rcv_msgs),ret,100) 
+            ret1 = lib.VCI_Receive(4,0,0,byref(rcv_msgs),ret,100) 
             for i in range(ret1):
                     print("GetNum:%d, OrderNUM :%d,Timestamp:%d, id:%s , dlc:%d ,data:%s"%(ret,i,(rcv_msgs[i].TimeStamp),hex(rcv_msgs[i].ID),\
                         rcv_msgs[i].DataLen,''.join(hex(rcv_msgs[i].Data[j])+ ' 'for j in range(rcv_msgs[i].DataLen))))
         
         if thread.is_alive() == False:
                 break
+
 
     ret = lib.VCI_ResetCAN(USBCAN2,DEVICE_INDEX,CHANNEL)
     if ret ==0:
