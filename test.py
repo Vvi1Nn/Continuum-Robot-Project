@@ -17,7 +17,7 @@ Reserved      =   ZCAN_Reserved(0)
 CHANNEL       =   ZCAN_CHANNEL(0)
 
 def input_thread():
-   input()
+    input()
 
 class ZCAN_CAN_BOARD_INFO(Structure):
     _fields_ = [("hw_Version",c_ushort),
@@ -82,36 +82,36 @@ def GetDeviceInf(DeviceType,DeviceIndex):
         raise
                 
 def can_start(DEVCIE_TYPE,DEVICE_INDEX,CHANNEL):
-     init_config  = ZCAN_CAN_INIT_CONFIG()
-     init_config.AccCode    = 0
-     init_config.AccMask    = 0xFFFFFFFF
-     init_config.Reserved   = 0
-     init_config.Filter     = 1
-     init_config.Timing0    = 0x01
-     init_config.Timing1    = 0x1c
-     init_config.Mode       = 0
-     ret=lib.VCI_InitCAN(DEVCIE_TYPE,DEVICE_INDEX,CHANNEL,byref(init_config))
-     if ret ==0:
-         print("InitCAN fail!")
-     else:
-         print("InitCAN success!")
-         
-     ret=lib.VCI_StartCAN(DEVCIE_TYPE,DEVICE_INDEX,CHANNEL)
-     if ret ==0:
-         print("StartCAN fail!")
-     else:
-         print("StartCAN success!")
-     return ret
+    init_config  = ZCAN_CAN_INIT_CONFIG()
+    init_config.AccCode    = 0
+    init_config.AccMask    = 0xFFFFFFFF
+    init_config.Reserved   = 0
+    init_config.Filter     = 1
+    init_config.Timing0    = 0x01
+    init_config.Timing1    = 0x1c
+    init_config.Mode       = 0
+    ret=lib.VCI_InitCAN(DEVCIE_TYPE,DEVICE_INDEX,CHANNEL,byref(init_config))
+    if ret ==0:
+        print("InitCAN fail!")
+    else:
+        print("InitCAN success!")
+        
+    ret=lib.VCI_StartCAN(DEVCIE_TYPE,DEVICE_INDEX,CHANNEL)
+    if ret ==0:
+        print("StartCAN fail!")
+    else:
+        print("StartCAN success!")
+    return ret
 
 if __name__=="__main__":
 
-    ret = lib.VCI_OpenDevice(USBCAN2, DEVICE_INDEX, Reserved)
+    ret = lib.VCI_OpenDevice(4, 0, 0)
     if ret == 0:
         print("Opendevice fail!")
     else:
         print("Opendevice success!")
     
-    canstart = can_start(USBCAN2, DEVICE_INDEX, CHANNEL)
+    canstart = can_start(4, 0, 0)
     
     LEN = 1
     msgs = (ZCAN_CAN_OBJ*LEN)()
@@ -133,39 +133,38 @@ if __name__=="__main__":
         msgs[i].Data[6] = 0x00
         msgs[i].Data[7] = 0x00
 
-    sendret  =  lib.VCI_Transmit(USBCAN2,DEVICE_INDEX,CHANNEL,byref(msgs),LEN)
+    sendret = lib.VCI_Transmit(4, 0, 0, byref(msgs), LEN)
     if LEN == sendret:
-        print("transmit success , sendcount is :%d "%sendret)
+        print("transmit success, sendcount is: %d " % sendret)
     else:
-        print("transmit fail , sendcounet is :%d "%sendret)
+        print("transmit fail, sendcounet is: %d " % sendret)
 
-    thread=threading.Thread(target=input_thread)
+    thread = threading.Thread(target = input_thread)
     thread.start()
 
     while True:
         time.sleep(0.1)
-        ret  =  lib.VCI_GetReceiveNum(4,0,0)
-        if  ret:
-            rcv_msgs  =(ZCAN_CAN_OBJ*ret)()
-            ret1 = lib.VCI_Receive(4,0,0,byref(rcv_msgs),ret,100) 
+        ret  =  lib.VCI_GetReceiveNum(4, 0, 0)
+        if ret:
+            rcv_msgs = (ZCAN_CAN_OBJ*ret)()
+            ret1 = lib.VCI_Receive(4, 0, 0, byref(rcv_msgs), ret, 100) 
             for i in range(ret1):
-                    print("GetNum:%d, OrderNUM :%d,Timestamp:%d, id:%s , dlc:%d ,data:%s"%(ret,i,(rcv_msgs[i].TimeStamp),hex(rcv_msgs[i].ID),\
-                        rcv_msgs[i].DataLen,''.join(hex(rcv_msgs[i].Data[j])+ ' 'for j in range(rcv_msgs[i].DataLen))))
-        
+                print("GetNum:%d, OrderNUM:%d, Timestamp:%d, id:%s, dlc:%d, data:%s"%(ret,i,(rcv_msgs[i].TimeStamp),hex(rcv_msgs[i].ID),\
+                                                                                       rcv_msgs[i].DataLen,''.join(hex(rcv_msgs[i].Data[j])+ ' 'for j in range(rcv_msgs[i].DataLen))))
         if thread.is_alive() == False:
-                break
+            break
 
-
-    ret = lib.VCI_ResetCAN(USBCAN2,DEVICE_INDEX,CHANNEL)
-    if ret ==0:
+    ret = lib.VCI_ResetCAN(4, 0, 0)
+    if ret == 0:
         print("ResetCAN fail!")
     else:
         print("ResetCAN success!")
 
-    ret=lib.VCI_CloseDevice(USBCAN2,DEVICE_INDEX)
-    if ret ==0:
-            print("Closedevice Failed!")
+    ret=lib.VCI_CloseDevice(4, 0)
+    if ret == 0:
+        print("Closedevice Failed!")
     else:
-            print("Closedevice success!")
+        print("Closedevice success!")
+    
     del lib
     print('done')
