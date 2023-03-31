@@ -27,10 +27,11 @@ CMD_R = {"read_32":    0x43,
         }
 
 OD = {"control_word":      [0x6040, 0x00],
-      "status_word":       [0x6041, 0x00],
+      "status_word":       [0x6041, 0x00], # RO
       "control_mode":      [0x6060, 0x00],
-      "position_feedback": [0x6064, 0x00],
-      "speed_feedback":    [0x606C, 0x00],
+      "show_mode":         [0x6061, 0x00], # RO
+      "position_feedback": [0x6064, 0x00], # RO
+      "speed_feedback":    [0x606C, 0x00], # RO
       "target_position":   [0x607A, 0x00],
       "velocity":          [0x6081, 0x00],
       "acceleration":      [0x6083, 0x00],
