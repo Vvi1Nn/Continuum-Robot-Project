@@ -231,9 +231,9 @@ if __name__=="__main__":
     # msgs_2[2].Data[5] = 0x03
     # msgs_2[2].Data[6] = 0x00
     # msgs_2[2].Data[7] = 0x00
-    data = motor_gen.sdo_write_32(1, "acceleration", 1000)["data"] # 加速度1000
-    for j in range(msgs_2[2].DataLen):
-        msgs_2[2].Data[j] = data[j]
+    # data = motor_gen.sdo_write_32(1, "acceleration", 1000)["data"] # 加速度1000
+    # for j in range(msgs_2[2].DataLen):
+    #     msgs_2[2].Data[j] = data[j]
     # 减速度10000
     # msgs_2[3].Data[0] = 0x23
     # msgs_2[3].Data[1] = 0x84
@@ -243,9 +243,9 @@ if __name__=="__main__":
     # msgs_2[3].Data[5] = 0x27
     # msgs_2[3].Data[6] = 0x00
     # msgs_2[3].Data[7] = 0x00
-    data = motor_gen.sdo_write_32(1, "deceleration", 10000)["data"] # 减速度10000
-    for j in range(msgs_2[3].DataLen):
-        msgs_2[3].Data[j] = data[j]
+    # data = motor_gen.sdo_write_32(1, "deceleration", 10000)["data"] # 减速度10000
+    # for j in range(msgs_2[3].DataLen):
+    #     msgs_2[3].Data[j] = data[j]
     # 速度100
     # msgs_2[4].Data[0] = 0x23
     # msgs_2[4].Data[1] = 0x81
@@ -255,9 +255,9 @@ if __name__=="__main__":
     # msgs_2[4].Data[5] = 0x00
     # msgs_2[4].Data[6] = 0x00
     # msgs_2[4].Data[7] = 0x00
-    data = motor_gen.sdo_write_32(1, "velocity", 100)["data"] # 速度100
-    for j in range(msgs_2[4].DataLen):
-        msgs_2[4].Data[j] = data[j]
+    # data = motor_gen.sdo_write_32(1, "velocity", 100)["data"] # 速度100
+    # for j in range(msgs_2[4].DataLen):
+    #     msgs_2[4].Data[j] = data[j]
     # 目标位置10000
     # msgs_2[5].Data[0] = 0x23
     # msgs_2[5].Data[1] = 0x7A
