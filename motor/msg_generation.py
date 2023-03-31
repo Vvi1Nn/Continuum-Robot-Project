@@ -12,7 +12,7 @@ def sdo_read(node_id, flag, is_print = False) -> dict:
     
     if type(flag) != str:
         print("[SDOread] flag类型错误!!!")
-        return None
+        return False
     
     num = 0
     for key in pro.OD.keys():
@@ -22,7 +22,7 @@ def sdo_read(node_id, flag, is_print = False) -> dict:
             break
         if num == len(pro.OD.keys()):
             print("[SDOread] {}不存在!!!".format(flag))
-            return None
+            return False
     
     index = pro.OD[flag][0]
     subindex = pro.OD[flag][1]
@@ -51,7 +51,7 @@ def sdo_write_32(node_id, flag, value, is_print = False) -> dict:
     
     if type(flag) != str:
         print("[SDOwrite32] flag类型错误!!!")
-        return None
+        return False
     
     num = 0
     for key in pro.OD.keys():
@@ -61,15 +61,11 @@ def sdo_write_32(node_id, flag, value, is_print = False) -> dict:
             break
         if num == len(pro.OD.keys()):
             print("[SDOwrite32] {}不存在!!!".format(flag))
-            return None
+            return False
     
-    if type(value) != int:
-        print("[SDOwrite32] value类型错误!!!")
-        return None
-    
-    if value < 0 or value > 0xFFFFFFFF:
-        print("[SDOwrite32] value超出范围!!!")
-        return None
+    if type(value) != int or value < -0x80000000 or value > 0x7FFFFFFF:
+        print("[SDOwrite32] value 错误!!!")
+        return False
     
     index = pro.OD[flag][0]
     subindex = pro.OD[flag][1]
@@ -98,42 +94,105 @@ def sdo_write_32(node_id, flag, value, is_print = False) -> dict:
     
     return {"id": cob_id, "data": data}
 
-def rpdo_1(node_id, value) -> dict:
-    if type(value) != int:
-        print("sdo_write_32(): value 错误!!!")
-        return None
-    if value < 0 or value > 0xFFFFFFFF:
-        print("value超出范围!!!")
-        return None
-    cob_id = pro.CAN_ID["RPDO_1"] + node_id
+def rpdo(num, node_id, value_low, value_high, is_print = False) -> dict:
+    
+    if type(num) != int or num < 1 or num > 4:
+        print("[RPDO]: num 错误!!!")
+        return False
+    if type(node_id) != int or node_id < 1 or node_id > 0x7F:
+        print("[RPDO]: node_id 错误!!!")
+        return False
+    if type(value_low) != int or value_low < -0x80000000 or value_low > 0x7FFFFFFF:
+        print("[RPDO]: value_low 错误!!!")
+        return False
+    if type(value_high) != int or value_high < -0x80000000 or value_high > 0x7FFFFFFF:
+        print("[RPDO]: value_high 错误!!!")
+        return False
+    
+    cob_id = pro.CAN_ID["RPDO_" + str(num)] + node_id
 
-    pass
+    data = [0x00] * 8
+    value_low = __int2hex(value_low)
+    for i in range(4):
+        data[i] = value_low[i]
+    value_high = __int2hex(value_high)
+    for i in range(4):
+        data[4+i] = value_high[i]
+
+    if is_print:
+        hex_data = ["00"] * 8
+        print("[RPDO_{}]".format(num))
+        print("COB-ID: {}".format(hex(cob_id)[2:].upper()))
+        print("Data-List: ", end = "")
+        for i in range(len(data)):
+            hex_data[i] = hex(data[i])[2:].upper()
+            print("{} ".format(hex_data[i]), end = "")
+        print("")
+    
+    return {"id": cob_id, "data": data}
+
+def start_pdo(node_id, is_print = False) -> dict:
+    if type(node_id) != int or node_id < 1 or node_id > 0x7F:
+        print("[StartPDO]: node_id 错误!!!")
+        return False
+    
+    cob_id = 0x0
+    data = [0x01, node_id, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0]
+
+    if is_print:
+        hex_data = ["00"] * 8
+        print("[StartPDO]")
+        print("COB-ID: {}".format(hex(cob_id)[2:].upper()))
+        print("Data-List: ", end = "")
+        for i in range(len(data)):
+            hex_data[i] = hex(data[i])[2:].upper()
+            print("{} ".format(hex_data[i]), end = "")
+        print("")
+    
+    return {"id": cob_id, "data": data}
 
 def __split_index(index) -> list:
+    
     hex_str = hex(index)[2:].upper()
+    
     high_str = hex_str[0:2]
     low_str = hex_str[2:]
+    
     high_int = int(high_str, 16)
     low_int = int(low_str, 16)
+    
     return [low_int, high_int]
 
 def __int2hex(value_int) -> list:
-    value_str = hex(value_int)[2:].upper()
-    if len(value_str) < 8:
-        value_str = '0'*(8-len(value_str)) + value_str
+    
+    if type(value_int) != int or value_int > 0x7FFFFFFF or value_int < -0x80000000:
+        print("[__int2hex] value 错误!!!")
+        return False
+    
+    if value_int >= 0:
+        value_str = hex(value_int)[2:].upper()
+        if len(value_str) < 8:
+            value_str = '0'*(8-len(value_str)) + value_str
+    else:
+        value_str = hex(int(bin(- value_int ^ 0xFFFFFFFF), 2) + 1)[2:].upper()
+    
     value_list = [0x0] * 4
     value_list[0] = int(value_str[6:8], 16)
     value_list[1] = int(value_str[4:6], 16)
     value_list[2] = int(value_str[2:4], 16)
     value_list[3] = int(value_str[0:2], 16)
+    
     return value_list
 
 if __name__ == "__main__":
     sdo_read(1, "control_mode", True) # 查看控制模式
-    sdo_write_32(1, "control_mode", pro.CONTROL_MODE["position_control"], True) # 位置模式
-    sdo_write_32(1, "acceleration", 1000, True) # 加速度1000
-    sdo_write_32(1, "deceleration", 10000, True) # 减速度10000
-    sdo_write_32(1, "velocity", 100, True) # 速度100
-    sdo_write_32(1, "target_position", 10000, True) # 目标位置10000
-    sdo_write_32(1, "control_word", 0x6F, True) # 相对使能
-    sdo_write_32(1, "control_word", 0x7F, True) # 启动
+    # sdo_write_32(1, "control_mode", pro.CONTROL_MODE["position_control"], True) # 位置模式
+    # sdo_write_32(1, "acceleration", 1000, True) # 加速度1000
+    # sdo_write_32(1, "deceleration", 10000, True) # 减速度10000
+    # sdo_write_32(1, "velocity", 100, True) # 速度100
+    # sdo_write_32(1, "target_position", 10000, True) # 目标位置10000
+    # sdo_write_32(1, "control_word", 0x6F, True) # 相对使能
+    # sdo_write_32(1, "control_word", 0x7F, True) # 启动
+    start_pdo(3, True)
+    rpdo(1, 5, 10000, -10000, True)
+    
