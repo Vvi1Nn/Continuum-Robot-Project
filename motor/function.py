@@ -70,7 +70,7 @@ class Motor:
         
         send_num = USBCAN_Lib.VCI_Transmit(4, 0, 0, byref(msg), 1)
         if send_num == 1:
-            print("[SetMode] {} 成功!!!".format(self.mode))
+            print("[SetMode] {}".format(self.mode))
         else:
             print("[SetMode] 失败...")
 
@@ -101,7 +101,7 @@ class Motor:
 
         send_num = USBCAN_Lib.VCI_Transmit(4, 0, 0, byref(msg), 1)
         if send_num == 1:
-            print("[SetAcc] {} 成功!!!".format(self.acc))
+            print("[SetAcc] {}".format(self.acc))
         else:
             print("[SetAcc] 失败...")
 
@@ -132,7 +132,7 @@ class Motor:
 
         send_num = USBCAN_Lib.VCI_Transmit(4, 0, 0, byref(msg), 1)
         if send_num == 1:
-            print("[SetDec] {} 成功!!!".format(self.dec))
+            print("[SetDec] {}".format(self.dec))
         else:
             print("[SetDec] 失败...")
 
@@ -163,6 +163,13 @@ class Motor:
 
         send_num = USBCAN_Lib.VCI_Transmit(4, 0, 0, byref(msg), 1)
         if send_num == 1:
-            print("[SetVel] {} 成功!!!".format(self.vel))
+            print("[SetVel] {}".format(self.vel))
         else:
             print("[SetVel] 失败...")
+    
+    def set_position(self, value):
+        
+        pass
+    
+    def execute(self):
+        pass
