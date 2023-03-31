@@ -1,5 +1,7 @@
 # Continuum Robot Project
-龙骨式原位无损检测连续体机器人技术研究。
+龙骨式原位无损检测连续体机器人技术研究工程代码
+
+功能介绍如下
 
 ## CAN卡
 设备为致远电子的USBCAN-II，支持Linux驱动和二次开发，可实现CAN总线与主机之间的CANopen协议的通讯。
@@ -29,4 +31,11 @@
 ### 通讯协议
 `protocol`: 控制电机所需要的所有协议参数，包括对象字典、SDO和PDO通讯的CAN-ID、收发命令的CMD。
 
+### 消息生成
 `msg_generation.py`: 电机控制信号的生成，即COB-ID和8个字节的消息数据。
+
+### 消息解析
+`msg_resolution.py`: 解析通过USBCAN接收的消息。
+
+### 电机控制
+`function.py`: 电机控制函数。
