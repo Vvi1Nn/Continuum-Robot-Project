@@ -9,73 +9,75 @@ sys.path.append(BASE_DIR)
 import motor.protocol as pro
 
 def resolve(cob_id, data) -> str:
-    msg = ""
 
     if cob_id > 0x200 and cob_id < 0x280:
-        msg = msg + "[RPDO1]"
+        
+        mode = "RPDO1"
         node_id = cob_id - 0x200
 
+        value_low = __hex2int([data[0], data[1], data[2], data[3]])
+        value_high = __hex2int([data[4], data[5], data[6], data[7]])
+
+        msg = "[{}] 低 = {} 高 = {}".format(mode, value_low, value_high)
 
     elif cob_id > 0x300 and cob_id < 0x380:
-        msg = msg + "[RPDO2]"
+        
+        mode = "RPDO2"
         node_id = cob_id - 0x300
+
+        value_low = __hex2int([data[0], data[1], data[2], data[3]])
+        value_high = __hex2int([data[4], data[5], data[6], data[7]])
+
+        msg = "[{}] 低 = {} 高 = {}".format(mode, value_low, value_high)
     
     elif cob_id > 0x400 and cob_id < 0x480:
-        msg = msg + "[RPDO3]"
+        
+        mode = "RPDO3"
         node_id = cob_id - 0x400
+
+        value_low = __hex2int([data[0], data[1], data[2], data[3]])
+        value_high = __hex2int([data[4], data[5], data[6], data[7]])
+
+        msg = "[{}] 低 = {} 高 = {}".format(mode, value_low, value_high)
     
     elif cob_id > 0x500 and cob_id < 0x580:
-        msg = msg + "[RPDO4]"
+        
+        mode = "RPDO4"
         node_id = cob_id - 0x500
+
+        value_low = __hex2int([data[0], data[1], data[2], data[3]])
+        value_high = __hex2int([data[4], data[5], data[6], data[7]])
+
+        msg = "[{}] 低 = {} 高 = {}".format(mode, value_low, value_high)
     
     elif cob_id > 0x580 and cob_id < 0x600:
-        msg = msg + "[SDO_R] "
+
+        mode = "SDO"
         node_id = cob_id - 0x580
         
-        if data[0] == pro.CMD_R["read_32"] or data[0] == pro.CMD_R["read_16"] or data[0] == pro.CMD_R["read_8"]:
-            msg = msg + "电机{} ".format(node_id)
-            address = __match_index(data[1], data[2], data[3])
-            if address == pro.OD["control_word"]:
-                msg = msg + "控制字: "
-            elif address == pro.OD["status_word"]:
-                msg = msg + "状态字: "
-            elif address == pro.OD["show_mode"]:
-                msg = msg + "控制模式: "
-            elif address == pro.OD["position_feedback"]:
-                msg = msg + "当前位置: "
-            elif address == pro.OD["speed_feedback"]:
-                msg = msg + "当前速度: "
-            elif address == pro.OD["target_position"]:
-                msg = msg + "目标位置: "
-            elif address == pro.OD["velocity"]:
-                msg = msg + "运行速度: "
-            elif address == pro.OD["acceleration"]:
-                msg = msg + "加速度: "
-            elif address == pro.OD["deceleration"]:
-                msg = msg + "减速度: "
-            elif address == pro.OD["target_speed"]:
-                msg = msg + "目标速度: "
+        for key in pro.CMD_R.keys():
+            if data[0] == pro.CMD_R[key]:
+                cmd = key
         
-        elif data[0] == pro.CMD_R["write"]:
-            address = __match_index(data[1], data[2], data[3])
-            if address == pro.OD["control_word"]:
-                msg = msg + "成功写入电机{}的控制字".format(node_id)
-            elif address == pro.OD["control_mode"]:
-                msg = msg + "成功写入电机{}的控制模式".format(node_id)
-            elif address == pro.OD["target_position"]:
-                msg = msg + "成功写入电机{}的目标位置".format(node_id)
-            elif address == pro.OD["velocity"]:
-                msg = msg + "成功写入电机{}的运行速度".format(node_id)
-            elif address == pro.OD["acceleration"]:
-                msg = msg + "成功写入电机{}的加速度".format(node_id)
-            elif address == pro.OD["deceleration"]:
-                msg = msg + "成功写入电机{}的减速度".format(node_id)
-            elif address == pro.OD["target_speed"]:
-                msg = msg + "成功写入电机{}的目标速度".format(node_id)
+        address = __match_index(data[1], data[2], data[3])
+        for key in pro.OD.keys():
+            if address == pro.OD[key]:
+                od = key
         
-        elif data[0] == pro.CMD_R["read_error"] or data[0] == pro.CMD_R["write_error"]:
-            msg = msg + "错误: 无法对电机{}的地址 [{}{}--{}] 进行操作!!!".format(node_id, hex(data[2])[2:].upper(), hex(data[1])[2:].upper(), hex(data[3])[2:].upper())
-
+        value = __hex2int([data[4], data[5], data[6], data[7]])
+        
+        if cmd[0:4] == "read":
+            if od == "control_word" or od == "status_word":
+                value_bin = bin(value)[2:]
+                value_bin = '0' * (8 - len(value_bin)) + value_bin
+                msg = "[{}] 读取 {} = {}".format(mode, od, value_bin)
+            else:
+                msg = "[{}] 读取 {} = {}".format(mode, od, value)
+        elif cmd == "write":
+            msg = "[{}] 写入 [{}] 成功!".format(mode, od)
+        else:
+            msg = "[{}] {}... [{}] 不存在".format(mode, cmd, od)
+        
     return msg
 
 def __match_index(index_low, index_high, subindex) -> list:
@@ -89,10 +91,21 @@ def __match_index(index_low, index_high, subindex) -> list:
 
     return [index, subindex]
 
-def __hex2int(data_list):
+def __hex2int(data_list) -> int:
     
-    pass
+    data_str = ""
+    
+    for i in range(len(data_list)):
+        data_bin = bin(data_list[i])[2:]
+        if len(data_bin) < 8:
+            data_bin = '0' * (8 - len(data_bin)) + data_bin
+        data_str = data_bin + data_str
+
+    if int(data_str[0]) == 0:
+        return int(data_str, 2)
+    else:
+        return - ((int(data_str, 2) ^ 0xFFFFFFFF) + 1)
 
 if __name__ == "__main__":
-    ret = resolve(0x581, [0X80,0X61,0X60,0X00,0X01,0X00,0X00,0X00])
+    ret = resolve(0x581, [0x43,0x40,0x60,0x00,0x7f,0x00,0x00,0x00])
     print(ret)
