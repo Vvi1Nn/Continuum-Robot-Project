@@ -18,12 +18,11 @@ CMD_T = {"read":    0x40,
         "write_8":  0x2F,
         }
 
-CMD_R = {"read_32":    0x43,
-        "read_16":     0x4B,
-        "read_8":      0x4F,
-        "read_error":  0x80,
-        "write":       0x60,
-        "write_error": 0x80,
+CMD_R = {"read_32": 0x43,
+        "read_16":  0x4B,
+        "read_8":   0x4F,
+        "write":    0x60,
+        "error":    0x80,
         }
 
 OD = {"control_word":      [0x6040, 0x00],
