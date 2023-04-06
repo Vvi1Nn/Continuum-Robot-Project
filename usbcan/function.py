@@ -73,9 +73,9 @@ class UsbCan:
         
         start_success = USBCAN_Lib.VCI_StartCAN(self.__device_type, self.__device_index, self.__channel)
         if start_success == 1:
-            print("\033[0;32m[Channel {}] Start\033[0m".format(self.__device_index))
+            print("\033[0;32m[Channel {}] start\033[0m".format(self.__device_index))
         else:
-            print("\033[0;31m[Channel {}] Start failed\033[0m".format(self.__device_index))
+            print("\033[0;31m[Channel {}] start failed\033[0m".format(self.__device_index))
         
         return True if start_success == 1 else False
     
@@ -141,16 +141,21 @@ class UsbCan:
                 print("[Channel {}] send failed, num: {}".format(send_num))
             return False
 
-    def receive(self, wait_time = 100) -> None:
+    def get_cache_num(self) -> int:   
         
         cache_num = USBCAN_Lib.VCI_GetReceiveNum(self.__device_type, self.__device_index, self.__channel)
-        print("[Channel {}] 缓冲区数量:{}".format(cache_num))
+        print("[Channel {}] cache num: {}".format(cache_num))
         
-        if cache_num > 0:
-            rcv_msgs = (usbcan_struct.ZCAN_CAN_OBJ * cache_num)()
-            rcv_num = USBCAN_Lib.VCI_Receive(self.__device_type, self.__device_index, self.__channel, byref(rcv_msgs), cache_num, wait_time)
-            for i in range(rcv_num):
-                resolution = motor_msgres.resolve(rcv_msgs[i].ID, rcv_msgs[i].Data)
-                print(resolution)
-                # print("[Receive No.{}]\nCOB-ID: {}\n数据: {}".format(i, hex(rcv_msgs[i].ID), ''.join(hex(rcv_msgs[i].Data[j]) + ' ' for j in range(rcv_msgs[i].DataLen))))
+        return cache_num
 
+    def read_cache(self, read_num, wait_time = 100) -> usbcan_struct.ZCAN_CAN_OBJ:
+        
+        cache_num = self.get_cache_num()
+        read_num = cache_num if cache_num < read_num else read_num
+        
+        rcv_msgs = (usbcan_struct.ZCAN_CAN_OBJ * read_num)()
+        rcv_num = USBCAN_Lib.VCI_Receive(self.__device_type, self.__device_index, self.__channel, byref(rcv_msgs), read_num, wait_time)
+        return rcv_msgs
+        
+    def clear_cache(self) -> bool:
+        pass
