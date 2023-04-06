@@ -41,4 +41,4 @@ if __name__=="__main__":
             print("结束!!!")
             break
     
-    usbcan_1.receive_all()
+    usbcan_1.receive()

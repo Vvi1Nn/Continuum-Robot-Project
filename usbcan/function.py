@@ -9,6 +9,7 @@ USBCAN_Lib = cdll.LoadLibrary("./libusbcan.so")
 
 import usbcan.struct as usbcan_struct
 import usbcan.param as usbcan_param
+import motor.msg_resolution as motor_msgres
 
 class UsbCan:
     
@@ -187,17 +188,6 @@ class UsbCan:
                 print("[USBCANsend] 传输失败... 数量:{}".format(send_num))
             return False
 
-    def receive_all(self, wait_time = 100) -> None:
-        
-        cache_num = USBCAN_Lib.VCI_GetReceiveNum(self.DeviceType, self.DeviceIndex, self.Channel)
-        print("[Receive] 缓冲区数量:{}".format(cache_num))
-        
-        if cache_num > 0:
-            rcv_msgs = (usbcan_struct.ZCAN_CAN_OBJ * cache_num)()
-            rcv_num = USBCAN_Lib.VCI_Receive(self.DeviceType, self.DeviceIndex, self.Channel, byref(rcv_msgs), cache_num, wait_time)
-            for i in range(rcv_num):
-                print("[Receive No.{}]\nCOB-ID: {}\n数据: {}".format(i, hex(rcv_msgs[i].ID), ''.join(hex(rcv_msgs[i].Data[j]) + ' ' for j in range(rcv_msgs[i].DataLen))))
-
     def receive_single(self, wait_time = 100) -> None:
         
         cache_num = USBCAN_Lib.VCI_GetReceiveNum(self.DeviceType, self.DeviceIndex, self.Channel)
@@ -207,3 +197,16 @@ class UsbCan:
             rcv_msgs = (usbcan_struct.ZCAN_CAN_OBJ * 1)()
             rcv_num = USBCAN_Lib.VCI_Receive(self.DeviceType, self.DeviceIndex, self.Channel, byref(rcv_msgs), 1, wait_time)
             print("[Receive]\nCOB-ID: {}\n数据: {}".format(hex(rcv_msgs[0].ID), ''.join(hex(rcv_msgs[0].Data[j]) + ' ' for j in range(rcv_msgs[0].DataLen))))
+
+    def receive(self, wait_time = 100) -> None:
+        
+        cache_num = USBCAN_Lib.VCI_GetReceiveNum(self.DeviceType, self.DeviceIndex, self.Channel)
+        print("[Receive] 缓冲区数量:{}".format(cache_num))
+        
+        if cache_num > 0:
+            rcv_msgs = (usbcan_struct.ZCAN_CAN_OBJ * cache_num)()
+            rcv_num = USBCAN_Lib.VCI_Receive(self.DeviceType, self.DeviceIndex, self.Channel, byref(rcv_msgs), cache_num, wait_time)
+            for i in range(rcv_num):
+                resolution = motor_msgres.resolve(rcv_msgs[i].Data)
+                print(resolution)
+                # print("[Receive No.{}]\nCOB-ID: {}\n数据: {}".format(i, hex(rcv_msgs[i].ID), ''.join(hex(rcv_msgs[i].Data[j]) + ' ' for j in range(rcv_msgs[i].DataLen))))

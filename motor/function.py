@@ -6,11 +6,9 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR)
 
-from ctypes import *
-USBCAN_Lib = cdll.LoadLibrary("./libusbcan.so")
-
 import motor.protocol as pro
 import motor.msg_generation as gen
+import motor.msg_resolution as reso
 import usbcan.struct as struct
 import usbcan.param as param
 
