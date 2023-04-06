@@ -17,3 +17,8 @@ print("\033[5;34m蓝+闪烁\033[0m")
 print("\033[7;35m紫红+反白\033[0m")
 print("\033[0;36m青蓝\033[0m")
 print("\033[8;37m白+不可见\033[0m")
+
+data = [0x10, 0x20]
+for i in range(8-len(data)):
+    data.append(0x00)
+print(data)

@@ -25,7 +25,25 @@ CMD_R = {"read_32": 0x43,
         "error":    0x80,
         }
 
-OD = {"control_word":      [0x6040, 0x00],
+CONTROL_MODE = {"position_control": 1,
+                "speed_control":    3,
+                "home_control":     6,
+                }
+
+CONTROL_WORD = {}
+
+STATUS_WORD = {}
+
+OD = {"save_all":          [0x1010, 0x01],
+      "tpdo_1_transtype":  [0x1800, 0x02], # FE:数值变化触发 FF:定时触发
+      "tpdo_1_timer":      [0x1800, 0x05], # 定时间隔 单位:ms
+      "tpdo_2_transtype":  [0x1801, 0x02],
+      "tpdo_2_timer":      [0x1801, 0x05],
+      "tpdo_3_transtype":  [0x1801, 0x02],
+      "tpdo_3_timer":      [0x1801, 0x05],
+      "tpdo_4_transtype":  [0x1801, 0x02],
+      "tpdo_4_timer":      [0x1801, 0x05],
+      "control_word":      [0x6040, 0x00],
       "status_word":       [0x6041, 0x00], # RO
       "control_mode":      [0x6060, 0x00],
       "show_mode":         [0x6061, 0x00], # RO
@@ -37,8 +55,3 @@ OD = {"control_word":      [0x6040, 0x00],
       "deceleration":      [0x6084, 0x00],
       "target_speed":      [0x60FF, 0x00],
       }
-
-CONTROL_MODE = {"position_control": 1,
-                "speed_control":    3,
-                "zero_control":     6,
-                }

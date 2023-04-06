@@ -232,3 +232,6 @@ class Motor:
         else:
             print("[ShutDown {}] 失败".format(self.id))
             return False
+
+    def get_position(self):
+        pass

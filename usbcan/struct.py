@@ -2,40 +2,6 @@
 
 from ctypes import *
 
-class ZCAN_CAN_BOARD_INFO(Structure):
-    _fields_ = [("hw_Version",     c_ushort),     # 硬件版本号，16进制
-                ("fw_Version",     c_ushort),     # 固件版本号，16进制
-                ("dr_Version",     c_ushort),     # 驱动程序版本号，16进制
-                ("in_Version",     c_ushort),     # 接口库版本号，16进制
-                ("irq_Num",        c_ushort),     # 板卡所使用的中断号
-                ("can_Num",        c_ubyte),      # 表示有几路通道
-                ("str_Serial_Num", c_ubyte * 20), # 板卡的序列号
-                ("str_hw_Type",    c_ubyte * 40), # 硬件类型
-                ("Reserved",       c_ubyte * 4),  # 仅作保留，不设置
-                ]
-    
-    def __str__(self):
-        return "Hardware Version: {}\nFirmware Version: {}\nDriver Version: {}\nInterface: {}\nInterrupt Number: {}\nCAN_number: {}".format \
-            (self.hw_Version, self.fw_Version, self.dr_Version, self.in_Version, self.irq_Num, self.can_Num)
-        
-    def serial(self):
-        serial = ''
-        for c in self.str_Serial_Num:
-            if c > 0:
-                serial += chr(c)
-            else:
-                break
-        return serial
-        
-    def hw_Type(self):
-        hw_Type = ''
-        for c in self.str_hw_Type:
-            if c > 0:
-                hw_Type += chr(c)
-            else:
-                break
-        return hw_Type
-
 class ZCAN_CAN_INIT_CONFIG(Structure):
     _fields_ = [("AccCode",  c_int),   # 验收码
                 ("AccMask",  c_int),   # 屏蔽码
