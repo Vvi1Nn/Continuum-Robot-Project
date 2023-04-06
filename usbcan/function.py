@@ -5,7 +5,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR)
 
 from ctypes import *
-USBCAN_Lib = cdll.LoadLibrary("./libusbcan.so")
+USBCAN_Lib = cdll.LoadLibrary(BASE_DIR + "/libusbcan.so")
 
 import usbcan.struct as usbcan_struct
 import usbcan.param as usbcan_param
