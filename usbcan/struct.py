@@ -23,9 +23,3 @@ class CAN_OBJ(Structure):
                 ("Data",       c_ubyte * 8), # CAN帧的数据
                 ("Reserved",   c_ubyte * 3), # 系统保留
                 ]
-
-class ERR_INFO(Structure):
-    _fields_ = [("ErrCode",          c_uint32),    # 错误码
-                ("Passive_ErrData",  c_ubyte * 3), # 消极错误
-                ("ArLost_ErrData",   c_byte),      # 仲裁丢失错误
-                ]
