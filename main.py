@@ -17,12 +17,20 @@ from motor.function import *
 if __name__=="__main__":
     
     UsbCan.open()
-
     usbcan_0 = UsbCan(usbcan_param.CHANNEL["0"])
     usbcan_1 = UsbCan(usbcan_param.CHANNEL["1"])
-    
-    motor_1 = Motor(usbcan_0, 1, "position_control")
-    motor_2 = Motor(usbcan_0, 2, "position_control")
+
+    Motor.config(usbcan_0)
+    motor_1 = Motor(1)
+    motor_2 = Motor(2)
+    motor_3 = Motor(3)
+    motor_4 = Motor(4)
+    motor_5 = Motor(5)
+    motor_6 = Motor(6)
+    motor_7 = Motor(7)
+    motor_8 = Motor(8)
+    motor_9 = Motor(9)
+    motor_10 = Motor(10)
     
     Action = True
     while Action:
