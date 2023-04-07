@@ -9,119 +9,103 @@ sys.path.append(BASE_DIR)
 import motor.protocol as pro
 import motor.msg_generation as gen
 import motor.msg_resolution as reso
-import usbcan.struct as struct
-import usbcan.param as param
 
 class Motor:
     
-    def __init__(self, device, node_id,
-                 control_mode = "position_control",
-                 acceleration = 1000,
-                 deceleration = 10000,
-                 velocity     = 100,
-                 ) -> None:
-        
-        self.device = device
-        self.id = node_id
-        self.mode = control_mode
-        self.acc = acceleration
-        self.dec = deceleration
-        self.vel = velocity
+    __control_mode = pro.CONTROL_MODE["position_control"]
+    __acceleration = 1000
+    __deceleration = 10000
+    __velocity     = 100
 
+    def __init__(self, node_id) -> None:
+        
+        self.id = node_id
+        self.__init()
+    
+    def __str__(self) -> str:
+        return "[Motor {}] {} acc:{} dec:{} vel:{}".format(self.id, Motor.__control_mode, Motor.__acceleration, Motor.__deceleration, Motor.__velocity)
+    
+    @classmethod
+    def config(cls, device,
+               control_mode = pro.CONTROL_MODE["position_control"],
+               acceleration = 1000,
+               deceleration = 10000,
+               velocity     = 100,
+               ):
+        
+        cls.__device = device
+        print("\033[0;32m[Motor] device {}\033[0m".format(cls.__device))
+
+        cls.__control_mode = control_mode
+        print("\033[0;32m[Motor] control_mode {}\033[0m".format(cls.__control_mode))
+        
+        if acceleration < 1000 or acceleration > 10000:
+            acceleration = 1000
+        cls.__acceleration = acceleration
+        print("\033[0;32m[Motor] acceleration {}\033[0m".format(cls.__acceleration))
+        
+        if deceleration < 5000 or deceleration > 10000:
+            deceleration = 10000
+        cls.__deceleration = deceleration
+        print("\033[0;32m[Motor] deceleration {}\033[0m".format(cls.__deceleration))
+        
+        if velocity < 50 or velocity > 100:
+            velocity = 75
+        cls.__velocity = velocity
+        print("\033[0;32m[Motor] velocity {}\033[0m".format(cls.__velocity))
+
+    def __init(self):
         mode_success = self.__set_mode()
         acc_success = self.__set_acc()
         dec_success = self.__set_dec()
         vel_success = self.__set_vel()
-    
-    def __set_mode(self) -> bool:
-        
-        if type(self.mode) != str:
-            print("[Motor] SetMode {} flag error".format(self.id))
-            return False
-    
-        num = 0
-        for key in pro.CONTROL_MODE.keys():
-            if self.mode != key:
-                num = num + 1
-            else:
-                break
-            if num == len(pro.CONTROL_MODE.keys()):
-                print("[Motor] SetMode {} {} doesn't exist".format(self.id, self.mode))
-                return False
 
-        [cob_id, data] = gen.sdo_write_32(self.id, "control_mode", pro.CONTROL_MODE[self.mode])
+    def __set_mode(self) -> bool:
+
+        [cob_id, data] = gen.sdo_write_32(self.id, "control_mode", Motor.__control_mode)
         
-        success = self.device.send(cob_id, [data])
+        success = Motor.__device.send(cob_id, [data])
         if success:
-            print("\033[0;32m[Motor] SetMode {} {}\033[0m".format(self.id, self.mode))
+            print("\033[0;32m[Motor {}] control mode: {}\033[0m".format(self.id, Motor.__control_mode))
             return True
         else:
-            print("\033[0;31m[Motor] SetMode {} failed\033[0m".format(self.id))
+            print("\033[0;31m[Motor {}] set control mode failed\033[0m".format(self.id))
             return False
 
     def __set_acc(self) -> bool:
-        
-        if type(self.acc) != int:
-            print("[SetAcc {}] acceleration类型错误!!!".format(self.id))
-            return False
-    
-        if self.acc < 0 or self.acc > 1000:
-            print("[SetAcc {}] acceleration超出范围!!!".format(self.id))
-            return False
 
-        ret = gen.sdo_write_32(self.id, "acceleration", self.acc)
-        cob_id = ret["id"]
-        data = [ret["data"]]
+        [cob_id, data] = gen.sdo_write_32(self.id, "acceleration", Motor.__acceleration)
 
-        success = self.device.send(cob_id, data)
+        success = Motor.__device.send(cob_id, [data])
         if success:
-            print("[SetAcc {}] {}".format(self.id, self.acc))
+            print("\033[0;32m[Motor {}] acceleration: {}\033[0m".format(self.id, Motor.__acceleration))
             return True
         else:
-            print("[SetAcc {}] 失败".format(self.id))
+            print("\033[0;31m[Motor {}] set acceleration failed\033[0m".format(self.id))
             return False
 
     def __set_dec(self) -> bool:
-        
-        if type(self.dec) != int:
-            print("[SetDec {}] deceleration类型错误!!!".format(self.id))
-            return False
-    
-        if self.dec < 0 or self.dec > 10000:
-            print("[SetDec {}] deceleration超出范围!!!".format(self.id))
-            return False
 
-        ret = gen.sdo_write_32(self.id, "deceleration", self.dec)
-        cob_id = ret["id"]
-        data = [ret["data"]]
+        [cob_id, data] = gen.sdo_write_32(self.id, "deceleration", self.dec)
 
-        success = self.device.send(cob_id, data)
+        success = Motor.__device.send(cob_id, [data])
         if success:
-            print("[SetDec {}] {}".format(self.id, self.dec))
+            print("\033[0;32m[Motor {}] deceleration: {}\033[0m".format(self.id, Motor.__deceleration))
             return True
         else:
-            print("[SetDec {}] 失败".format(self.id))
+            print("\033[0;31m[Motor {}] set deceleration failed\033[0m".format(self.id))
             return False
 
     def __set_vel(self) -> bool:
-        
-        if type(self.vel) != int:
-            print("[SetVel {}] velocity类型错误!!!".format(self.id))
-            return False
-    
-        if self.vel < 0 or self.vel > 200:
-            print("[SetVel {}] velocity超出范围!!!".format(self.id))
-            return False
 
-        ret = gen.sdo_write_32(self.id, "velocity", self.vel)
-        cob_id = ret["id"]
-        data = [ret["data"]]
+        [cob_id, data] = gen.sdo_write_32(self.id, "velocity", self.vel)
 
-        success = self.device.send(cob_id, data)
+        success = Motor.__device.send(cob_id, [data])
         if success:
-            print("[SetVel {}] {}".format(self.id, self.vel))
+            print("\033[0;32m[Motor {}] velocity: {}\033[0m".format(self.id, Motor.__velocity))
+            return True
         else:
-            print("[SetVel {}] 失败".format(self.id))
+            print("\033[0;31m[Motor {}] set velocity failed\033[0m".format(self.id))
             return False
     
     def set_position(self, position) -> bool:
