@@ -8,10 +8,10 @@ sys.path.append(BASE_DIR)
 
 import motor.protocol as pro
 
-def sdo_read(node_id, flag, is_print = False) -> dict:
+def sdo_read(node_id, flag, is_print = False) -> list:
     
     if type(flag) != str:
-        print("[SDOread] flag类型错误!!!")
+        print("\033[0;31m[MsgGen] sdo_read() flag error\033[0m")
         return False
     
     num = 0
@@ -21,7 +21,7 @@ def sdo_read(node_id, flag, is_print = False) -> dict:
         else:
             break
         if num == len(pro.OD.keys()):
-            print("[SDOread] {}不存在!!!".format(flag))
+            print("\033[0;31m[MsgGen] sdo_read() {} doesn't exist\033[0m".format(flag))
             return False
     
     index = pro.OD[flag][0]
@@ -45,12 +45,12 @@ def sdo_read(node_id, flag, is_print = False) -> dict:
             print("{} ".format(hex_data[i]), end = "")
         print("")
 
-    return {"id": cob_id, "data": data}
+    return [cob_id, data]
 
-def sdo_write_32(node_id, flag, value, is_print = False) -> dict:
+def sdo_write_32(node_id, flag, value, is_print = False) -> list:
     
     if type(flag) != str:
-        print("[SDOwrite32] flag类型错误!!!")
+        print("[0;31m[MsgGen] sdo_write_32() flag error\033[0m")
         return False
     
     num = 0
@@ -60,11 +60,11 @@ def sdo_write_32(node_id, flag, value, is_print = False) -> dict:
         else:
             break
         if num == len(pro.OD.keys()):
-            print("[SDOwrite32] {}不存在!!!".format(flag))
+            print("\033[0;31m[MsgGen] sdo_write_32() {} doesn't exist\033[0m".format(flag))
             return False
     
     if type(value) != int or value < -0x80000000 or value > 0x7FFFFFFF:
-        print("[SDOwrite32] value 错误!!!")
+        print("[0;31m[MsgGen] sdo_write_32() value error\033[0m")
         return False
     
     index = pro.OD[flag][0]
@@ -92,21 +92,21 @@ def sdo_write_32(node_id, flag, value, is_print = False) -> dict:
             print("{} ".format(hex_data[i]), end = "")
         print("")
     
-    return {"id": cob_id, "data": data}
+    return [cob_id, data]
 
 def rpdo(num, node_id, value_low, value_high, is_print = False) -> dict:
     
     if type(num) != int or num < 1 or num > 4:
-        print("[RPDO]: num 错误!!!")
+        print("\033[0;31m[MsgGen]: rpdo() num error\033[0m")
         return False
     if type(node_id) != int or node_id < 1 or node_id > 0x7F:
-        print("[RPDO]: node_id 错误!!!")
+        print("\033[0;31m[MsgGen]: rpdo() node_id error\033[0m")
         return False
     if type(value_low) != int or value_low < -0x80000000 or value_low > 0x7FFFFFFF:
-        print("[RPDO]: value_low 错误!!!")
+        print("\033[0;31m[MsgGen]: rpdo() value_low error\033[0m")
         return False
     if type(value_high) != int or value_high < -0x80000000 or value_high > 0x7FFFFFFF:
-        print("[RPDO]: value_high 错误!!!")
+        print("\033[0;31m[MsgGen]: rpdo() value_high error\033[0m")
         return False
     
     cob_id = pro.CAN_ID["RPDO_" + str(num)] + node_id
@@ -129,11 +129,11 @@ def rpdo(num, node_id, value_low, value_high, is_print = False) -> dict:
             print("{} ".format(hex_data[i]), end = "")
         print("")
     
-    return {"id": cob_id, "data": data}
+    return [cob_id, data]
 
 def tpdo_start(node_id, is_print = False) -> dict:
     if type(node_id) != int or node_id < 1 or node_id > 0x7F:
-        print("[StartPDO]: node_id 错误!!!")
+        print("\033[0;31m[MsgGen]: tpdo_start() node_id error\033[0m")
         return False
     
     cob_id = 0x0
@@ -149,7 +149,7 @@ def tpdo_start(node_id, is_print = False) -> dict:
             print("{} ".format(hex_data[i]), end = "")
         print("")
     
-    return {"id": cob_id, "data": data}
+    return [cob_id, data]
 
 def __split_index(index) -> list:
     
