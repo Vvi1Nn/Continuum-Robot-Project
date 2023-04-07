@@ -17,51 +17,43 @@ from motor.function import *
 if __name__=="__main__":
     
     UsbCan.open()
-    UsbCan.open()
 
     usbcan_0 = UsbCan(usbcan_param.CHANNEL["0"])
     usbcan_1 = UsbCan(usbcan_param.CHANNEL["1"])
-
-    err_info = usbcan_struct.ERR_INFO()
-    read_success = USBCAN_Lib.VCI_ReadErrInfo(4, 0, 0, byref(err_info))
-    if read_success == 1:
-        print(err_info.ErrCode)
-        print(err_info.Passive_ErrData[0])
-        print(err_info.Passive_ErrData[1])
-        print(err_info.Passive_ErrData[2])
-        print(err_info.ArLost_ErrData)
     
-    # usbcan_0.get_err()
-
-    # usbcan_0.clear_buffer()
+    motor_1 = Motor(usbcan_0, 1, "position_control")
+    motor_2 = Motor(usbcan_0, 2, "position_control")
     
-    # motor_1 = Motor(usbcan_0, 1, "position_control")
-    # motor_2 = Motor(usbcan_0, 2, "position_control")
-    
-    # Action = True
-    # while Action:
-    #     num = input("请输入电机序号: ")
-    #     if num == '1':
-    #         p = input("请输入目标位置: ")
-    #         motor_1.feedback()
-    #         motor_1.set_position(int(p))
-    #         motor_1.execute(is_relative = False)
-    #         usbcan_0.read_buffer()
-    #     elif num == '2':
-    #         p = input("请输入目标位置: ")
-    #         motor_2.feedback()
-    #         motor_2.set_position(int(p))
-    #         motor_2.execute()
-    #         usbcan_0.read_buffer()
-    #     else:
-    #         motor_1.shut_down()
-    #         motor_2.shut_down()
-    #         print("结束!!!")
-    #         break
+    Action = True
+    while Action:
+        num = input("请输入电机序号: ")
+        if num == '1':
+            p = input("请输入目标位置: ")
+            motor_1.feedback()
+            motor_1.set_position(int(p))
+            motor_1.execute(is_relative = False)
+        elif num == '2':
+            p = input("请输入目标位置: ")
+            motor_2.feedback()
+            motor_2.set_position(int(p))
+            motor_2.execute()
+        else:
+            motor_1.shut_down()
+            motor_2.shut_down()
+            print("结束!!!")
+            break
     
     # ret = motor_gen.sdo_read(1, "tpdo_2_timer", True)
-    # usbcan_0.send(ret["id"], [ret["data"]])
-    # usbcan_0.read_buffer(100)
+    # usbcan_0.send(ret["id"], [ret["data"]], True)
+    print(usbcan_0.get_buffer_num())
+
+    [num, msgs] = usbcan_0.read_buffer(100)
+    for i in range(num):
+        print("GetNum:%d, OrderNUM:%d, Timestamp:%d, id:%s, dlc:%d, data:%s"%(num,i,(msgs[i].TimeStamp),hex(msgs[i].ID),\
+                                                                            msgs[i].DataLen,''.join(hex(msgs[i].Data[j])+ ' 'for j in range(msgs[i].DataLen))))
+    
+    usbcan_0.clear_buffer()
+    print(usbcan_0.get_buffer_num())
 
     UsbCan.close()
     
