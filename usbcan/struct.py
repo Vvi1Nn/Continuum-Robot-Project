@@ -2,7 +2,7 @@
 
 from ctypes import *
 
-class ZCAN_CAN_INIT_CONFIG(Structure):
+class INIT_CONFIG(Structure):
     _fields_ = [("AccCode",  c_int),   # 验收码
                 ("AccMask",  c_int),   # 屏蔽码
                 ("Reserved", c_int),   # 保留
@@ -12,7 +12,7 @@ class ZCAN_CAN_INIT_CONFIG(Structure):
                 ("Mode",     c_ubyte), # 模式，0==正常模式，1==只听模式，只接收，不影响总线
                 ]
 
-class ZCAN_CAN_OBJ(Structure):
+class CAN_OBJ(Structure):
     _fields_ = [("ID",         c_uint32),    # 帧ID，32位变量，数据格式为靠右对齐
                 ("TimeStamp",  c_uint32),    # 设备接收到某一帧的时间标识
                 ("TimeFlag",   c_uint8),     # 是否使用时间标识，1==TimeStamp有效
@@ -22,4 +22,10 @@ class ZCAN_CAN_OBJ(Structure):
                 ("DataLen",    c_byte),      # 数据长度DLC
                 ("Data",       c_ubyte * 8), # CAN帧的数据
                 ("Reserved",   c_ubyte * 3), # 系统保留
+                ]
+
+class ERR_INFO(Structure):
+    _fields_ = [("ErrCode",          c_uint32),    # 错误码
+                ("Passive_ErrData",  c_ubyte * 3), # 消极错误
+                ("ArLost_ErrData",   c_byte),      # 仲裁丢失错误
                 ]
