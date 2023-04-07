@@ -131,7 +131,7 @@ def rpdo(num, node_id, value_low, value_high, is_print = False) -> dict:
     
     return {"id": cob_id, "data": data}
 
-def start_pdo(node_id, is_print = False) -> dict:
+def tpdo_start(node_id, is_print = False) -> dict:
     if type(node_id) != int or node_id < 1 or node_id > 0x7F:
         print("[StartPDO]: node_id 错误!!!")
         return False
@@ -193,6 +193,6 @@ if __name__ == "__main__":
     # sdo_write_32(1, "target_position", 10000, True) # 目标位置10000
     # sdo_write_32(1, "control_word", 0x6F, True) # 相对使能
     # sdo_write_32(1, "control_word", 0x7F, True) # 启动
-    start_pdo(3, True)
+    # start_pdo(3, True)
     rpdo(1, 5, 10000, -10000, True)
-    
+    sdo_write_32(1, "tpdo_2_timer", 100, True)

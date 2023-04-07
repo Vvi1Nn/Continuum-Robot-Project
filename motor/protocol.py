@@ -25,14 +25,14 @@ CMD_R = {"read_32": 0x43,
         "error":    0x80,
         }
 
+CONTROL_WORD = {}
+
+STATUS_WORD = {}
+
 CONTROL_MODE = {"position_control": 1,
                 "speed_control":    3,
                 "home_control":     6,
                 }
-
-CONTROL_WORD = {}
-
-STATUS_WORD = {}
 
 OD = {"save_all":          [0x1010, 0x01],
       "tpdo_1_transtype":  [0x1800, 0x02], # FE:数值变化触发 FF:定时触发
