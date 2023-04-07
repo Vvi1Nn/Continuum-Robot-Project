@@ -122,7 +122,8 @@ class UsbCan:
             print("\033[0;31m[UsbCan] please init channel first\033[0m")
             return False
     
-    def send(self, id, data, log = False,
+    def send(self, id, data,
+             log         = False,
              send_type   = usbcan_param.SEND_TYPE["normal"],
              remote_flag = usbcan_param.REMOTE_FLAG["data"],
              ) -> bool:
@@ -175,7 +176,9 @@ class UsbCan:
             print("\033[0;31m[UsbCan] please init channel first\033[0m")
             return None
 
-    def read_buffer(self, read_num, wait_time = 100) -> list:
+    def read_buffer(self, read_num,
+                    wait_time = 100
+                    ) -> list:
         
         if self.__is_start:
             cache_num = self.get_buffer_num()
