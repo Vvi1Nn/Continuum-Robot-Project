@@ -36,7 +36,7 @@ class Motor:
     def __set_mode(self) -> bool:
         
         if type(self.mode) != str:
-            print("[SetMode {}] flag类型错误!!!".format(self.id))
+            print("[Motor] SetMode {} flag error".format(self.id))
             return False
     
         num = 0
@@ -46,19 +46,17 @@ class Motor:
             else:
                 break
             if num == len(pro.CONTROL_MODE.keys()):
-                print("[SetMode {}] {}不存在!!!".format(self.id, self.mode))
+                print("[Motor] SetMode {} {} doesn't exist".format(self.id, self.mode))
                 return False
 
-        ret = gen.sdo_write_32(self.id, "control_mode", pro.CONTROL_MODE[self.mode])
-        cob_id = ret["id"]
-        data = [ret["data"]]
+        [cob_id, data] = gen.sdo_write_32(self.id, "control_mode", pro.CONTROL_MODE[self.mode])
         
-        success = self.device.send(cob_id, data)
+        success = self.device.send(cob_id, [data])
         if success:
-            print("[SetMode {}] {}".format(self.id, self.mode))
+            print("\033[0;32m[Motor] SetMode {} {}\033[0m".format(self.id, self.mode))
             return True
         else:
-            print("[SetMode {}] 失败".format(self.id))
+            print("\033[0;31m[Motor] SetMode {} failed\033[0m".format(self.id))
             return False
 
     def __set_acc(self) -> bool:
