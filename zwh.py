@@ -18,7 +18,9 @@ print("\033[7;35m紫红+反白\033[0m")
 print("\033[0;36m青蓝\033[0m")
 print("\033[8;37m白+不可见\033[0m")
 
-read = 5
-cache = 3
-read = cache if cache < read else read
-print(read)
+import threading
+import time
+
+a = 0b00000100
+a = a & 0b01111111
+print(a)
