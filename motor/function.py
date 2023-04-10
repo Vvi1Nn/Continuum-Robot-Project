@@ -10,7 +10,8 @@ import time
 
 import motor.protocol as pro
 import motor.msg_generation as gen
-import motor.msg_resolution as reso
+import motor.module as module
+import usbcan.param as param
 
 class Motor:
     
@@ -22,6 +23,11 @@ class Motor:
     def __init__(self, node_id) -> None:
         
         self.id = node_id
+        
+        self.current_status = ""
+        self.position = 0
+        self.speed = 0
+        
         self.__init()
     
     def __str__(self) -> str:
@@ -33,10 +39,10 @@ class Motor:
                acceleration = 1000,
                deceleration = 10000,
                velocity     = 100,
-               ):
+               ) -> None:
         
         cls.__device = device
-        print("\033[0;32m[Motor] info: {}\033[0m".format(cls.__device))
+        print("\033[0;32m\n[Motor] info: {}\033[0m".format(cls.__device))
 
         cls.__control_mode = control_mode
         print("\033[0;32m[Motor] control_mode: {}\033[0m".format(cls.__control_mode))
@@ -54,14 +60,18 @@ class Motor:
         if velocity < 50 or velocity > 100:
             velocity = 75
         cls.__velocity = velocity
-        print("\033[0;32m[Motor] velocity: {}\033[0m".format(cls.__velocity))
+        print("\033[0;32m[Motor] velocity: {}\n\033[0m".format(cls.__velocity))
 
-    def __init(self):
-        mode_success = self.__set_mode()
-        acc_success = self.__set_acc()
-        dec_success = self.__set_dec()
-        vel_success = self.__set_vel()
-
+    def __init(self) -> None:
+        current_status = self.get_status()
+        if current_status == "pre-operational":
+            mode_success = self.__set_mode()
+            acc_success = self.__set_acc()
+            dec_success = self.__set_dec()
+            vel_success = self.__set_vel()
+        else:
+            print("\033[0;31m[Motor {}] init failed\033[0m".format(self.id))
+        
     def __set_mode(self) -> bool:
 
         [cob_id, data] = gen.sdo_write_32(self.id, "control_mode", Motor.__control_mode)
@@ -69,11 +79,11 @@ class Motor:
         Motor.__device.clear_buffer()
         
         send_success = Motor.__device.send(cob_id, [data])
-        time.sleep(0.1)
+        time.sleep(0.05)
         
         [num, msg] = Motor.__device.read_buffer(1)
         if num != 0:
-            if msg[0].ID == self.id + pro.CAN_ID["SDO_T"] and msg[0].Data[0] == pro.CMD_R["write"] and reso.match_index(msg[0].Data[1], msg[0].Data[2], msg[0].Data[3]) == pro.OD["control_mode"]:
+            if msg[0].ID == self.id + pro.CAN_ID["SDO_T"] and msg[0].Data[0] == pro.CMD_R["write"] and module.match_index(msg[0].Data[1], msg[0].Data[2], msg[0].Data[3]) == pro.OD["control_mode"]:
                 reply_success = True
             else: reply_success = False
         else: reply_success = False
@@ -92,11 +102,11 @@ class Motor:
         Motor.__device.clear_buffer()
 
         send_success = Motor.__device.send(cob_id, [data])
-        time.sleep(0.1)
+        time.sleep(0.05)
 
         [num, msg] = Motor.__device.read_buffer(1)
         if num != 0:
-            if msg[0].ID == self.id + pro.CAN_ID["SDO_T"] and msg[0].Data[0] == pro.CMD_R["write"] and reso.match_index(msg[0].Data[1], msg[0].Data[2], msg[0].Data[3]) == pro.OD["acceleration"]:
+            if msg[0].ID == self.id + pro.CAN_ID["SDO_T"] and msg[0].Data[0] == pro.CMD_R["write"] and module.match_index(msg[0].Data[1], msg[0].Data[2], msg[0].Data[3]) == pro.OD["acceleration"]:
                 reply_success = True
             else: reply_success = False
         else: reply_success = False
@@ -115,11 +125,11 @@ class Motor:
         Motor.__device.clear_buffer()
 
         send_success = Motor.__device.send(cob_id, [data])
-        time.sleep(0.1)
+        time.sleep(0.05)
 
         [num, msg] = Motor.__device.read_buffer(1)
         if num != 0:
-            if msg[0].ID == self.id + pro.CAN_ID["SDO_T"] and msg[0].Data[0] == pro.CMD_R["write"] and reso.match_index(msg[0].Data[1], msg[0].Data[2], msg[0].Data[3]) == pro.OD["deceleration"]:
+            if msg[0].ID == self.id + pro.CAN_ID["SDO_T"] and msg[0].Data[0] == pro.CMD_R["write"] and module.match_index(msg[0].Data[1], msg[0].Data[2], msg[0].Data[3]) == pro.OD["deceleration"]:
                 reply_success = True
             else: reply_success = False
         else: reply_success = False
@@ -138,11 +148,11 @@ class Motor:
         Motor.__device.clear_buffer()
 
         send_success = Motor.__device.send(cob_id, [data])
-        time.sleep(0.1)
+        time.sleep(0.05)
 
         [num, msg] = Motor.__device.read_buffer(1)
         if num != 0:
-            if msg[0].ID == self.id + pro.CAN_ID["SDO_T"] and msg[0].Data[0] == pro.CMD_R["write"] and reso.match_index(msg[0].Data[1], msg[0].Data[2], msg[0].Data[3]) == pro.OD["velocity"]:
+            if msg[0].ID == self.id + pro.CAN_ID["SDO_T"] and msg[0].Data[0] == pro.CMD_R["write"] and module.match_index(msg[0].Data[1], msg[0].Data[2], msg[0].Data[3]) == pro.OD["velocity"]:
                 reply_success = True
             else: reply_success = False
         else: reply_success = False
@@ -154,61 +164,145 @@ class Motor:
             print("\033[0;31m[Motor {}] set velocity failed\033[0m".format(self.id))
             return False
     
-    def set_position(self, position) -> bool:
+    def get_status(self) -> str:
         
-        if type(position) != int:
-            print("[SetPosition {}] position类型错误!!!".format(self.id))
-            return False
+        [cob_id, data] = gen.nmt_get_status(self.id)
 
-        ret = gen.sdo_write_32(self.id, "target_position", position)
-        cob_id = ret["id"]
-        data = [ret["data"]]
+        Motor.__device.clear_buffer()
 
-        success = self.device.send(cob_id, data)
-        if success:
-            print("[SetPosition {}] {}".format(self.id, position))
+        send_success = Motor.__device.send(cob_id, [data], remote_flag = param.REMOTE_FLAG["remote"])
+        time.sleep(0.05)
+
+        [num, msg] = Motor.__device.read_buffer(1)
+        if num != 0:
+            if msg[0].ID == self.id + pro.CAN_ID["NMT_S"]:
+                for k in pro.NMT_STATUS:
+                    if msg[0].Data[0] & 0b01111111 == pro.NMT_STATUS[k]:
+                        self.current_status = k
+                        reply_success = True
+                        break
+                    else: reply_success = False
+            else: reply_success = False
+        else: reply_success = False
+
+        if send_success and reply_success:
+            print("\033[0;32m[Motor {}] current status: {}\033[0m".format(self.id, self.current_status))
+            return self.current_status
+        else:
+            print("\033[0;31m[Motor {}] cannot get motor status\033[0m".format(self.id))
+            return None
+
+    def set_position(self, position) -> bool:
+
+        [cob_id, data] = gen.sdo_write_32(self.id, "target_position", position)
+
+        Motor.__device.clear_buffer()
+
+        send_success = Motor.__device.send(cob_id, [data])
+        time.sleep(0.05)
+
+        [num, msg] = Motor.__device.read_buffer(1)
+        if num != 0:
+            if msg[0].ID == self.id + pro.CAN_ID["SDO_T"] and msg[0].Data[0] == pro.CMD_R["write"] and module.match_index(msg[0].Data[1], msg[0].Data[2], msg[0].Data[3]) == pro.OD["target_position"]:
+                reply_success = True
+            else: reply_success = False
+        else: reply_success = False
+        
+        if send_success and reply_success:
+            self.position = position
+            print("\033[0;32m[Motor {}] target position: {}\033[0m".format(self.id, position))
             return True
         else:
-            print("[SetPosition {}] 失败".format(self.id))
+            print("\033[0;31m[Motor {}] set target position failed\033[0m".format(self.id))
             return False
     
     def set_speed(self, speed) -> bool:
         
-        if type(speed) != int:
-            print("[SetSpeed {}] speed类型错误!!!".format(self.id))
-            return False
-        
-        if speed < 0 or speed > 25:
-            print("[SetSpeed {}] speed超出范围!!!".format(self.id))
-            return False
-        
-        ret = gen.sdo_write_32(self.id, "target_speed", speed)
-        cob_id = ret["id"]
-        data = ret["data"]
+        [cob_id, data] = gen.sdo_write_32(self.id, "target_speed", speed)
 
-        success = self.device.send_single(cob_id, data)
-        if success:
-            print("[SetSpeed {}] {}".format(self.id, speed))
+        Motor.__device.clear_buffer()
+
+        send_success = Motor.__device.send(cob_id, [data])
+        time.sleep(0.05)
+
+        [num, msg] = Motor.__device.read_buffer(1)
+        if num != 0:
+            if msg[0].ID == self.id + pro.CAN_ID["SDO_T"] and msg[0].Data[0] == pro.CMD_R["write"] and module.match_index(msg[0].Data[1], msg[0].Data[2], msg[0].Data[3]) == pro.OD["target_speed"]:
+                reply_success = True
+            else: reply_success = False
+        else: reply_success = False
+        
+        if send_success and reply_success:
+            self.speed = speed
+            print("\033[0;32m[Motor {}] target speed: {}\033[0m".format(self.id, speed))
             return True
         else:
-            print("[SetSpeed {}] 失败".format(self.id))
+            print("\033[0;31m[Motor {}] set target speed failed\033[0m".format(self.id))
+            return False
+
+    def set_timer(self, duration) -> bool:
+        
+        [cob_id, data] = gen.sdo_write_32(self.id, "tpdo_2_timer", duration) # 设置定时器时间间隔
+        
+        Motor.__device.clear_buffer()
+        
+        send_success = Motor.__device.send(cob_id, [data])
+        time.sleep(0.05)
+        
+        [num, msg] = Motor.__device.read_buffer(1)
+        if num != 0:
+            if msg[0].ID == self.id + pro.CAN_ID["SDO_T"] and msg[0].Data[0] == pro.CMD_R["write"] and module.match_index(msg[0].Data[1], msg[0].Data[2], msg[0].Data[3]) == pro.OD["tpdo_2_timer"]:
+                reply_success = True
+            else: reply_success = False
+        else: reply_success = False
+        
+        if send_success and reply_success:
+            print("\033[0;32m[Motor {}] timer step: {}\033[0m".format(self.id, duration))
+            return True
+        else:
+            print("\033[0;31m[Motor {}] set timer step failed\033[0m".format(self.id))
+            return False
+    
+    def start_feedback(self) -> bool:
+        
+        [cob_id, data] = gen.nmt_change_status(self.id, "start_remote_node")
+        Motor.__device.clear_buffer()
+        send_success = Motor.__device.send(cob_id, [data])
+
+        if send_success:
+            print("\033[0;32m[Motor {}] start feedback\033[0m".format(self.id))
+            return True
+        else:
+            print("\033[0;31m[Motor {}] start feedback failed\033[0m".format(self.id))
+            return False
+        
+    def stop_feedback(self) -> bool:
+        
+        [cob_id, data] = gen.nmt_change_status(self.id, "stop_remote_node")
+        send_success = Motor.__device.send(cob_id, [data])
+        Motor.__device.clear_buffer()
+
+        if send_success:
+            print("\033[0;32m[Motor {}] stop feedback\033[0m".format(self.id))
+            return True
+        else:
+            print("\033[0;31m[Motor {}] stop feedback failed\033[0m".format(self.id))
             return False
 
     def execute(self, is_relative = True):
         
         if is_relative:
             
-            enable = gen.sdo_write_32(self.id, "control_word", 0x6F) # 相对使能
-            launch = gen.sdo_write_32(self.id, "control_word", 0x7F) # 启动
-            
-            cob_id = enable["id"]
-            
-            data = []
-            data.append(enable["data"])
-            data.append(launch["data"])
+            [cob_id, enable_msg] = gen.sdo_write_32(self.id, "control_word", 0x6F) # 相对使能
+            [cob_id, launch_msg] = gen.sdo_write_32(self.id, "control_word", 0x7F) # 启动
+            data = [enable_msg, launch_msg]
 
-            success = self.device.send(cob_id, data)
-            if success:
+            Motor.__device.clear_buffer()
+
+            send_success = Motor.__device.send(cob_id, data)
+            time.sleep(0.05)
+
+            if send_success:
                 print("[Execute {}] 成功".format(self.id))
                 return True
             else:
@@ -232,33 +326,19 @@ class Motor:
             else:
                 print("[Execute {}] 失败".format(self.id))
                 return False
-    
-    def feedback(self):
-        ret = gen.start_pdo(self.id)
-        
-        cob_id = ret["id"]
-        data = ret["data"]
 
-        success = self.device.send_single(cob_id, data)
-        if success:
-            print("[Feedback {}] 成功".format(self.id))
-            return True
-        else:
-            print("[Feedback {}] 失败...".format(self.id))
-            return False
-    
     def shut_down(self):
-        ret = gen.sdo_write_32(self.id, "control_word", 0x07) # 停止
         
-        cob_id = ret["id"]
-        data = [ret["data"]]
+        [cob_id, data] = gen.sdo_write_32(self.id, "control_word", 0x07) # 停止
 
-        success = self.device.send(cob_id, data)
-        if success:
-            print("[ShutDown {}] 成功".format(self.id))
+        send_success = Motor.__device.send(cob_id, data)
+        time.sleep(0.05)
+        
+        if send_success:
+            print("\033[0;32m[Motor {}] shut down\033[0m".format(self.id))
             return True
         else:
-            print("[ShutDown {}] 失败".format(self.id))
+            print("\033[0;31m[Motor {}] shut down failed\033[0m".format(self.id))
             return False
 
     def get_position(self):
