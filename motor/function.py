@@ -6,6 +6,8 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR)
 
+import time
+
 import motor.protocol as pro
 import motor.msg_generation as gen
 import motor.msg_resolution as reso
@@ -34,25 +36,25 @@ class Motor:
                ):
         
         cls.__device = device
-        print("\033[0;32m[Motor] device {}\033[0m".format(cls.__device))
+        print("\033[0;32m[Motor] info: {}\033[0m".format(cls.__device))
 
         cls.__control_mode = control_mode
-        print("\033[0;32m[Motor] control_mode {}\033[0m".format(cls.__control_mode))
+        print("\033[0;32m[Motor] control_mode: {}\033[0m".format(cls.__control_mode))
         
         if acceleration < 1000 or acceleration > 10000:
             acceleration = 1000
         cls.__acceleration = acceleration
-        print("\033[0;32m[Motor] acceleration {}\033[0m".format(cls.__acceleration))
+        print("\033[0;32m[Motor] acceleration: {}\033[0m".format(cls.__acceleration))
         
         if deceleration < 5000 or deceleration > 10000:
             deceleration = 10000
         cls.__deceleration = deceleration
-        print("\033[0;32m[Motor] deceleration {}\033[0m".format(cls.__deceleration))
+        print("\033[0;32m[Motor] deceleration: {}\033[0m".format(cls.__deceleration))
         
         if velocity < 50 or velocity > 100:
             velocity = 75
         cls.__velocity = velocity
-        print("\033[0;32m[Motor] velocity {}\033[0m".format(cls.__velocity))
+        print("\033[0;32m[Motor] velocity: {}\033[0m".format(cls.__velocity))
 
     def __init(self):
         mode_success = self.__set_mode()
@@ -64,8 +66,19 @@ class Motor:
 
         [cob_id, data] = gen.sdo_write_32(self.id, "control_mode", Motor.__control_mode)
         
-        success = Motor.__device.send(cob_id, [data])
-        if success:
+        Motor.__device.clear_buffer()
+        
+        send_success = Motor.__device.send(cob_id, [data])
+        time.sleep(0.1)
+        
+        [num, msg] = Motor.__device.read_buffer(1)
+        if num != 0:
+            if msg[0].ID == self.id + pro.CAN_ID["SDO_T"] and msg[0].Data[0] == pro.CMD_R["write"] and reso.match_index(msg[0].Data[1], msg[0].Data[2], msg[0].Data[3]) == pro.OD["control_mode"]:
+                reply_success = True
+            else: reply_success = False
+        else: reply_success = False
+        
+        if send_success and reply_success:
             print("\033[0;32m[Motor {}] control mode: {}\033[0m".format(self.id, Motor.__control_mode))
             return True
         else:
@@ -76,8 +89,19 @@ class Motor:
 
         [cob_id, data] = gen.sdo_write_32(self.id, "acceleration", Motor.__acceleration)
 
-        success = Motor.__device.send(cob_id, [data])
-        if success:
+        Motor.__device.clear_buffer()
+
+        send_success = Motor.__device.send(cob_id, [data])
+        time.sleep(0.1)
+
+        [num, msg] = Motor.__device.read_buffer(1)
+        if num != 0:
+            if msg[0].ID == self.id + pro.CAN_ID["SDO_T"] and msg[0].Data[0] == pro.CMD_R["write"] and reso.match_index(msg[0].Data[1], msg[0].Data[2], msg[0].Data[3]) == pro.OD["acceleration"]:
+                reply_success = True
+            else: reply_success = False
+        else: reply_success = False
+
+        if send_success and reply_success:
             print("\033[0;32m[Motor {}] acceleration: {}\033[0m".format(self.id, Motor.__acceleration))
             return True
         else:
@@ -86,10 +110,21 @@ class Motor:
 
     def __set_dec(self) -> bool:
 
-        [cob_id, data] = gen.sdo_write_32(self.id, "deceleration", self.dec)
+        [cob_id, data] = gen.sdo_write_32(self.id, "deceleration", Motor.__deceleration)
 
-        success = Motor.__device.send(cob_id, [data])
-        if success:
+        Motor.__device.clear_buffer()
+
+        send_success = Motor.__device.send(cob_id, [data])
+        time.sleep(0.1)
+
+        [num, msg] = Motor.__device.read_buffer(1)
+        if num != 0:
+            if msg[0].ID == self.id + pro.CAN_ID["SDO_T"] and msg[0].Data[0] == pro.CMD_R["write"] and reso.match_index(msg[0].Data[1], msg[0].Data[2], msg[0].Data[3]) == pro.OD["deceleration"]:
+                reply_success = True
+            else: reply_success = False
+        else: reply_success = False
+
+        if send_success and reply_success:
             print("\033[0;32m[Motor {}] deceleration: {}\033[0m".format(self.id, Motor.__deceleration))
             return True
         else:
@@ -98,10 +133,21 @@ class Motor:
 
     def __set_vel(self) -> bool:
 
-        [cob_id, data] = gen.sdo_write_32(self.id, "velocity", self.vel)
+        [cob_id, data] = gen.sdo_write_32(self.id, "velocity", Motor.__velocity)
 
-        success = Motor.__device.send(cob_id, [data])
-        if success:
+        Motor.__device.clear_buffer()
+
+        send_success = Motor.__device.send(cob_id, [data])
+        time.sleep(0.1)
+
+        [num, msg] = Motor.__device.read_buffer(1)
+        if num != 0:
+            if msg[0].ID == self.id + pro.CAN_ID["SDO_T"] and msg[0].Data[0] == pro.CMD_R["write"] and reso.match_index(msg[0].Data[1], msg[0].Data[2], msg[0].Data[3]) == pro.OD["velocity"]:
+                reply_success = True
+            else: reply_success = False
+        else: reply_success = False
+
+        if send_success and reply_success:
             print("\033[0;32m[Motor {}] velocity: {}\033[0m".format(self.id, Motor.__velocity))
             return True
         else:
