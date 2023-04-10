@@ -40,7 +40,6 @@ class UsbCan:
         self.__is_start = False
         
         if UsbCan.__is_open:
-            print(self)
             init_success = self.__init()
             if init_success:
                 clear_success = USBCAN_Lib.VCI_ClearBuffer(UsbCan.__device_type, UsbCan.__device_index, self.__channel)
@@ -55,7 +54,7 @@ class UsbCan:
             print("\033[0;31m[UsbCan] please open device first\033[0m")
 
     def __str__(self) -> str:
-        return "[UsbCan] open channel {}".format(self.__channel)
+        return "channel {}".format(self.__channel)
 
     @classmethod
     def open(cls,
@@ -166,18 +165,19 @@ class UsbCan:
             print("\033[0;31m[UsbCan] please init channel first\033[0m")
             return False
 
-    def get_buffer_num(self) -> int:   
+    def get_buffer_num(self, log = False) -> int:   
         
         if self.__is_start:
             cache_num = USBCAN_Lib.VCI_GetReceiveNum(UsbCan.__device_type, UsbCan.__device_index, self.__channel)
-            print("[Channel {}] buffer num: {}".format(self.__channel, cache_num))
+            if log:
+                print("[Channel {}] buffer num: {}".format(self.__channel, cache_num))
             return cache_num
         else:
             print("\033[0;31m[UsbCan] please init channel first\033[0m")
             return None
 
     def read_buffer(self, read_num,
-                    wait_time = 100
+                    wait_time = 100,
                     ) -> list:
         
         if self.__is_start:
@@ -191,12 +191,13 @@ class UsbCan:
             print("\033[0;31m[UsbCan] please init channel first\033[0m")
             return None
         
-    def clear_buffer(self) -> bool:
+    def clear_buffer(self, log = False) -> bool:
         
         if self.__is_start:
             clear_success = USBCAN_Lib.VCI_ClearBuffer(UsbCan.__device_type, UsbCan.__device_index, self.__channel)
             if clear_success == 1:
-                print("\033[0;32m[Channel {}] clear buffer\033[0m".format(self.__channel))
+                if log:
+                    print("\033[0;32m[Channel {}] clear buffer\033[0m".format(self.__channel))
                 return True
             else:
                 print("\033[0;31m[Channel {}] clear buffer failed\033[0m".format(self.__channel))
@@ -205,3 +206,7 @@ class UsbCan:
         else:
             print("\033[0;31m[UsbCan] please init channel first\033[0m")
             return None
+
+    def print_msgs(self, num, msgs):
+        for i in range(num):
+            print("No:%d  ID: %s  Data: %s" % (i+1, hex(msgs[i].ID), ''.join(hex(msgs[i].Data[j])+ ' 'for j in range(msgs[i].DataLen))))
