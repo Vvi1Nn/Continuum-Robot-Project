@@ -1,5 +1,7 @@
 # -*- coding:utf-8 -*-
 
+# msg_generation
+
 def split_index(index) -> list:
     
     hex_str = hex(index)[2:].upper()
@@ -28,6 +30,8 @@ def int2hex(value_int) -> list:
     value_list[3] = int(value_str[0:2], 16)
     
     return value_list
+
+# msg_resolution
 
 def match_index(index_low, index_high, subindex) -> list:
     
