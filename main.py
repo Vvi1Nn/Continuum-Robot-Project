@@ -24,14 +24,17 @@ if __name__=="__main__":
     motor_1 = Motor(1)
     motor_2 = Motor(2)
     motor_3 = Motor(3)
-    motor_4 = Motor(4)
-    motor_5 = Motor(5)
-    motor_6 = Motor(6)
-    motor_7 = Motor(7)
-    motor_8 = Motor(8)
-    motor_9 = Motor(9)
-    motor_10 = Motor(10)
-    
+    # motor_4 = Motor(4)
+    # motor_5 = Motor(5)
+    # motor_6 = Motor(6)
+    # motor_7 = Motor(7)
+    # motor_8 = Motor(8)
+    # motor_9 = Motor(9)
+    # motor_10 = Motor(10)
+
+    while True:
+        pass
+
     Action = True
     while Action:
         num = input("请输入电机序号: ")
