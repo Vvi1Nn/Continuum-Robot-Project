@@ -63,7 +63,7 @@ def resolve(cob_id, data) -> str:
             if data[0] == pro.CMD_R[key]:
                 cmd = key
         
-        address = __match_index(data[1], data[2], data[3])
+        address = match_index(data[1], data[2], data[3])
         for key in pro.OD.keys():
             if address == pro.OD[key]:
                 od = key
@@ -84,7 +84,7 @@ def resolve(cob_id, data) -> str:
         
     return msg
 
-def __match_index(index_low, index_high, subindex) -> list:
+def match_index(index_low, index_high, subindex) -> list:
     
     index_low_str = hex(index_low)[2:].upper()
     index_high_str = hex(index_high)[2:].upper()
