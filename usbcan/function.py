@@ -66,7 +66,7 @@ class UsbCan:
         if not cls.__is_open:
             open_device_success = USBCAN_Lib.VCI_OpenDevice(UsbCan.__device_type, UsbCan.__device_index, UsbCan.__reserved)
             if open_device_success == 1:
-                print("\033[0;32m[UsbCan] type:{} index:{}\033[0m".format(UsbCan.__device_type, UsbCan.__device_index))
+                print("\033[0;32m[UsbCan] type:{} index:{}\n\033[0m".format(UsbCan.__device_type, UsbCan.__device_index))
                 cls.__is_open = True
                 return True
             else:
@@ -177,7 +177,7 @@ class UsbCan:
             return None
 
     def read_buffer(self, read_num,
-                    wait_time = 100,
+                    wait_time = -1,
                     ) -> list:
         
         if self.__is_start:
