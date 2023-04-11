@@ -213,8 +213,7 @@ class Motor:
                 for k in pro.NMT_STATUS:
                     if msg[0].Data[0] & 0b01111111 == pro.NMT_STATUS[k]:
                         self.bus_status = k
-                        if log:
-                            print("\033[0;32m[Motor {}] bus status: {}\033[0m".format(self.id, self.bus_status))
+                        if log:  print("\033[0;32m[Motor {}] bus status: {}\033[0m".format(self.id, self.bus_status))
                         return True
             else:
                 if wait == 0:
@@ -245,8 +244,7 @@ class Motor:
                     for r in pro.STATUS_WORD[key]:
                         if value == r:
                             self.motor_status = key
-                            if log:
-                                print("\033[0;32m[Motor {}] motor status: {}\033[0m".format(self.id, self.motor_status))
+                            if log: print("\033[0;32m[Motor {}] motor status: {}\033[0m".format(self.id, self.motor_status))
                             return True
             else:
                 if wait == 0:
@@ -261,16 +259,8 @@ class Motor:
             print("\033[0;33m[Motor {}] trying update motor status again ...\033[0m".format(self.id))
             return self.__update_motor_status(wait = wait - 1)
 
-    def update(self):
-        i = 0
-        while not (self.__update_bus_status(True) and self.__update_motor_status(True)):
-            if i > 100:
-                print("\033[0;33m[Motor {}] update failed ...\033[0m".format(self.id))
-                return False
-            i = i + 1
-            print("\033[0;33m[Motor {}] updating status ...\033[0m".format(self.id))
-            time.sleep(0.05)
-        return True
+    def update_status(self, log = True, wait = 10) -> bool:
+        return self.__update_bus_status(log, wait) and self.__update_motor_status(log, wait)
 
     def set_position(self, position) -> bool:
 
