@@ -336,11 +336,11 @@ class Motor:
 
     def stop_feedback(self) -> bool:
         
-        [cob_id, data] = gen.nmt_change_status(self.id, "stop_remote_node")
+        [cob_id, data] = gen.nmt_change_status(self.id, "enter_pre-operational_state")
         send_success = Motor.__device.send(cob_id, [data])
         time.sleep(0.05)
         self.__update_bus_status()
-        if send_success and self.bus_status == "stopped":
+        if send_success and self.bus_status == "pre-operational":
             print("\033[0;32m[Motor {}] stop feedback\033[0m".format(self.id))
             return True
         else:
