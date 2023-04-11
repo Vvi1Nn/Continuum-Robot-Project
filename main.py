@@ -34,19 +34,21 @@ if __name__=="__main__":
 
     time.sleep(1)
 
-    motor_1.update()
+    motor_1.update_status()
 
     time.sleep(1)
 
     while True:
         motor_2.start_feedback()
-        print(motor_2.bus_status)
+        motor_2.update_status(wait = 100)
         print(motor_2.motor_status)
         time.sleep(1)
+        print("=======================")
         motor_2.stop_feedback()
-        print(motor_2.bus_status)
+        motor_2.update_status(wait = 100)
         print(motor_2.motor_status)
         time.sleep(1)
+        print("=======================")
 
     Action = True
     while Action:
