@@ -54,8 +54,8 @@ CONTROL_WORD = {"reset"             : 0b10000000, # 0x80 优先级 1
                 "power_off"         : 0b00000000, # 0x00 优先级 2
                 "quick_stop"        : 0b00000010, # 0x02 优先级 3
                 "servo_close"       : 0b00000110, # 0x06 优先级 4
-                "servo_ready_stop"  : 0b01100111, # 0x67 优先级 5 立即模式 相对运行
-                "servo_enable_start": 0b01111111, # 0x7F 优先级 5 立即模式 相对运行
+                "servo_ready/stop"  : 0b01100111, # 0x67 优先级 5 立即模式 相对运行
+                "servo_enable/start": 0b01111111, # 0x7F 优先级 5 立即模式 相对运行
                }
 
 STATUS_WORD_BIT = {"ready_to_switch_on"     : {"bit": 0, 0: False, 1: True},
@@ -76,14 +76,14 @@ STATUS_WORD_BIT = {"ready_to_switch_on"     : {"bit": 0, 0: False, 1: True},
                    "manufacturer_specific_2": {"bit": 15, 0: None, 1: None},
                    }
 
-STATUS_WORD = {"not_ready_to_switch_on": 0b0000000000000000, # 初始化
-               "switch_on_disabled"    : 0b0000000001000000, # 伺服无故障
-               "ready_to_switch_on"    : 0b0000000000100001, # 伺服准备好
-               "switch_on"             : 0b0000000000100011, # 伺服等待使能
-               "operation_enabled"     : 0b0000000000100111, # 伺服运行
-               "quick_stop_active"     : 0b0000000000000111, # 快速停机
-               "fault_reaction_active" : 0b0000000000001111, # 故障停机
-               "fault"                 : 0b0000000000001000, # 故障
+STATUS_WORD = {"not_ready_to_switch_on": [0x00, 0x10, 0x20, 0x30, 0x80, 0x90, 0xA0, 0xB0], # 初始化
+               "switch_on_disabled"    : [0x30, 0x40, 0x50, 0x60, 0xC0, 0xD0, 0xE0, 0xF0], # 伺服无故障
+               "ready_to_switch_on"    : [0x21, 0x31, 0xA1, 0xB1],                         # 伺服准备好
+               "switched_on"           : [0x23, 0x33, 0xA3, 0xB3],                         # 伺服等待使能
+               "operation_enabled"     : [0x27, 0x37, 0xA7, 0xB7],                         # 伺服运行
+               "quick_stop_active"     : [0x07, 0x17, 0x87, 0x97],                         # 快速停机
+               "fault_reaction_active" : [0x0F, 0x1F, 0x2F, 0x3F, 0x8F, 0x9F, 0xAF, 0xBF], # 故障停机
+               "fault"                 : [0x08, 0x18, 0x28, 0x38, 0x88, 0x98, 0xA8, 0xB8], # 故障
                }
                     
 
