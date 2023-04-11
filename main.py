@@ -23,17 +23,30 @@ if __name__=="__main__":
     Motor.config(usbcan_0)
     motor_1 = Motor(1)
     motor_2 = Motor(2)
-    motor_3 = Motor(3)
-    motor_4 = Motor(4)
-    motor_5 = Motor(5)
-    motor_6 = Motor(6)
-    motor_7 = Motor(7)
-    motor_8 = Motor(8)
-    motor_9 = Motor(9)
-    motor_10 = Motor(10)
+    # motor_3 = Motor(3)
+    # motor_4 = Motor(4)
+    # motor_5 = Motor(5)
+    # motor_6 = Motor(6)
+    # motor_7 = Motor(7)
+    # motor_8 = Motor(8)
+    # motor_9 = Motor(9)
+    # motor_10 = Motor(10)
+
+    time.sleep(1)
+
+    motor_1.update()
+
+    time.sleep(1)
 
     while True:
-        pass
+        motor_2.start_feedback()
+        print(motor_2.bus_status)
+        print(motor_2.motor_status)
+        time.sleep(1)
+        motor_2.stop_feedback()
+        print(motor_2.bus_status)
+        print(motor_2.motor_status)
+        time.sleep(1)
 
     Action = True
     while Action:

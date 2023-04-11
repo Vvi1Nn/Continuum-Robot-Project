@@ -21,6 +21,16 @@ print("\033[8;37m白+不可见\033[0m")
 import threading
 import time
 
-a = 0b00000100
-a = a & 0b01111111
-print(a)
+
+
+def a(b):
+    b = b + 1
+    print(b)
+    if b > 100:
+        return True
+    return False
+
+
+while not a(1):
+    time.sleep(1)
+    print("wait")
