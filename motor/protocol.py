@@ -50,12 +50,12 @@ CONTROL_WORD_BIT = {"switch_on"       : {"bit": 0, False: 0, True: 1},
                    "fault_reset"      : {"bit": 7, False: 0, True: 1},
                    }
 
-CONTROL_WORD = {"reset"             : 0b10000000, # 优先级 1
-                "power_off"         : 0b00000000, # 优先级 2
-                "quick_stop"        : 0b00000010, # 优先级 3
-                "servo_close"       : 0b00000110, # 优先级 4
-                "servo_ready_stop"  : 0b01100111, # 优先级 5 立即模式 相对运行
-                "servo_enable_start": 0b01111111, # 优先级 5 立即模式 相对运行
+CONTROL_WORD = {"reset"             : 0b10000000, # 0x80 优先级 1
+                "power_off"         : 0b00000000, # 0x00 优先级 2
+                "quick_stop"        : 0b00000010, # 0x02 优先级 3
+                "servo_close"       : 0b00000110, # 0x06 优先级 4
+                "servo_ready_stop"  : 0b01100111, # 0x67 优先级 5 立即模式 相对运行
+                "servo_enable_start": 0b01111111, # 0x7F 优先级 5 立即模式 相对运行
                }
 
 STATUS_WORD_BIT = {"ready_to_switch_on"     : {"bit": 0, 0: False, 1: True},
@@ -76,14 +76,14 @@ STATUS_WORD_BIT = {"ready_to_switch_on"     : {"bit": 0, 0: False, 1: True},
                    "manufacturer_specific_2": {"bit": 15, 0: None, 1: None},
                    }
 
-STATUS_WORD = {"not_ready_to_switch_on": 0b0000000000000000,
-               "switch_on_disabled"    : 0b0000000001000000,
-               "ready_to_switch_on"    : 0b0000000000100001,
-               "switch_on"             : 0b0000000000100011,
-               "operation_enabled"     : 0b0000000000100111,
-               "quick_stop_active"     : 0b0000000000000111,
-               "fault_reaction_active" : 0b0000000000001111,
-               "fault"                 : 0b0000000000001000,
+STATUS_WORD = {"not_ready_to_switch_on": 0b0000000000000000, # 初始化
+               "switch_on_disabled"    : 0b0000000001000000, # 伺服无故障
+               "ready_to_switch_on"    : 0b0000000000100001, # 伺服准备好
+               "switch_on"             : 0b0000000000100011, # 伺服等待使能
+               "operation_enabled"     : 0b0000000000100111, # 伺服运行
+               "quick_stop_active"     : 0b0000000000000111, # 快速停机
+               "fault_reaction_active" : 0b0000000000001111, # 故障停机
+               "fault"                 : 0b0000000000001000, # 故障
                }
                     
 
