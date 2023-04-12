@@ -133,6 +133,7 @@ class UsbCan:
         if UsbCan.is_open and self.is_init:
             self.clear_buffer()
             if USBCAN_Lib.VCI_ResetCAN(UsbCan.__device_type, UsbCan.__device_index, self.__channel):
+                self.is_start = False
                 self.reset_count = self.reset_count + 1
                 self.__start_can()
                 print("\033[0;32m[Channel {}] reset\n\033[0m".format(self.__channel))
