@@ -14,13 +14,24 @@ import motor.msg_generation as motor_gen
 import motor.protocol as motor_proto 
 from motor.function import *
 
-if __name__=="__main__":
-    
-    UsbCan.open_device() # 打开设备，设置了设备名称和地址
-    usbcan_0 = UsbCan("0") # 打开通道0
-    usbcan_1 = UsbCan("1") # 打开通道1
+# 步骤1 打开设备 设置设备类型和地址
+def open_usbcan():
+    UsbCan.open_device()
+    return UsbCan.is_open
 
+# 步骤2 启动通道0和1 初始化+打开
+def open_channel():
+    global usbcan_0, usbcan_1
+    usbcan_0 = UsbCan("0")
+    usbcan_1 = UsbCan("1")
+
+# 步骤3 挂载电机总线 设置速度 加速度 减速度
+def config_motor():
     Motor.config(usbcan_0)
+
+# 步骤4 写入电机模式 速度 加速度 减速度
+def init_motor():
+    global motor_1, motor_2, motor_3, motor_4, motor_5, motor_6, motor_7, motor_8, motor_9, motor_10
     motor_1 = Motor(1)
     motor_2 = Motor(2)
     # motor_3 = Motor(3)
@@ -31,6 +42,16 @@ if __name__=="__main__":
     # motor_8 = Motor(8)
     # motor_9 = Motor(9)
     # motor_10 = Motor(10)
+
+if __name__=="__main__":
+    
+    open_usbcan()
+    
+    open_channel()
+
+    config_motor()
+
+    init_motor()
 
     time.sleep(1)
 
