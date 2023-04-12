@@ -16,9 +16,9 @@ from motor.function import *
 
 if __name__=="__main__":
     
-    UsbCan.open()
-    usbcan_0 = UsbCan(usbcan_param.CHANNEL["0"])
-    usbcan_1 = UsbCan(usbcan_param.CHANNEL["1"])
+    UsbCan.open_device() # 打开设备，设置了设备名称和地址
+    usbcan_0 = UsbCan("0") # 打开通道0
+    usbcan_1 = UsbCan("1") # 打开通道1
 
     Motor.config(usbcan_0)
     motor_1 = Motor(1)
@@ -48,6 +48,7 @@ if __name__=="__main__":
         motor_2.stop_feedback()
         motor_2.update_status()
         print(motor_2.motor_status)
+        motor_2.set_position(1000)
         time.sleep(1)
         print("=======================")
 
