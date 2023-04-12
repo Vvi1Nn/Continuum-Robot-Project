@@ -124,7 +124,7 @@ def nmt_get_status(node_id, is_print = False) -> list:
 
 
 if __name__ == "__main__":
-    sdo_read(1, "control_mode", True) # 查看控制模式
+    # sdo_read(1, "control_mode", True) # 查看控制模式
     # sdo_write_32(1, "control_mode", pro.CONTROL_MODE["position_control"], True) # 位置模式
     # sdo_write_32(1, "acceleration", 1000, True) # 加速度1000
     # sdo_write_32(1, "deceleration", 10000, True) # 减速度10000
@@ -133,7 +133,8 @@ if __name__ == "__main__":
     # sdo_write_32(1, "control_word", 0x6F, True) # 相对使能
     # sdo_write_32(1, "control_word", 0x7F, True) # 启动
     # start_pdo(3, True)
-    rpdo(1, 5, 10000, -10000, True)
+    # rpdo(1, 5, 10000, -10000, True)
     sdo_write_32(1, "tpdo_2_timer", 100, True)
     nmt_change_status(2, "start_remote_node", True)
+    nmt_change_status(2, "enter_pre-operational_state", True)
     nmt_get_status(2, True)
