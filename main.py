@@ -16,14 +16,14 @@ from motor.function import *
 
 # 步骤1 打开设备 设置设备类型和地址
 def open_usbcan():
-    UsbCan.open_device()
+    UsbCan.open_device("USBCAN2", "0", 5)
     return UsbCan.is_open
 
 # 步骤2 启动通道0和1 初始化+打开
 def open_channel():
     global usbcan_0, usbcan_1
-    usbcan_0 = UsbCan("0")
-    usbcan_1 = UsbCan("1")
+    usbcan_0 = UsbCan("0", "250K")
+    usbcan_1 = UsbCan("1", "250K")
 
 # 步骤3 挂载电机总线 设置速度 加速度 减速度
 def config_motor():
