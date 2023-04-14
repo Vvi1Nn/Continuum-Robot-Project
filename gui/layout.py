@@ -1,0 +1,96 @@
+# -*- coding: utf-8 -*-
+
+# Form implementation generated from reading ui file 'control_panel.ui'
+#
+# Created by: PyQt5 UI code generator 5.14.1
+#
+# WARNING! All changes made in this file will be lost!
+
+
+from PyQt5 import QtCore, QtGui, QtWidgets
+
+
+class Ui_main_window(object):
+    def setupUi(self, main_window):
+        main_window.setObjectName("main_window")
+        main_window.resize(1106, 735)
+        self.button_account = QtWidgets.QPushButton(main_window)
+        self.button_account.setGeometry(QtCore.QRect(50, 30, 121, 151))
+        self.button_account.setObjectName("button_account")
+        self.button_setting = QtWidgets.QPushButton(main_window)
+        self.button_setting.setGeometry(QtCore.QRect(50, 190, 121, 151))
+        self.button_setting.setObjectName("button_setting")
+        self.button_control = QtWidgets.QPushButton(main_window)
+        self.button_control.setGeometry(QtCore.QRect(50, 350, 121, 151))
+        self.button_control.setObjectName("button_control")
+        self.button_log = QtWidgets.QPushButton(main_window)
+        self.button_log.setGeometry(QtCore.QRect(50, 510, 121, 151))
+        self.button_log.setObjectName("button_log")
+        self.page_stack = QtWidgets.QStackedWidget(main_window)
+        self.page_stack.setGeometry(QtCore.QRect(180, 30, 911, 631))
+        self.page_stack.setObjectName("page_stack")
+        self.page_account = QtWidgets.QWidget()
+        self.page_account.setObjectName("page_account")
+        self.title = QtWidgets.QLabel(self.page_account)
+        self.title.setGeometry(QtCore.QRect(320, 180, 291, 91))
+        self.title.setObjectName("title")
+        self.text_user = QtWidgets.QLabel(self.page_account)
+        self.text_user.setGeometry(QtCore.QRect(280, 280, 291, 91))
+        self.text_user.setObjectName("text_user")
+        self.text_password = QtWidgets.QLabel(self.page_account)
+        self.text_password.setGeometry(QtCore.QRect(260, 420, 291, 91))
+        self.text_password.setObjectName("text_password")
+        self.login = QtWidgets.QPushButton(self.page_account)
+        self.login.setGeometry(QtCore.QRect(360, 560, 117, 32))
+        self.login.setObjectName("login")
+        self.user = QtWidgets.QComboBox(self.page_account)
+        self.user.setGeometry(QtCore.QRect(390, 310, 103, 31))
+        self.user.setObjectName("user")
+        self.user.addItem("")
+        self.user.addItem("")
+        self.password = QtWidgets.QPlainTextEdit(self.page_account)
+        self.password.setGeometry(QtCore.QRect(350, 450, 171, 41))
+        self.password.setPlainText("")
+        self.password.setBackgroundVisible(False)
+        self.password.setObjectName("password")
+        self.page_stack.addWidget(self.page_account)
+        self.page_setting = QtWidgets.QWidget()
+        self.page_setting.setObjectName("page_setting")
+        self.button_2 = QtWidgets.QRadioButton(self.page_setting)
+        self.button_2.setGeometry(QtCore.QRect(340, 230, 144, 29))
+        self.button_2.setObjectName("button_2")
+        self.page_stack.addWidget(self.page_setting)
+        self.page_control = QtWidgets.QWidget()
+        self.page_control.setObjectName("page_control")
+        self.button_3 = QtWidgets.QRadioButton(self.page_control)
+        self.button_3.setGeometry(QtCore.QRect(310, 150, 144, 29))
+        self.button_3.setObjectName("button_3")
+        self.page_stack.addWidget(self.page_control)
+        self.page_log = QtWidgets.QWidget()
+        self.page_log.setObjectName("page_log")
+        self.button_4 = QtWidgets.QRadioButton(self.page_log)
+        self.button_4.setGeometry(QtCore.QRect(300, 220, 144, 29))
+        self.button_4.setObjectName("button_4")
+        self.page_stack.addWidget(self.page_log)
+
+        self.retranslateUi(main_window)
+        self.page_stack.setCurrentIndex(0)
+        QtCore.QMetaObject.connectSlotsByName(main_window)
+
+    def retranslateUi(self, main_window):
+        _translate = QtCore.QCoreApplication.translate
+        main_window.setWindowTitle(_translate("main_window", "龙骨式连续体机器人控制面板"))
+        self.button_account.setText(_translate("main_window", "管理"))
+        self.button_setting.setText(_translate("main_window", "设置"))
+        self.button_control.setText(_translate("main_window", "操纵"))
+        self.button_log.setText(_translate("main_window", "日志"))
+        self.title.setText(_translate("main_window", "龙骨式连续体机器人控制面板"))
+        self.text_user.setText(_translate("main_window", "用户："))
+        self.text_password.setText(_translate("main_window", "密码："))
+        self.login.setText(_translate("main_window", "登录"))
+        self.user.setItemText(0, _translate("main_window", "User"))
+        self.user.setItemText(1, _translate("main_window", "Admin"))
+        self.password.setPlaceholderText(_translate("main_window", "请输入密码..."))
+        self.button_2.setText(_translate("main_window", "设置"))
+        self.button_3.setText(_translate("main_window", "控制"))
+        self.button_4.setText(_translate("main_window", "日志"))
