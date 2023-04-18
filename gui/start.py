@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import QApplication
 
 from function import *
 
-win = None
 
 def main():
     app = QApplication([])
