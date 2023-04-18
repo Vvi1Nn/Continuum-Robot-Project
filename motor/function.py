@@ -37,7 +37,7 @@ class Motor:
     
     @classmethod
     def config(cls, device,
-               control_mode = pro.CONTROL_MODE["position_control"],
+               control_mode = "position_control",
                acceleration = 1000,
                deceleration = 10000,
                velocity     = 100,
@@ -46,7 +46,7 @@ class Motor:
         cls.__device = device
         print("\033[0;32m[Motor] info: {}\033[0m".format(cls.__device))
 
-        cls.__control_mode = control_mode
+        cls.__control_mode = pro.CONTROL_MODE[control_mode]
         print("\033[0;32m[Motor] control_mode: {}\033[0m".format(cls.__control_mode))
         
         if acceleration < 1000 or acceleration > 10000:
