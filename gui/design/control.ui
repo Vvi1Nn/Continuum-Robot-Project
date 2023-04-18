@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1048</width>
-    <height>728</height>
+    <width>1059</width>
+    <height>722</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -286,11 +286,6 @@ QStackedWidget QTextBrowser {
                     <string>250K</string>
                    </property>
                   </item>
-                  <item>
-                   <property name="text">
-                    <string>500K</string>
-                   </property>
-                  </item>
                  </widget>
                 </item>
                 <item>
@@ -307,11 +302,6 @@ QStackedWidget QTextBrowser {
                   <item>
                    <property name="text">
                     <string>250K</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>500K</string>
                    </property>
                   </item>
                  </widget>
@@ -358,20 +348,40 @@ QStackedWidget QTextBrowser {
                </layout>
               </item>
               <item>
-               <widget class="QPushButton" name="bt_reset">
-                <property name="enabled">
-                 <bool>true</bool>
+               <layout class="QVBoxLayout" name="verticalLayout_50">
+                <property name="spacing">
+                 <number>15</number>
                 </property>
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>重置CAN</string>
-                </property>
-               </widget>
+                <item>
+                 <widget class="QPushButton" name="bt_reset0">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>重置通道0</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="bt_reset1">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>重置通道1</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
               <item>
                <widget class="QPushButton" name="bt_close">
@@ -675,20 +685,37 @@ QStackedWidget QTextBrowser {
                </layout>
               </item>
               <item>
-               <widget class="QPushButton" name="bt_save">
-                <property name="enabled">
-                 <bool>true</bool>
+               <layout class="QVBoxLayout" name="verticalLayout_51">
+                <property name="spacing">
+                 <number>15</number>
                 </property>
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>保存</string>
-                </property>
-               </widget>
+                <item>
+                 <widget class="QPushButton" name="bt_save">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>保存</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="bt_launch">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>生效</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
              </layout>
             </widget>
