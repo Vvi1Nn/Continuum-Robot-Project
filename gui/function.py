@@ -172,6 +172,7 @@ class ControlPanel(QMainWindow):
     def __interface_close_usbcan(self) -> None:
         UsbCan.close_device()
         if not UsbCan.is_open:
+            self.__enable_menu(True, False, False)
             self.__enable_open_device(True, "打开设备")
             self.__enable_channel0(False, "打开通道0", False, "重置通道0")
             self.__enable_channel1(False, "打开通道1", False, "重置通道1")
@@ -205,4 +206,4 @@ class ControlPanel(QMainWindow):
         # self.__motor_9 = Motor(9)
         # self.__motor_10 = Motor(10)
         self.__enable_init_motor(False, "成功")
-    
+        self.__enable_menu(True, True, False)
