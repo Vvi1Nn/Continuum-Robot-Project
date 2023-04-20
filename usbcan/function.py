@@ -20,22 +20,18 @@ class UsbCan:
     __reserved     = usbcan_param.RESERVED
 
     is_open = False
-    work_channel_count = 0
 
-    def __init__(self,
-                 channel = "0",
-                 timer = "250K",
-                 ) -> None:
-        
+    def __init__(self, channel = "0", timer = "250K") -> None:
         self.__channel = usbcan_param.CHANNEL[channel]
+        self.timer = timer
 
         self.__init_config = usbcan_struct.INIT_CONFIG()
         self.__init_config.AccCode  = usbcan_param.ACC_CODE["default"]
         self.__init_config.AccMask  = usbcan_param.ACC_MASK["default"]
         self.__init_config.Reserved = usbcan_param.RESERVED
         self.__init_config.Filter   = usbcan_param.FILTER["single"]
-        self.__init_config.Timing0  = usbcan_param.TIMER[timer][0]
-        self.__init_config.Timing1  = usbcan_param.TIMER[timer][1]
+        self.__init_config.Timing0  = usbcan_param.TIMER[self.timer][0]
+        self.__init_config.Timing1  = usbcan_param.TIMER[self.timer][1]
         self.__init_config.Mode     = usbcan_param.MODE["normal"]
 
         self.__time_stamp  = usbcan_param.TIME_STAMP["off"]
@@ -45,105 +41,61 @@ class UsbCan:
         
         self.is_init = False
         self.is_start = False
-        self.reset_count = 0
-
-        self.__init_can()
-        self.__start_can()
-
-        if not (self.is_init and self.is_start):
-            print("\033[0;33m[UsbCan] waiting for __init__ again ...\033[0m")
-            time.sleep(3)
-            return self.__init__(channel, timer)
-
-        UsbCan.work_channel_count = UsbCan.work_channel_count + 1
-        
-    def __str__(self) -> str:
-        return "channel {}".format(self.__channel)
 
     @classmethod
-    def open_device(cls,
-             device_type = "USBCAN2",
-             device_index = "0",
-             try_num = 10,
-             ) -> None:
+    def open_device(cls, device_type = "USBCAN2", device_index = "0") -> None:
         cls.__device_type = usbcan_param.DEVICE_TYPE[device_type]
         cls.__device_index = usbcan_param.DEVICE_INDEX[device_index]
         if not cls.is_open:
             if USBCAN_Lib.VCI_OpenDevice(UsbCan.__device_type, UsbCan.__device_index, UsbCan.__reserved):
                 cls.is_open = True
-                print("\033[0;32m[UsbCan] type:{}  index:{}\n\033[0m".format(UsbCan.__device_type, UsbCan.__device_index))
+                print("\033[0;32m[UsbCan] deivce opened! type:{} index:{}\n\033[0m".format(UsbCan.__device_type, UsbCan.__device_index))
             else:
-                if try_num != 0:
-                    print("\033[0;33m[UsbCan] trying open device again ...\033[0m")
-                    time.sleep(1)
-                    return UsbCan.open_device(cls.__device_type, cls.__device_index, try_num - 1)
-                else:
-                    print("\033[0;31m[UsbCan] cannot open device\n\033[0m")
+                print("\033[0;31m[UsbCan] cannot open device\n\033[0m")
         else:
             print("\033[0;32m[UsbCan] device is already opened\n\033[0m")
 
     @classmethod
-    def close_device(cls, try_num = 10) -> None:
+    def close_device(cls) -> None:
         if cls.is_open:
             if USBCAN_Lib.VCI_CloseDevice(UsbCan.__device_type, UsbCan.__device_index):
                 print("\033[0;32m[UsbCan] device closed\n\033[0m")
                 cls.is_open = False
             else:
-                if try_num != 0:
-                    print("\033[0;33m[UsbCan] trying close device again ...\033[0m")
-                    time.sleep(1)
-                    return UsbCan.close_device(try_num - 1)
-                else:
-                    print("\033[0;31m[UsbCan] cannot close device\n\033[0m")
+                print("\033[0;31m[UsbCan] cannot close device\n\033[0m")
         else:
             print("\033[0;32m[UsbCan] device is already closed\n\033[0m")
 
-    def __init_can(self, try_num = 10) -> None:
+    def init_can(self) -> None:
         if UsbCan.is_open:
             if USBCAN_Lib.VCI_InitCAN(UsbCan.__device_type, UsbCan.__device_index, self.__channel, byref(self.__init_config)):
                 self.is_init = True
                 print("\033[0;32m[Channel {}] initialize\033[0m".format(self.__channel))
             else:
-                if try_num != 0:
-                    print("\033[0;33m[Channel {}] trying init can again ...\033[0m".format(self.__channel))
-                    time.sleep(1)
-                    return self.__init_can(try_num - 1)
-                else:
-                    print("\033[0;31m[Channel {}] cannot init can\n\033[0m".format(self.__channel))
+                print("\033[0;31m[Channel {}] cannot init can\n\033[0m".format(self.__channel))
         else:
             print("\033[0;31m[UsbCan] please open device first\n\033[0m")
 
-    def __start_can(self, try_num = 10) -> None:
+    def start_can(self) -> None:
         if UsbCan.is_open and self.is_init:
             self.clear_buffer()
             if USBCAN_Lib.VCI_StartCAN(UsbCan.__device_type, UsbCan.__device_index, self.__channel):
                 self.is_start = True
                 print("\033[0;32m[Channel {}] start\n\033[0m".format(self.__channel))
             else:
-                if try_num != 0:
-                    print("\033[0;33m[Channel {}] trying start can again ...\033[0m".format(self.__channel))
-                    time.sleep(1)
-                    return self.__start_can(try_num - 1)
-                else:
-                    print("\033[0;31m[Channel {}] cannot start can\n\033[0m".format(self.__channel))
+                print("\033[0;31m[Channel {}] cannot start can\n\033[0m".format(self.__channel))
         else:
             print("\033[0;31m[UsbCan] please open device and init can first\033[0m")
     
-    def reset_can(self, try_num = 10) -> None:
+    def reset_can(self) -> None:
         if UsbCan.is_open and self.is_init:
             self.clear_buffer()
             if USBCAN_Lib.VCI_ResetCAN(UsbCan.__device_type, UsbCan.__device_index, self.__channel):
                 self.is_start = False
-                self.reset_count = self.reset_count + 1
-                self.__start_can()
+                self.start_can()
                 print("\033[0;32m[Channel {}] reset\n\033[0m".format(self.__channel))
             else:
-                if try_num != 0:
-                    print("\033[0;33m[Channel {}] trying reset can again ...\033[0m".format(self.__channel))
-                    time.sleep(1)
-                    return self.reset_can(try_num - 1)
-                else:
-                    print("\033[0;31m[Channel {}] reset can failed\n\033[0m".format(self.__channel))
+                print("\033[0;31m[Channel {}] reset can failed\n\033[0m".format(self.__channel))
         else:
             print("\033[0;31m[UsbCan] please open device and init can first\033[0m")
     
