@@ -6,9 +6,9 @@ from function import *
 
 
 def main():
-    app = QApplication([])
+    app = QApplication(sys.argv)
     win = LoginPanel()
-    app.exec_()
+    sys.exit(app.exec_())
 
 if __name__ == "__main__":
     main()
