@@ -32,9 +32,6 @@ class Motor:
         
         self.__motor_init()
     
-    def __str__(self) -> str:
-        return "[Motor {}] {} acc:{} dec:{} vel:{}".format(self.id, Motor.control_mode, Motor.acceleration, Motor.deceleration, Motor.velocity)
-    
     @classmethod
     def config(cls, device,
                control_mode = "position_control",
@@ -44,7 +41,6 @@ class Motor:
                ) -> None:
         
         cls.device = device
-        print("\033[0;32m[Motor] info: {}\033[0m".format(cls.device))
 
         cls.control_mode = pro.CONTROL_MODE[control_mode]
         print("\033[0;32m[Motor] control_mode: {}\033[0m".format(cls.control_mode))
