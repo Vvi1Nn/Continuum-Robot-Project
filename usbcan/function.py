@@ -36,6 +36,7 @@ class UsbCan:
 
         self.__time_stamp  = usbcan_param.TIME_STAMP["off"]
         self.__time_flag   = usbcan_param.TIME_FLAG["off"]
+        self.__send_type   = usbcan_param.SEND_TYPE["normal"]
         self.__extern_flag = usbcan_param.EXTERN_FLAG["standard"]
         self.__data_len    = usbcan_param.DATA_LEN["default"]
         
@@ -101,7 +102,6 @@ class UsbCan:
     
     def send(self, id, data,
              log         = False,
-             send_type   = usbcan_param.SEND_TYPE["normal"],
              remote_flag = usbcan_param.REMOTE_FLAG["data"],
              ) -> bool:
         if self.is_start:
@@ -111,7 +111,7 @@ class UsbCan:
                 msgs[i].ID         = id
                 msgs[i].TimeStamp  = self.__time_stamp
                 msgs[i].TimeFlag   = self.__time_flag
-                msgs[i].SendType   = send_type
+                msgs[i].SendType   = self.__send_type
                 msgs[i].RemoteFlag = remote_flag
                 msgs[i].ExternFlag = self.__extern_flag
                 msgs[i].DataLen    = self.__data_len
