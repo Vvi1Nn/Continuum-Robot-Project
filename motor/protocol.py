@@ -1,5 +1,8 @@
 # -*- coding:utf-8 -*-
 
+
+# 以下是CANopen协议通讯层对象字典
+
 CAN_ID = {"NMT_C" : 0x000,
           "TPDO_1": 0x180,
           "RPDO_1": 0x200,
@@ -40,14 +43,16 @@ CMD_R = {"read_32" : 0x43,
          "error"   : 0x80,
          }
 
-CONTROL_WORD_BIT = {"switch_on"       : {"bit": 0, False: 0, True: 1},
-                   "enable_voltage"   : {"bit": 1, False: 0, True: 1},
-                   "quick_stop"       : {"bit": 2, False: 1, True: 0},
-                   "enable_operation" : {"bit": 3, False: 0, True: 1},
-                   "action"           : {"bit": 4, False: 0, True: 1},
-                   "is_immediate"     : {"bit": 5, False: 0, True: 1},
-                   "is_relative"      : {"bit": 6, False: 0, True: 1},
-                   "fault_reset"      : {"bit": 7, False: 0, True: 1},
+# 以下是步进电机应用层对象字典
+
+CONTROL_WORD_BIT = {"switch_on"        : {"bit": 0, False: 0, True: 1},
+                    "enable_voltage"   : {"bit": 1, False: 0, True: 1},
+                    "quick_stop"       : {"bit": 2, False: 1, True: 0},
+                    "enable_operation" : {"bit": 3, False: 0, True: 1},
+                    "action"           : {"bit": 4, False: 0, True: 1},
+                    "is_immediate"     : {"bit": 5, False: 0, True: 1},
+                    "is_relative"      : {"bit": 6, False: 0, True: 1},
+                    "fault_reset"      : {"bit": 7, False: 0, True: 1},
                    }
 
 CONTROL_WORD = {"reset"             : 0b10000000, # 0x80 优先级 1
