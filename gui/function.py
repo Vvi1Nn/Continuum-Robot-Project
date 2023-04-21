@@ -42,7 +42,7 @@ class LoginPanel(QMainWindow):
             self.close()
             self.control_panel = ControlPanel(account)
         else: pass
-
+ 
 
 class ControlPanel(QMainWindow):
     def __init__(self, account) -> None:
@@ -66,9 +66,9 @@ class ControlPanel(QMainWindow):
         self.ui.bt_init.setEnabled(init)
         self.ui.bt_control.setEnabled(control)
         self.ui.bt_log.setEnabled(log)
-    def enable_open_device(self, flag, text):
+    def enable_open_device(self, flag, text=None):
         self.ui.bt_open.setEnabled(flag)
-        self.ui.bt_open.setText(text)
+        if text != None: self.ui.bt_open.setText(text)
     def enable_channel0(self, flag_open, text_open, flag_reset, text_reset):
         self.ui.bx_rate0.setEnabled(flag_open)
         self.ui.bt_channel0.setEnabled(flag_open)
