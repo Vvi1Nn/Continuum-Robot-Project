@@ -19,11 +19,13 @@ class UsbCan:
     __device_index = usbcan_param.DEVICE_INDEX["0"]
     __reserved     = usbcan_param.RESERVED
 
+    __is_log = False
     is_open = False
 
-    def __init__(self, channel = "0", timer = "250K") -> None:
+    def __init__(self, channel: str, timer = "250K", is_log = False) -> None:
         self.__channel = usbcan_param.CHANNEL[channel]
         self.timer = timer
+        UsbCan.__is_log = is_log
 
         self.__init_config = usbcan_struct.INIT_CONFIG()
         self.__init_config.AccCode  = usbcan_param.ACC_CODE["default"]
@@ -100,10 +102,7 @@ class UsbCan:
         else:
             print("\033[0;31m[UsbCan] please open device and init can first\033[0m")
     
-    def send(self, id, data,
-             log         = False,
-             remote_flag = usbcan_param.REMOTE_FLAG["data"],
-             ) -> bool:
+    def send(self, id, data, remote_flag = "data") -> bool:
         if self.is_start:
             length = len(data)
             msgs = (usbcan_struct.CAN_OBJ * length)()
@@ -112,26 +111,26 @@ class UsbCan:
                 msgs[i].TimeStamp  = self.__time_stamp
                 msgs[i].TimeFlag   = self.__time_flag
                 msgs[i].SendType   = self.__send_type
-                msgs[i].RemoteFlag = remote_flag
+                msgs[i].RemoteFlag = usbcan_param.REMOTE_FLAG[remote_flag]
                 msgs[i].ExternFlag = self.__extern_flag
                 msgs[i].DataLen    = self.__data_len
                 for j in range(msgs[i].DataLen):
                     msgs[i].Data[j] = data[i][j]
             send_num = USBCAN_Lib.VCI_Transmit(UsbCan.__device_type, UsbCan.__device_index, self.__channel, byref(msgs), length)
             if length == send_num:
-                if log: print("\033[0;32m[Channel {}] send done! num: {}\033[0m".format(self.__channel, send_num))
+                if UsbCan.__is_log: print("\033[0;32m[Channel {}] send done! num: {}\033[0m".format(self.__channel, send_num))
                 return True
             else:
-                if log: print("\033[0;31m[Channel {}] send failed, num: {}\033[0m".format(self.__channel, send_num))
+                if UsbCan.__is_log: print("\033[0;31m[Channel {}] send failed, num: {}\033[0m".format(self.__channel, send_num))
                 return False
         else:
             print("\033[0;31m[UsbCan] please init channel first\033[0m")
             return False
 
-    def get_buffer_num(self, log = False) -> int:   
+    def get_buffer_num(self) -> int:   
         if self.is_start:
             buffer_num = USBCAN_Lib.VCI_GetReceiveNum(UsbCan.__device_type, UsbCan.__device_index, self.__channel)
-            if log: print("[Channel {}] buffer num: {}".format(self.__channel, buffer_num))
+            if UsbCan.__is_log: print("[Channel {}] buffer num: {}".format(self.__channel, buffer_num))
             return buffer_num
         else:
             print("\033[0;31m[UsbCan] please start channel first\033[0m")
@@ -150,10 +149,10 @@ class UsbCan:
             print("\033[0;31m[UsbCan] please start channel first\033[0m")
             return None
         
-    def clear_buffer(self, try_num = 10, log = False) -> bool:
+    def clear_buffer(self, try_num = 5) -> bool:
         if UsbCan.is_open:
             if USBCAN_Lib.VCI_ClearBuffer(UsbCan.__device_type, UsbCan.__device_index, self.__channel):
-                if log: print("\033[0;32m[Channel {}] clear buffer\033[0m".format(self.__channel))
+                if UsbCan.__is_log: print("\033[0;32m[Channel {}] clear buffer\033[0m".format(self.__channel))
                 return True
             else:
                 if try_num != 0:
