@@ -72,4 +72,5 @@ EXTERN_FLAG = {"standard": 0,
                }
 
 DATA_LEN = {"default": 8,
+            "remote": 2,
             }
