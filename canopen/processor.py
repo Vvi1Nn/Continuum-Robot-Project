@@ -88,23 +88,6 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
             return False
         if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] trying set_bus_status() again ...\033[0m".format(self.node_id))
         return self.set_bus_status(label, wait-1)
-        if num != 0:
-            if msg[0].ID == self.node_id + protocol.CAN_ID["NMT_S"]:
-                for k in protocol.NMT_STATUS:
-                    if label == "start_remote_node" and k != "operational": continue
-                    elif label == "stop_remote_node" and k != "stopped": continue
-                    elif label == "enter_pre-operational_state" and k != "pre-operational": continue
-                    elif label == "reset_node" and k != "boot_up": continue
-                    elif label == "reset_communication" and k != "boot_up": continue
-                    if msg[0].Data[0] & 0b01111111 == protocol.NMT_STATUS[k]:
-                        self.bus_status = k
-                        if CanOpenBusProcessor.__is_log: print("\033[0;32m[Node-ID {}] bus status: {}\033[0m".format(self.node_id, self.bus_status))
-                        return True
-        if wait == 0:
-            print("\033[0;31m[Node-ID {}] get_bus_status() failed\033[0m".format(self.node_id))
-            return False
-        if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] trying set_bus_status() again ...\033[0m".format(self.node_id))
-        return self.set_bus_status(label, wait-1)
     
     def sdo_read(self, label: str, wait=5) -> int:
         [cob_id, data] = super().sdo_read(label)
@@ -127,10 +110,19 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
                 return True
         if wait == 0:
             print("\033[0;31m[Node-ID {}] sdo_write_32() failed\033[0m".format(self.node_id))
-            return None
+            return False
         if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] trying sdo_write_32() again ...\033[0m".format(self.node_id))
         return self.sdo_write_32(label, value, wait-1)
     
     def rpdo(self, channel: str, value_low: int, value_high: int) -> None:
         [cob_id, data] = super().rpdo(channel, value_low, value_high)
         self.__send_msg(cob_id, data)
+
+    def check_bus_status(self) -> bool:
+        self.get_bus_status()
+        while self.bus_status != "pre-operational":
+            self.set_bus_status("enter_pre-operational_state")
+            time.sleep(0.5)
+        print("\033[0;32m[Node-ID {}] checked\033[0m".format(self.node_id))
+        return True
+    
