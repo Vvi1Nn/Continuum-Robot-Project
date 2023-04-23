@@ -10,12 +10,17 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
     device = None
     __is_log = True
 
-    def __init__(self, is_print=False) -> None:
-        super().__init__(is_print)
+    def __init__(self, node_id) -> None:
+        super().__init__(node_id)
+        self.bus_status = None
     
     @classmethod
     def link_device(cls, device: object) -> None:
         cls.device = device
+
+    @classmethod
+    def is_show_log(cls, is_log):
+        cls.__is_log = is_log
 
     @staticmethod
     def __match_index(index_low, index_high, subindex) -> list:
@@ -43,60 +48,89 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
         else:
             return - ((int(data_str, 2) ^ 0xFFFFFFFF) + 1)
 
-    @classmethod
-    def get_bus_status(cls, node_id: int, wait = 5):
-        [cob_id, data] = CanOpenMsgGenerator.nmt_get_status(node_id) # 计算消息内容
-        cls.device.clear_buffer() # 清空缓存，让下一条接收的消息置于最前面，以供读取
-        while not cls.device.send(cob_id, [data], remote_flag = "remote"):
-            if cls.__is_log: print("\033[0;33m[Node-ID {}] sending message ...\033[0m".format(node_id))
+    def __send_msg(self, cob_id, data, remote_flag="data", data_len="default"):
+        CanOpenBusProcessor.device.clear_buffer()
+        while not CanOpenBusProcessor.device.send(cob_id, [data], remote_flag, data_len):
+            if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] sending message ...\033[0m".format(self.node_id))
             time.sleep(0.05)
         time.sleep(0.05)
-        [num, msg] = cls.device.read_buffer(1)
+        [num, msg] = CanOpenBusProcessor.device.read_buffer(1)
+        return [num, msg]
+    
+    def get_bus_status(self, wait=5) -> str:
+        [cob_id, data] = self.nmt_get_status() # 计算消息内容
+        [num, msg] = self.__send_msg(cob_id, data, remote_flag="remote")
         if num != 0:
-            if msg[0].ID == node_id + protocol.CAN_ID["NMT_S"]:
+            if msg[0].ID == self.node_id + protocol.CAN_ID["NMT_S"]:
                 for k in protocol.NMT_STATUS:
                     if msg[0].Data[0] & 0b01111111 == protocol.NMT_STATUS[k]:
-                        return k
-            else:
-                if wait == 0:
-                    print("\033[0;31m[Node-ID {}] get_bus_status() failed\033[0m".format(node_id))
-                    return False
-                if cls.__is_log: print("\033[0;33m[Node-ID {}] trying get_bus_status() again ...\033[0m".format(node_id))
-                return cls.get_bus_status(wait=wait-1)
-        else:
-            if wait == 0:
-                    print("\033[0;31m[Node-ID {}] get_bus_status() failed\033[0m".format(node_id))
-                    return False
-            if cls.__is_log: print("\033[0;33m[Node-ID {}] trying get_bus_status() again ...\033[0m".format(node_id))
-            return cls.get_bus_status(wait=wait-1)
-        
-    @classmethod
-    def sdo_read(cls, node_id: int, label: str):
-        [cob_id, data] = super().sdo_read(node_id, label)
-        cls.device.clear_buffer()
-        while not cls.device.send(cob_id, [data]):
-            if cls.__is_log: print("\033[0;33m[Motor {}] trying send motor status updating msg ...\033[0m".format(node_id))
-            time.sleep(0.05)
-        time.sleep(0.05)
-        [num, msg] = cls.device.read_buffer(1)
+                        self.bus_status = k
+                        if CanOpenBusProcessor.__is_log: print("\033[0;32m[Node-ID {}] bus status: {}\033[0m".format(self.node_id, self.bus_status))
+                        return self.bus_status
+        if wait == 0:
+            print("\033[0;31m[Node-ID {}] get_bus_status() failed\033[0m".format(self.node_id))
+            return "get_bus_status_error"
+        if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] trying get_bus_status() again ...\033[0m".format(self.node_id))
+        return self.get_bus_status(wait-1)
+
+    def set_bus_status(self, label, wait=5) -> bool:
+        [cob_id, data] = self.nmt_change_status(label)
+        [num, msg] = self.__send_msg(cob_id, data, data_len="remote")
+        time.sleep(0.5)
+        self.get_bus_status()
+        if label == "start_remote_node" and self.bus_status == "operational": return True
+        elif label == "stop_remote_node" and self.bus_status == "stopped": return True
+        elif label == "enter_pre-operational_state" and self.bus_status == "pre-operational": return True
+        elif label == "reset_node" and self.bus_status == "pre-operational": return True
+        elif label == "reset_communication" and self.bus_status == "pre-operational": return True
+        if wait == 0:
+            print("\033[0;31m[Node-ID {}] set_bus_status() failed\033[0m".format(self.node_id))
+            return False
+        if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] trying set_bus_status() again ...\033[0m".format(self.node_id))
+        return self.set_bus_status(label, wait-1)
         if num != 0:
-            if msg[0].ID == node_id + protocol.CAN_ID["SDO_T"] and (msg[0].Data[0] == protocol.CMD_R["read_16"] or msg[0].Data[0] == protocol.CMD_R["read_32"] or msg[0].Data[0] == protocol.CMD_R["read_8"]) and cls.__match_index(msg[0].Data[1], msg[0].Data[2], msg[0].Data[3]) == protocol.OD[label]:
-                value = cls.__hex_list_to_int([msg[0].Data[4]])
-                for key in protocol.STATUS_WORD:
-                    for r in protocol.STATUS_WORD[key]:
-                        if value == r:
-                            self.motor_status = key
-                            if log: print("\033[0;32m[Motor {}] motor status: {}\033[0m".format(self.id, self.motor_status))
-                            return True
-            else:
-                if wait == 0:
-                    print("\033[0;31m[Motor {}] update motor status failed\033[0m".format(self.id))
-                    return False
-                print("\033[0;33m[Motor {}] trying update motor status again ...\033[0m".format(self.id))
-                return self.__update_motor_status(wait = wait - 1)
-        else:
-            if wait == 0:
-                    print("\033[0;31m[Motor {}] update motor status failed\033[0m".format(self.id))
-                    return False
-            print("\033[0;33m[Motor {}] trying update motor status again ...\033[0m".format(self.id))
-            return self.__update_motor_status(wait = wait - 1)
+            if msg[0].ID == self.node_id + protocol.CAN_ID["NMT_S"]:
+                for k in protocol.NMT_STATUS:
+                    if label == "start_remote_node" and k != "operational": continue
+                    elif label == "stop_remote_node" and k != "stopped": continue
+                    elif label == "enter_pre-operational_state" and k != "pre-operational": continue
+                    elif label == "reset_node" and k != "boot_up": continue
+                    elif label == "reset_communication" and k != "boot_up": continue
+                    if msg[0].Data[0] & 0b01111111 == protocol.NMT_STATUS[k]:
+                        self.bus_status = k
+                        if CanOpenBusProcessor.__is_log: print("\033[0;32m[Node-ID {}] bus status: {}\033[0m".format(self.node_id, self.bus_status))
+                        return True
+        if wait == 0:
+            print("\033[0;31m[Node-ID {}] get_bus_status() failed\033[0m".format(self.node_id))
+            return False
+        if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] trying set_bus_status() again ...\033[0m".format(self.node_id))
+        return self.set_bus_status(label, wait-1)
+    
+    def sdo_read(self, label: str, wait=5) -> int:
+        [cob_id, data] = super().sdo_read(label)
+        [num, msg] = self.__send_msg(cob_id, data)
+        if num != 0:
+            if msg[0].ID == self.node_id + protocol.CAN_ID["SDO_T"] and (msg[0].Data[0] == protocol.CMD_R["read_16"] or msg[0].Data[0] == protocol.CMD_R["read_32"] or msg[0].Data[0] == protocol.CMD_R["read_8"]) and self.__match_index(msg[0].Data[1], msg[0].Data[2], msg[0].Data[3]) == protocol.OD[label]:
+                value = self.__hex_list_to_int([msg[0].Data[4], msg[0].Data[5], msg[0].Data[6], msg[0].Data[7]])
+                return value
+        if wait == 0:
+            print("\033[0;31m[Node-ID {}] sdo_read() failed\033[0m".format(self.node_id))
+            return None
+        if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] trying sdo_read() again ...\033[0m".format(self.node_id))
+        return self.sdo_read(label, wait-1)
+
+    def sdo_write_32(self, label: str, value: int, wait=5) -> bool:
+        [cob_id, data] = super().sdo_write_32(label, value)
+        [num, msg] = self.__send_msg(cob_id, data)
+        if num != 0:
+            if msg[0].ID == self.node_id + protocol.CAN_ID["SDO_T"] and msg[0].Data[0] == protocol.CMD_R["write"] and self.__match_index(msg[0].Data[1], msg[0].Data[2], msg[0].Data[3]) == protocol.OD[label]:
+                return True
+        if wait == 0:
+            print("\033[0;31m[Node-ID {}] sdo_write_32() failed\033[0m".format(self.node_id))
+            return None
+        if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] trying sdo_write_32() again ...\033[0m".format(self.node_id))
+        return self.sdo_write_32(label, value, wait-1)
+    
+    def rpdo(self, channel: str, value_low: int, value_high: int) -> None:
+        [cob_id, data] = super().rpdo(channel, value_low, value_high)
+        self.__send_msg(cob_id, data)
