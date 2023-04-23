@@ -40,7 +40,6 @@ class UsbCan:
         self.__time_flag   = usbcan_param.TIME_FLAG["off"]
         self.__send_type   = usbcan_param.SEND_TYPE["normal"]
         self.__extern_flag = usbcan_param.EXTERN_FLAG["standard"]
-        self.__data_len    = usbcan_param.DATA_LEN["default"]
         
         self.is_init = False
         self.is_start = False
@@ -102,7 +101,7 @@ class UsbCan:
         else:
             print("\033[0;31m[UsbCan] please open device and init can first\033[0m")
     
-    def send(self, id, data, remote_flag = "data") -> bool:
+    def send(self, id, data, remote_flag = "data", data_len = "default") -> bool:
         if self.is_start:
             length = len(data)
             msgs = (usbcan_struct.CAN_OBJ * length)()
@@ -113,7 +112,7 @@ class UsbCan:
                 msgs[i].SendType   = self.__send_type
                 msgs[i].RemoteFlag = usbcan_param.REMOTE_FLAG[remote_flag]
                 msgs[i].ExternFlag = self.__extern_flag
-                msgs[i].DataLen    = self.__data_len
+                msgs[i].DataLen    = usbcan_param.DATA_LEN[data_len]
                 for j in range(msgs[i].DataLen):
                     msgs[i].Data[j] = data[i][j]
             send_num = USBCAN_Lib.VCI_Transmit(UsbCan.__device_type, UsbCan.__device_index, self.__channel, byref(msgs), length)
