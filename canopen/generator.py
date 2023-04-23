@@ -5,8 +5,14 @@ import protocol
 
 
 class CanOpenMsgGenerator():
-    def __init__(self, is_print=False) -> None:
-        self.__is_print = is_print
+    __is_print = False
+    
+    def __init__(self, node_id) -> None:
+        self.node_id = node_id
+    
+    @classmethod
+    def is_print_msg(cls, is_print):
+        cls.__is_print = is_print
     
     @staticmethod
     def __split_index(index) -> list:
@@ -37,12 +43,11 @@ class CanOpenMsgGenerator():
         
         return value_list
     
-    def sdo_read(self, node_id: int, label: str) -> list:
-        
+    def sdo_read(self, label: str) -> list:
         index = protocol.OD[label][0]
         subindex = protocol.OD[label][1]
         
-        cob_id = protocol.CAN_ID["SDO_R"] + node_id
+        cob_id = protocol.CAN_ID["SDO_R"] + self.node_id
         
         data = [0x00] * 8
         data[0] = protocol.CMD_T["read"]
@@ -50,7 +55,7 @@ class CanOpenMsgGenerator():
         data[2] = self.__split_index(index)[1]
         data[3] = subindex
         
-        if self.__is_print:
+        if CanOpenMsgGenerator.__is_print:
             hex_data = ["00"] * 8
             print("[sdo_read] {}".format(label))
             print("COB-ID: {}".format(hex(cob_id)[2:].upper()))
@@ -62,12 +67,11 @@ class CanOpenMsgGenerator():
 
         return [cob_id, data]
 
-    def sdo_write_32(self, node_id: int, label: str, value: int) -> list:
-        
+    def sdo_write_32(self, label: str, value: int) -> list:
         index = protocol.OD[label][0]
         subindex = protocol.OD[label][1]
         
-        cob_id = protocol.CAN_ID["SDO_R"] + node_id
+        cob_id = protocol.CAN_ID["SDO_R"] + self.node_id
         
         data = [0x00] * 8
         data[0] = protocol.CMD_T["write_32"]
@@ -79,7 +83,7 @@ class CanOpenMsgGenerator():
         for i in range(4):
             data[4+i] = value[i]
         
-        if self.__is_print:
+        if CanOpenMsgGenerator.__is_print:
             hex_data = ["00"] * 8
             print("[sdo_write_32] {}".format(label))
             print("COB-ID: {}".format(hex(cob_id)[2:].upper()))
@@ -91,9 +95,8 @@ class CanOpenMsgGenerator():
         
         return [cob_id, data]
 
-    def rpdo(self, num: str, node_id: int, value_low: int, value_high: int) -> dict:
-        
-        cob_id = protocol.CAN_ID["RPDO_" + num] + node_id
+    def rpdo(self, num: str, value_low: int, value_high: int) -> dict:
+        cob_id = protocol.CAN_ID["RPDO_" + num] + self.node_id
 
         data = [0x00] * 8
         value_low = self.__int_to_hex_list(value_low)
@@ -103,7 +106,7 @@ class CanOpenMsgGenerator():
         for i in range(4):
             data[4+i] = value_high[i]
 
-        if self.__is_print:
+        if CanOpenMsgGenerator.__is_print:
             hex_data = ["00"] * 8
             print("[rpdo_{}]".format(num))
             print("COB-ID: {}".format(hex(cob_id)[2:].upper()))
@@ -115,12 +118,11 @@ class CanOpenMsgGenerator():
         
         return [cob_id, data]
 
-    def nmt_change_status(self, node_id: int, label: str) -> list:
-        
+    def nmt_change_status(self, label: str) -> list:
         cob_id = protocol.CAN_ID["NMT_C"]
-        data = [protocol.CMD_NMT[label], node_id, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0]
+        data = [protocol.CMD_NMT[label], self.node_id]
 
-        if self.__is_print:
+        if CanOpenMsgGenerator.__is_print:
             hex_data = ["00"] * 8
             print("[nmt_control]")
             print("COB-ID: {}".format(hex(cob_id)[2:].upper()))
@@ -132,12 +134,11 @@ class CanOpenMsgGenerator():
         
         return [cob_id, data]
 
-    def nmt_get_status(self, node_id: int) -> list:
-        
-        cob_id = protocol.CAN_ID["NMT_S"] + node_id
+    def nmt_get_status(self) -> list:
+        cob_id = protocol.CAN_ID["NMT_S"] + self.node_id
         data = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
 
-        if self.__is_print:
+        if CanOpenMsgGenerator.__is_print:
             hex_data = ["00"] * 8
             print("[nmt_status]")
             print("COB-ID: {}".format(hex(cob_id)[2:].upper()))
@@ -165,5 +166,6 @@ if __name__ == "__main__":
     # nmt_change_status(2, "start_remote_node", True)
     # nmt_change_status(2, "enter_pre-operational_state", True)
     # nmt_get_status(2, True)
-    generator = CanOpenMsgGenerator(True)
-    generator.sdo_write_32(1, "control_mode", 100)
+    CanOpenMsgGenerator.is_print_msg(True)
+    generator_1 = CanOpenMsgGenerator(0xB)
+    generator_1.nmt_change_status("start_remote_node")
