@@ -146,6 +146,9 @@ class ControlPanel(QMainWindow):
     def enable_check_10(self, flag, text=None):
         self.ui.check_10.setEnabled(flag)
         if text != None: self.ui.check_10.setText(text)
+    def enable_start_pdo(self, flag, text=None):
+        self.ui.start.setEnabled(flag)
+        if text != None: self.ui.start.setText(text)
     def enable_choose_mode(self, flag, mode="position_control"):
         if mode == "position_control": self.ui.r_pos.setChecked(True) # 选择位置模式
         elif mode == "speed_control": self.ui.r_vel.setChecked(True) # 选择速度模式
@@ -153,25 +156,30 @@ class ControlPanel(QMainWindow):
         self.ui.r_pos.setEnabled(flag)
         self.ui.r_vel.setEnabled(flag)
     def enable_default(self):
-        self.ui.tx_speed.setEnabled(False)
-        self.ui.le_speed.setEnabled(False) # 禁用速度设置
-        self.ui.le_speed.setPlaceholderText("默认值0")
         self.ui.tx_position.setEnabled(False)
         self.ui.le_position.setEnabled(False) # 禁用位置设置
         self.ui.le_position.setPlaceholderText("默认值0")
-    def enable_set_param(self, flag, text0=None, text1=None, text2=None):
+    def enable_set_param(self, flag, text0=None, text1=None, text2=None, text3=None, text4=None):
         self.ui.le_acc.clear()
         self.ui.tx_acc.setEnabled(flag)
         self.ui.le_acc.setEnabled(flag)
-        if text0 != None: self.ui.le_acc.setPlaceholderText(text0)
+        if text0 != None: self.ui.le_acc.setPlaceholderText(text0) # 加速度
         self.ui.le_dec.clear()
         self.ui.tx_dec.setEnabled(flag)
         self.ui.le_dec.setEnabled(flag)
-        if text1 != None: self.ui.le_dec.setPlaceholderText(text1)
+        if text1 != None: self.ui.le_dec.setPlaceholderText(text1) # 减速度
         self.ui.le_vel.clear()
         self.ui.tx_vel.setEnabled(flag)
         self.ui.le_vel.setEnabled(flag)
-        if text2 != None: self.ui.le_vel.setPlaceholderText(text2)
+        if text2 != None: self.ui.le_vel.setPlaceholderText(text2) # 动作速度
+        self.ui.le_position.clear()
+        self.ui.tx_position.setEnabled(flag)
+        self.ui.le_position.setEnabled(flag)
+        if text2 != None: self.ui.le_position.setPlaceholderText(text3) # 目标位置 也就是运动间隔
+        self.ui.le_inhibit.clear()
+        self.ui.tx_inhibit.setEnabled(flag)
+        self.ui.le_inhibit.setEnabled(flag)
+        if text3 != None: self.ui.le_inhibit.setPlaceholderText(text4) # TPDO禁止时间
     def enable_save_param(self, flag):
         self.ui.bt_save.setEnabled(flag)
     def enable_init_motor(self, flag, text=None):
@@ -181,11 +189,15 @@ class ControlPanel(QMainWindow):
     def enable_check_status(self, flag, text=None):
         self.ui.bt_check.setEnabled(flag)
         if text != None: self.ui.bt_check.setText(text)
-    def enable_start(self, flag, text=None):
+    def enable_start_rpdo(self, flag, text=None):
         self.ui.bt_start.setEnabled(flag)
         if text != None: self.ui.bt_start.setText(text)
     # 采集卡
     ...
+    # 状态控制
+    def enable_quick_stop(self, flag, text=None):
+        self.ui.bt_quick_stop.setEnabled(flag)
+        if text != None: self.ui.bt_quick_stop.setText(text)
 
     def initial_status(self) -> None:
         # 菜单 初始化激活 控制失效 日志失效
@@ -209,14 +221,15 @@ class ControlPanel(QMainWindow):
         self.enable_check_8(False, "电机8")
         self.enable_check_9(False, "电机9")
         self.enable_check_10(False, "电机10")
+        self.enable_start_pdo(False, "启动TPDO和RPDO传输")
         self.enable_choose_mode(False, "position_control")
         self.enable_default()
-        self.enable_set_param(False, "默认值{}".format(Motor.acceleration), "默认值{}".format(Motor.deceleration), "默认值{}".format(Motor.velocity))
+        self.enable_set_param(False, "默认值{}".format(Motor.acceleration), "默认值{}".format(Motor.deceleration), "默认值{}".format(Motor.velocity), "默认值{}".format(Motor.position), "默认值{}".format(Motor.inhibit_time))
         self.enable_save_param(False)
         self.enable_init_motor(False, "生效")
         # IO
         self.enable_check_status(False, "检查总线状态")
-        self.enable_start(False, "启动RPDO传输")
+        self.enable_start_rpdo(False, "启动RPDO传输")
     
     def set_menu_jumping(self) -> None:
         self.ui.bt_init.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(0))
@@ -274,6 +287,7 @@ class ControlPanel(QMainWindow):
                 self.enable_close_device(False, "设备已关闭")
                 # 电机
                 self.enable_check_all(False)
+                self.enable_start_pdo(False, "启动TPDO和RPDO传输")
                 self.enable_check_1(False, "电机1")
                 self.enable_check_2(False, "电机2")
                 self.enable_check_3(False, "电机3")
@@ -285,12 +299,12 @@ class ControlPanel(QMainWindow):
                 self.enable_check_9(False, "电机9")
                 self.enable_check_10(False, "电机10")
                 self.enable_choose_mode(False)
-                self.enable_set_param(False, "默认值1000", "默认值10000", "默认值100")
+                self.enable_set_param(False, "默认值{}".format(Motor.acceleration), "默认值{}".format(Motor.deceleration), "默认值{}".format(Motor.velocity), "默认值{}".format(Motor.position), "默认值{}".format(Motor.inhibit_time))
                 self.enable_save_param(False)
                 self.enable_init_motor(False, "生效")
                 # IO
                 self.enable_check_status(False, "状态总线检查")
-                self.enable_start(False, "启动RPDO传输")
+                self.enable_start_rpdo(False, "启动RPDO传输")
         self.ui.bt_open.clicked.connect(lambda: open_usbcan())
         self.ui.bt_channel0.clicked.connect(lambda: start_channel_0())
         self.ui.bt_channel1.clicked.connect(lambda: start_channel_1())
@@ -387,15 +401,27 @@ class ControlPanel(QMainWindow):
                 acc = self.ui.le_acc.text() if self.ui.le_acc.text() != "" else "1000"
                 dec = self.ui.le_dec.text() if self.ui.le_dec.text() != "" else "10000"
                 vel = self.ui.le_vel.text() if self.ui.le_vel.text() != "" else "100"
-                Motor.config(mode, int(acc), int(dec), int(vel))
-                self.enable_set_param(True, "当前值{}".format(Motor.acceleration), "当前值{}".format(Motor.deceleration), "当前值{}".format(Motor.velocity))
+                position = self.ui.le_position.text() if self.ui.le_position.text() != "" else "50"
+                inhibit = self.ui.le_inhibit.text() if self.ui.le_inhibit.text() != "" else "500"
+                Motor.config(mode, int(acc), int(dec), int(vel), int(position), int(inhibit))
+                self.enable_set_param(True, "当前值{}".format(Motor.acceleration), "当前值{}".format(Motor.deceleration), "当前值{}".format(Motor.velocity), "当前值{}".format(Motor.position), "当前值{}".format(Motor.inhibit_time))
             self.enable_init_motor(True, "生效") # 激活 生效
         def init_motor():
             self.motor_2.init_config()
             ...
+            ...
+            ...
             self.enable_init_motor(False, "完成")
+            self.enable_start_pdo(True) # 激活 开启TPDO...............................
+        def start_pdo():
+            self.motor_2.start_feedback()
+            ...
+            ...
+            ...
             self.enable_menu(True, True, False) # 菜单
+
         self.ui.check_all.clicked.connect(lambda: check_bus_all())
+        self.ui.start.clicked.connect(lambda: start_pdo())
         self.ui.check_1.clicked.connect(lambda: check_bus_1())
         self.ui.check_2.clicked.connect(lambda: check_bus_2())
         self.ui.check_3.clicked.connect(lambda: check_bus_3())
@@ -415,10 +441,10 @@ class ControlPanel(QMainWindow):
                 self.enable_check_status(False, "就绪")
                 self.io_module_checked_num += 1
             if self.io_module_checked_num == self.io_module_ischeck_num:
-                self.enable_start(True) # 激活 生效
+                self.enable_start_rpdo(True) # 激活 开启RPDO
         def start_output():
             if self.io_module.start_output():
-                self.enable_start(False, "传输已启动")
-                self.enable_menu(True, True, False) # 菜单
+                self.enable_start_rpdo(False, "传输已启动")
+                self.enable_start_pdo(True) # 激活 开启TPDO
         self.ui.bt_check.clicked.connect(lambda: check_status())
         self.ui.bt_start.clicked.connect(lambda: start_output())
