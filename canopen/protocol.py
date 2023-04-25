@@ -96,8 +96,7 @@ CONTROL_MODE = {"position_control": 1,
                 "home_control"    : 6,
                 }
 
-OD = {"save_all"         : [0x1010, 0x01],
-      "tpdo_1_transtype" : [0x1800, 0x02], # FE:数值变化触发 FF:定时触发
+OD = {"tpdo_1_transtype" : [0x1800, 0x02], # FE:数值变化触发 FF:定时触发
       "tpdo_1_timer"     : [0x1800, 0x05], # 定时间隔 单位:ms
       "tpdo_2_transtype" : [0x1801, 0x02],
       "tpdo_2_timer"     : [0x1801, 0x05],
