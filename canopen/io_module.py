@@ -2,33 +2,34 @@
 
 
 import time
-import protocol
-from processor import CanOpenBusProcessor
+import sys, os
 
 # 添加模块路径
-import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from usbcan.function import UsbCan
+from canopen.processor import CanOpenBusProcessor
+
 
 class IoModule(CanOpenBusProcessor):
     def __init__(self, node_id=0xB) -> None:
         super().__init__(node_id)
-        
-        self.check_bus_status() # 检查总线状态
     
     def check_bus_status(self) -> None:
         if super().check_bus_status():
-            print("\033[0;32m[IO module] ready\033[0m")
+            print("\033[0;32m[IO module] bus ready\033[0m")
     
-    def start_output(self) -> None:
+    def start_output(self) -> bool:
         self.set_bus_status("start_remote_node")
         if self.bus_status == "operational":
             print("\033[0;32m[IO module] start output\033[0m")
+            return True
     
-    def stop_output(self) -> None:
+    def stop_output(self) -> bool:
         self.set_bus_status("stop_remote_node")
         if self.bus_status == "stopped":
             print("\033[0;32m[IO module] stop output\033[0m")
+            return True
     
     def set_output(self, c1=0, c2=0, c3=0, c4=0, c5=0, c6=0, c7=0, c8=0):
         if self.bus_status == "operational":
