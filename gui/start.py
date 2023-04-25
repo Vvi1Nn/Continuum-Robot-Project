@@ -1,8 +1,11 @@
 # -*- coding:utf-8 -*-
 
+
+import sys
+
 from PyQt5.QtWidgets import QApplication
 
-from function import *
+from function import LoginPanel
 
 
 def main():
