@@ -176,3 +176,4 @@ if __name__ == "__main__":
     
     generator_2 = CanOpenMsgGenerator(0x2)
     generator_2.sdo_write_32("tpdo_2_timer", 100)
+    generator_2.sdo_write_32("tpdo_2_inhibit", 500)
