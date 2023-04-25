@@ -8,7 +8,7 @@ sys.path.append(BASE_DIR)
 
 import time
 
-import motor.protocol as pro
+import motor.protocol_old as pro
 import motor.msg_generation as gen
 import motor.module as module
 import usbcan.param as param

@@ -6,7 +6,7 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR)
 
-import motor.protocol as pro
+import motor.protocol_old as pro
 import motor.module as module
 
 def resolve(cob_id, data) -> str:
