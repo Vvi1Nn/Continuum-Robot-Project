@@ -11,7 +11,7 @@ from usbcan.function import *
 import usbcan.struct as usbcan_struct
 import usbcan.param as usbcan_param
 import motor.msg_generation as motor_gen
-import motor.protocol as motor_proto 
+import motor.protocol_old as motor_proto 
 from motor.function import *
 
 # 步骤1 打开设备 设置设备类型和地址

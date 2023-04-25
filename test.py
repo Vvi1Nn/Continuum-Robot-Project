@@ -7,7 +7,7 @@ import time
 import usbcan.struct as usbcan_struct
 import usbcan.param as usbcan_param
 import motor.msg_generation as motor_gen
-import motor.protocol as motor_pro
+import motor.protocol_old as motor_pro
 import motor.function as motor_fun
 
 lib = cdll.LoadLibrary("./libusbcan.so")
