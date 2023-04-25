@@ -97,8 +97,10 @@ CONTROL_MODE = {"position_control": 1,
                 }
 
 OD = {"tpdo_1_transtype" : [0x1800, 0x02], # FE:数值变化触发 FF:定时触发
+      "tpdo_1_inhibit"   : [0x1800, 0x03], # 禁止时间
       "tpdo_1_timer"     : [0x1800, 0x05], # 定时间隔 单位:ms
       "tpdo_2_transtype" : [0x1801, 0x02],
+      "tpdo_2_inhibit"   : [0x1801, 0x03],
       "tpdo_2_timer"     : [0x1801, 0x05],
       "control_word"     : [0x6040, 0x00],
       "status_word"      : [0x6041, 0x00], # RO
