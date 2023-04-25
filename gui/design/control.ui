@@ -209,7 +209,7 @@ QStackedWidget QTextBrowser {
           <string notr="true"/>
          </property>
          <property name="currentIndex">
-          <number>1</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="pg_init">
           <layout class="QVBoxLayout" name="verticalLayout_7" stretch="2,5,2">
@@ -448,22 +448,62 @@ QStackedWidget QTextBrowser {
                   <number>5</number>
                  </property>
                  <item>
-                  <widget class="QPushButton" name="check_all">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
+                  <widget class="QFrame" name="frame_8">
+                   <property name="frameShape">
+                    <enum>QFrame::StyledPanel</enum>
                    </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>0</width>
-                     <height>0</height>
-                    </size>
+                   <property name="frameShadow">
+                    <enum>QFrame::Raised</enum>
                    </property>
-                   <property name="text">
-                    <string>一键检查</string>
-                   </property>
+                   <layout class="QHBoxLayout" name="horizontalLayout_13" stretch="3,1">
+                    <property name="spacing">
+                     <number>10</number>
+                    </property>
+                    <property name="leftMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>0</number>
+                    </property>
+                    <item>
+                     <widget class="QPushButton" name="check_all">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>0</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string>一键检查所有电机</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="start">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="text">
+                       <string>启动TPDO和RPDO传输</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
                   </widget>
                  </item>
                  <item>
@@ -907,7 +947,7 @@ QStackedWidget QTextBrowser {
                          </sizepolicy>
                         </property>
                         <property name="text">
-                         <string>目标位置</string>
+                         <string>运动间隔</string>
                         </property>
                         <property name="alignment">
                          <set>Qt::AlignCenter</set>
@@ -950,7 +990,7 @@ QStackedWidget QTextBrowser {
                        <number>5</number>
                       </property>
                       <item>
-                       <widget class="QLabel" name="tx_speed">
+                       <widget class="QLabel" name="tx_inhibit">
                         <property name="enabled">
                          <bool>true</bool>
                         </property>
@@ -961,7 +1001,7 @@ QStackedWidget QTextBrowser {
                          </sizepolicy>
                         </property>
                         <property name="text">
-                         <string>目标速度</string>
+                         <string>TPDO禁止时间</string>
                         </property>
                         <property name="alignment">
                          <set>Qt::AlignCenter</set>
@@ -969,7 +1009,7 @@ QStackedWidget QTextBrowser {
                        </widget>
                       </item>
                       <item>
-                       <widget class="QLineEdit" name="le_speed">
+                       <widget class="QLineEdit" name="le_inhibit">
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                           <horstretch>0</horstretch>
@@ -2326,7 +2366,7 @@ QStackedWidget QTextBrowser {
                </rect>
               </property>
               <property name="text">
-               <string>开启电机状态反馈</string>
+               <string>设置禁止时间</string>
               </property>
              </widget>
              <widget class="QPushButton" name="pushButton_42">
