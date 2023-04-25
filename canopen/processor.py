@@ -2,8 +2,13 @@
 
 
 import time
-import protocol
-from generator import CanOpenMsgGenerator
+
+# 添加模块路径
+import sys, os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+import canopen.protocol as protocol
+from canopen.generator import CanOpenMsgGenerator
 
 
 class CanOpenBusProcessor(CanOpenMsgGenerator):
@@ -57,7 +62,7 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
         [num, msg] = CanOpenBusProcessor.device.read_buffer(1)
         return [num, msg]
     
-    def get_bus_status(self, wait=5) -> str:
+    def get_bus_status(self, /, *, wait=0) -> str:
         [cob_id, data] = self.nmt_get_status() # 计算消息内容
         [num, msg] = self.__send_msg(cob_id, data, remote_flag="remote")
         if num != 0:
@@ -73,10 +78,9 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
         if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] trying get_bus_status() again ...\033[0m".format(self.node_id))
         return self.get_bus_status(wait-1)
 
-    def set_bus_status(self, label, wait=5) -> bool:
+    def set_bus_status(self, label, /, *, wait=0) -> bool:
         [cob_id, data] = self.nmt_change_status(label)
-        [num, msg] = self.__send_msg(cob_id, data, data_len="remote")
-        time.sleep(0.5)
+        self.__send_msg(cob_id, data, data_len="remote")
         self.get_bus_status()
         if label == "start_remote_node" and self.bus_status == "operational": return True
         elif label == "stop_remote_node" and self.bus_status == "stopped": return True
@@ -89,20 +93,24 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
         if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] trying set_bus_status() again ...\033[0m".format(self.node_id))
         return self.set_bus_status(label, wait-1)
     
-    def sdo_read(self, label: str, wait=5) -> int:
+    def sdo_read(self, label: str, /, *, wait=0, format=1) -> list:
         [cob_id, data] = super().sdo_read(label)
         [num, msg] = self.__send_msg(cob_id, data)
         if num != 0:
             if msg[0].ID == self.node_id + protocol.CAN_ID["SDO_T"] and (msg[0].Data[0] == protocol.CMD_R["read_16"] or msg[0].Data[0] == protocol.CMD_R["read_32"] or msg[0].Data[0] == protocol.CMD_R["read_8"]) and self.__match_index(msg[0].Data[1], msg[0].Data[2], msg[0].Data[3]) == protocol.OD[label]:
-                value = self.__hex_list_to_int([msg[0].Data[4], msg[0].Data[5], msg[0].Data[6], msg[0].Data[7]])
-                return value
+                if format == 1:
+                    return [self.__hex_list_to_int([msg[0].Data[4], msg[0].Data[5], msg[0].Data[6], msg[0].Data[7]])]
+                elif format == 2:
+                    return [self.__hex_list_to_int([msg[0].Data[4], msg[0].Data[5]]), self.__hex_list_to_int([msg[0].Data[6], msg[0].Data[7]])]
+                elif format == 4:
+                    return [self.__hex_list_to_int([msg[0].Data[4]]), self.__hex_list_to_int([msg[0].Data[5]]), self.__hex_list_to_int([msg[0].Data[6]]), self.__hex_list_to_int([msg[0].Data[7]])]
         if wait == 0:
             print("\033[0;31m[Node-ID {}] sdo_read() failed\033[0m".format(self.node_id))
             return None
         if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] trying sdo_read() again ...\033[0m".format(self.node_id))
         return self.sdo_read(label, wait-1)
 
-    def sdo_write_32(self, label: str, value: int, wait=5) -> bool:
+    def sdo_write_32(self, label: str, value: int, /, *, wait=0) -> bool:
         [cob_id, data] = super().sdo_write_32(label, value)
         [num, msg] = self.__send_msg(cob_id, data)
         if num != 0:
@@ -120,9 +128,9 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
 
     def check_bus_status(self) -> bool:
         self.get_bus_status()
-        while self.bus_status != "pre-operational":
-            self.set_bus_status("enter_pre-operational_state")
-            time.sleep(0.5)
-        print("\033[0;32m[Node-ID {}] checked\033[0m".format(self.node_id))
-        return True
+        if self.bus_status == "pre-operational":
+            print("\033[0;32m[Node-ID {}] checked\033[0m".format(self.node_id))
+            return True
+        self.set_bus_status("enter_pre-operational_state")
+    
     
