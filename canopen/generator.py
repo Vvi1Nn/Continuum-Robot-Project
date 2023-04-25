@@ -1,7 +1,11 @@
 # -*- coding:utf-8 -*-
 
 
-import protocol
+# 添加模块路径
+import sys, os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+import canopen.protocol as protocol
 
 
 class CanOpenMsgGenerator():
@@ -169,3 +173,6 @@ if __name__ == "__main__":
     CanOpenMsgGenerator.is_print_msg(True)
     generator_1 = CanOpenMsgGenerator(0xB)
     generator_1.nmt_change_status("start_remote_node")
+    
+    generator_2 = CanOpenMsgGenerator(0x2)
+    generator_2.sdo_write_32("tpdo_2_timer", 100)
