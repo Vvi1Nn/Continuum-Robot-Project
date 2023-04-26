@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1466</width>
-    <height>1097</height>
+    <width>847</width>
+    <height>610</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -233,21 +233,21 @@ QStackedWidget QTextBrowser {
              <property name="title">
               <string>【USBCAN卡】</string>
              </property>
-             <layout class="QHBoxLayout" name="horizontalLayout_2">
+             <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="2,1,2,1,1">
               <property name="spacing">
                <number>15</number>
               </property>
               <property name="leftMargin">
-               <number>10</number>
+               <number>0</number>
               </property>
               <property name="topMargin">
-               <number>10</number>
+               <number>5</number>
               </property>
               <property name="rightMargin">
-               <number>10</number>
+               <number>0</number>
               </property>
               <property name="bottomMargin">
-               <number>10</number>
+               <number>0</number>
               </property>
               <item>
                <widget class="QPushButton" name="bt_open">
@@ -261,7 +261,7 @@ QStackedWidget QTextBrowser {
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>打开设备</string>
+                 <string>打开</string>
                 </property>
                </widget>
               </item>
@@ -325,7 +325,7 @@ QStackedWidget QTextBrowser {
                    </sizepolicy>
                   </property>
                   <property name="text">
-                   <string>打开通道0</string>
+                   <string>打开0</string>
                   </property>
                  </widget>
                 </item>
@@ -341,7 +341,7 @@ QStackedWidget QTextBrowser {
                    </sizepolicy>
                   </property>
                   <property name="text">
-                   <string>打开通道1</string>
+                   <string>打开1</string>
                   </property>
                  </widget>
                 </item>
@@ -364,7 +364,7 @@ QStackedWidget QTextBrowser {
                    </sizepolicy>
                   </property>
                   <property name="text">
-                   <string>重置通道0</string>
+                   <string>重置0</string>
                   </property>
                  </widget>
                 </item>
@@ -377,7 +377,7 @@ QStackedWidget QTextBrowser {
                    </sizepolicy>
                   </property>
                   <property name="text">
-                   <string>重置通道1</string>
+                   <string>重置1</string>
                   </property>
                  </widget>
                 </item>
@@ -395,7 +395,7 @@ QStackedWidget QTextBrowser {
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>关闭设备</string>
+                 <string>关闭</string>
                 </property>
                </widget>
               </item>
@@ -410,42 +410,39 @@ QStackedWidget QTextBrowser {
              <property name="title">
               <string>【电机】</string>
              </property>
-             <layout class="QVBoxLayout" name="verticalLayout_13" stretch="1,1">
+             <layout class="QVBoxLayout" name="verticalLayout_13" stretch="0,0">
               <property name="spacing">
                <number>6</number>
               </property>
               <property name="leftMargin">
-               <number>5</number>
+               <number>0</number>
               </property>
               <property name="topMargin">
                <number>5</number>
               </property>
               <property name="rightMargin">
-               <number>5</number>
+               <number>0</number>
               </property>
               <property name="bottomMargin">
-               <number>5</number>
+               <number>0</number>
               </property>
               <item>
-               <widget class="QGroupBox" name="groupBox_5">
-                <property name="title">
-                 <string>1. 状态检查</string>
-                </property>
+               <widget class="QFrame" name="frame_5">
                 <layout class="QVBoxLayout" name="verticalLayout_19">
                  <property name="spacing">
                   <number>10</number>
                  </property>
                  <property name="leftMargin">
-                  <number>5</number>
+                  <number>0</number>
                  </property>
                  <property name="topMargin">
-                  <number>5</number>
+                  <number>0</number>
                  </property>
                  <property name="rightMargin">
-                  <number>5</number>
+                  <number>0</number>
                  </property>
                  <property name="bottomMargin">
-                  <number>5</number>
+                  <number>0</number>
                  </property>
                  <item>
                   <widget class="QFrame" name="frame_8">
@@ -486,7 +483,7 @@ QStackedWidget QTextBrowser {
                        </size>
                       </property>
                       <property name="text">
-                       <string>一键检查所有电机</string>
+                       <string>一键检查电机</string>
                       </property>
                      </widget>
                     </item>
@@ -499,7 +496,7 @@ QStackedWidget QTextBrowser {
                        </sizepolicy>
                       </property>
                       <property name="text">
-                       <string>启动TPDO和RPDO传输</string>
+                       <string>启动PDO</string>
                       </property>
                      </widget>
                     </item>
@@ -539,7 +536,7 @@ QStackedWidget QTextBrowser {
                        </sizepolicy>
                       </property>
                       <property name="text">
-                       <string>电机1</string>
+                       <string>M1</string>
                       </property>
                      </widget>
                     </item>
@@ -552,7 +549,7 @@ QStackedWidget QTextBrowser {
                        </sizepolicy>
                       </property>
                       <property name="text">
-                       <string>电机2</string>
+                       <string>M2</string>
                       </property>
                      </widget>
                     </item>
@@ -565,7 +562,7 @@ QStackedWidget QTextBrowser {
                        </sizepolicy>
                       </property>
                       <property name="text">
-                       <string>电机3</string>
+                       <string>M3</string>
                       </property>
                      </widget>
                     </item>
@@ -578,7 +575,7 @@ QStackedWidget QTextBrowser {
                        </sizepolicy>
                       </property>
                       <property name="text">
-                       <string>电机4</string>
+                       <string>M4</string>
                       </property>
                      </widget>
                     </item>
@@ -591,7 +588,7 @@ QStackedWidget QTextBrowser {
                        </sizepolicy>
                       </property>
                       <property name="text">
-                       <string>电机5</string>
+                       <string>M5</string>
                       </property>
                      </widget>
                     </item>
@@ -604,7 +601,7 @@ QStackedWidget QTextBrowser {
                        </sizepolicy>
                       </property>
                       <property name="text">
-                       <string>电机6</string>
+                       <string>M6</string>
                       </property>
                      </widget>
                     </item>
@@ -617,7 +614,7 @@ QStackedWidget QTextBrowser {
                        </sizepolicy>
                       </property>
                       <property name="text">
-                       <string>电机7</string>
+                       <string>M7</string>
                       </property>
                      </widget>
                     </item>
@@ -630,7 +627,7 @@ QStackedWidget QTextBrowser {
                        </sizepolicy>
                       </property>
                       <property name="text">
-                       <string>电机8</string>
+                       <string>M8</string>
                       </property>
                      </widget>
                     </item>
@@ -643,7 +640,7 @@ QStackedWidget QTextBrowser {
                        </sizepolicy>
                       </property>
                       <property name="text">
-                       <string>电机9</string>
+                       <string>M9</string>
                       </property>
                      </widget>
                     </item>
@@ -656,7 +653,7 @@ QStackedWidget QTextBrowser {
                        </sizepolicy>
                       </property>
                       <property name="text">
-                       <string>电机10</string>
+                       <string>M10</string>
                       </property>
                      </widget>
                     </item>
@@ -667,25 +664,22 @@ QStackedWidget QTextBrowser {
                </widget>
               </item>
               <item>
-               <widget class="QGroupBox" name="groupBox_6">
-                <property name="title">
-                 <string>2. 参数设置</string>
-                </property>
+               <widget class="QFrame" name="frame_6">
                 <layout class="QVBoxLayout" name="verticalLayout_20">
                  <property name="spacing">
                   <number>7</number>
                  </property>
                  <property name="leftMargin">
-                  <number>5</number>
+                  <number>0</number>
                  </property>
                  <property name="topMargin">
-                  <number>5</number>
+                  <number>0</number>
                  </property>
                  <property name="rightMargin">
-                  <number>5</number>
+                  <number>0</number>
                  </property>
                  <property name="bottomMargin">
-                  <number>5</number>
+                  <number>0</number>
                  </property>
                  <item>
                   <widget class="QFrame" name="frame_3">
@@ -695,7 +689,7 @@ QStackedWidget QTextBrowser {
                    <property name="frameShadow">
                     <enum>QFrame::Raised</enum>
                    </property>
-                   <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="1,1,1,1,0,1,1">
+                   <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="1,2,2,2,2,2,2">
                     <property name="spacing">
                      <number>7</number>
                     </property>
@@ -731,7 +725,7 @@ QStackedWidget QTextBrowser {
                          <enum>Qt::LeftToRight</enum>
                         </property>
                         <property name="text">
-                         <string>协议位置模式</string>
+                         <string>位置模式</string>
                         </property>
                         <property name="checkable">
                          <bool>true</bool>
@@ -747,7 +741,7 @@ QStackedWidget QTextBrowser {
                          <bool>true</bool>
                         </property>
                         <property name="text">
-                         <string>速度通讯模式</string>
+                         <string>速度模式</string>
                         </property>
                         <property name="checked">
                          <bool>false</bool>
@@ -807,7 +801,7 @@ QStackedWidget QTextBrowser {
                          <set>Qt::AlignCenter</set>
                         </property>
                         <property name="placeholderText">
-                         <string>默认值1000</string>
+                         <string>1000</string>
                         </property>
                        </widget>
                       </item>
@@ -858,7 +852,7 @@ QStackedWidget QTextBrowser {
                          <set>Qt::AlignCenter</set>
                         </property>
                         <property name="placeholderText">
-                         <string>默认值10000</string>
+                         <string>10000</string>
                         </property>
                        </widget>
                       </item>
@@ -912,7 +906,7 @@ QStackedWidget QTextBrowser {
                          <set>Qt::AlignCenter</set>
                         </property>
                         <property name="placeholderText">
-                         <string>默认值100</string>
+                         <string>100</string>
                         </property>
                        </widget>
                       </item>
@@ -966,7 +960,7 @@ QStackedWidget QTextBrowser {
                          <set>Qt::AlignCenter</set>
                         </property>
                         <property name="placeholderText">
-                         <string>默认值0</string>
+                         <string>50</string>
                         </property>
                        </widget>
                       </item>
@@ -1001,7 +995,7 @@ QStackedWidget QTextBrowser {
                          </sizepolicy>
                         </property>
                         <property name="text">
-                         <string>TPDO禁止时间</string>
+                         <string>禁止时间</string>
                         </property>
                         <property name="alignment">
                          <set>Qt::AlignCenter</set>
@@ -1020,7 +1014,7 @@ QStackedWidget QTextBrowser {
                          <set>Qt::AlignCenter</set>
                         </property>
                         <property name="placeholderText">
-                         <string>默认值0</string>
+                         <string>500</string>
                         </property>
                        </widget>
                       </item>
@@ -1074,14 +1068,23 @@ QStackedWidget QTextBrowser {
               <string>【IO设备】</string>
              </property>
              <layout class="QHBoxLayout" name="horizontalLayout_6">
+              <property name="spacing">
+               <number>0</number>
+              </property>
               <property name="leftMargin">
-               <number>6</number>
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
               </property>
               <item>
-               <widget class="QGroupBox" name="groupBox_3">
-                <property name="title">
-                 <string>数字量信号输出耦合器</string>
-                </property>
+               <widget class="QFrame" name="frame_3">
                 <layout class="QHBoxLayout" name="horizontalLayout_7">
                  <property name="spacing">
                   <number>20</number>
@@ -1107,7 +1110,7 @@ QStackedWidget QTextBrowser {
                     </sizepolicy>
                    </property>
                    <property name="text">
-                    <string>检查总线状态</string>
+                    <string>检查耦合器</string>
                    </property>
                   </widget>
                  </item>
@@ -1120,7 +1123,7 @@ QStackedWidget QTextBrowser {
                     </sizepolicy>
                    </property>
                    <property name="text">
-                    <string>启动RPDO传输</string>
+                    <string>启动RPDO</string>
                    </property>
                   </widget>
                  </item>
@@ -1381,7 +1384,7 @@ QStackedWidget QTextBrowser {
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>伺服使能</string>
+                 <string>使能</string>
                 </property>
                </widget>
               </item>
@@ -2359,21 +2362,21 @@ QStackedWidget QTextBrowser {
              <widget class="QPushButton" name="pushButton">
               <property name="geometry">
                <rect>
-                <x>480</x>
-                <y>70</y>
-                <width>261</width>
-                <height>181</height>
+                <x>40</x>
+                <y>50</y>
+                <width>201</width>
+                <height>211</height>
                </rect>
               </property>
               <property name="text">
-               <string>设置禁止时间</string>
+               <string>更新所有状态</string>
               </property>
              </widget>
              <widget class="QPushButton" name="pushButton_42">
               <property name="geometry">
                <rect>
-                <x>810</x>
-                <y>70</y>
+                <x>480</x>
+                <y>60</y>
                 <width>261</width>
                 <height>181</height>
                </rect>
