@@ -1,6 +1,9 @@
 # -*- coding:utf-8 -*-
 
 
+''' function.py USBCAN卡功能函数 v2.2 '''
+
+
 # 添加路径
 import sys, os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
