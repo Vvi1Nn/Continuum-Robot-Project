@@ -1,8 +1,8 @@
 # -*- coding:utf-8 -*-
 
 
-# 以下是CANopen协议通讯层对象字典
-
+''' CANopen协议通讯层对象字典 '''
+# COB-ID的基址
 CAN_ID = {"NMT_C" : 0x000,
           "TPDO_1": 0x180,
           "RPDO_1": 0x200,
@@ -17,6 +17,7 @@ CAN_ID = {"NMT_C" : 0x000,
           "NMT_S" : 0x700,
           }
 
+# NMT操作的CMD
 CMD_NMT = {"start_remote_node"          : 0x01,
            "stop_remote_node"           : 0x02,
            "enter_pre-operational_state": 0x80,
@@ -24,18 +25,21 @@ CMD_NMT = {"start_remote_node"          : 0x01,
            "reset_communication"        : 0x82,
            }
 
+# NMT当前状态
 NMT_STATUS = {"boot_up"        : 0,
               "stopped"        : 4,
               "operational"    : 5,
               "pre-operational": 127,
               }
 
+# SDO发送的CMD
 CMD_T = {"read"    : 0x40,
          "write_32": 0x23,
          "write_16": 0x2B,
          "write_8" : 0x2F,
          }
 
+# SDO接收的CMD
 CMD_R = {"read_32" : 0x43,
          "read_16" : 0x4B,
          "read_8"  : 0x4F,
@@ -43,8 +47,8 @@ CMD_R = {"read_32" : 0x43,
          "error"   : 0x80,
          }
 
-# 以下是步进电机应用层对象字典
-
+''' CANopen协议应用层对象字典 '''
+# 电机的控制字 按位
 CONTROL_WORD_BIT = {"switch_on"        : {"bit": 0, False: 0, True: 1},
                     "enable_voltage"   : {"bit": 1, False: 0, True: 1},
                     "quick_stop"       : {"bit": 2, False: 1, True: 0},
@@ -55,6 +59,7 @@ CONTROL_WORD_BIT = {"switch_on"        : {"bit": 0, False: 0, True: 1},
                     "fault_reset"      : {"bit": 7, False: 0, True: 1},
                    }
 
+# 电机的控制字
 CONTROL_WORD = {"reset"             : 0b10000000, # 0x80 优先级 1
                 "power_off"         : 0b00000000, # 0x00 优先级 2
                 "quick_stop"        : 0b00000010, # 0x02 优先级 3
@@ -63,6 +68,7 @@ CONTROL_WORD = {"reset"             : 0b10000000, # 0x80 优先级 1
                 "servo_enable/start": 0b01111111, # 0x7F 优先级 5 立即模式 相对运行
                }
 
+# 电机的状态字 按位
 STATUS_WORD_BIT = {"ready_to_switch_on"     : {"bit": 0, 0: False, 1: True},
                    "switched_on"            : {"bit": 1, 0: False, 1: True},
                    "operation_enabled"      : {"bit": 2, 0: False, 1: True},
@@ -81,6 +87,7 @@ STATUS_WORD_BIT = {"ready_to_switch_on"     : {"bit": 0, 0: False, 1: True},
                    "manufacturer_specific_2": {"bit": 15, 0: None, 1: None},
                    }
 
+# 电机的状态字
 STATUS_WORD = {"not_ready_to_switch_on": [0x00, 0x10, 0x20, 0x30, 0x80, 0x90, 0xA0, 0xB0], # 初始化
                "switch_on_disabled"    : [0x30, 0x40, 0x50, 0x60, 0xC0, 0xD0, 0xE0, 0xF0], # 伺服无故障
                "ready_to_switch_on"    : [0x21, 0x31, 0xA1, 0xB1],                         # 伺服准备好
@@ -91,11 +98,13 @@ STATUS_WORD = {"not_ready_to_switch_on": [0x00, 0x10, 0x20, 0x30, 0x80, 0x90, 0x
                "fault"                 : [0x08, 0x18, 0x28, 0x38, 0x88, 0x98, 0xA8, 0xB8], # 故障
                }
 
+# 控制模式
 CONTROL_MODE = {"position_control": 1,
                 "speed_control"   : 3,
                 "home_control"    : 6,
                 }
 
+# 对象字典
 OD = {"tpdo_1_transtype" : [0x1800, 0x02], # FE:数值变化触发 FF:定时触发
       "tpdo_1_inhibit"   : [0x1800, 0x03], # 禁止时间
       "tpdo_1_timer"     : [0x1800, 0x05], # 定时间隔 单位:ms
