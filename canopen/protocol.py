@@ -1,6 +1,9 @@
 # -*- coding:utf-8 -*-
 
 
+''' protocol.py CANopen总线协议 '''
+
+
 ''' CANopen协议通讯层对象字典 '''
 # COB-ID的基址
 CAN_ID = {"NMT_C" : 0x000,
