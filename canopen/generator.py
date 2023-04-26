@@ -1,6 +1,9 @@
 # -*- coding:utf-8 -*-
 
 
+''' generator.py CANopen消息生成器 v1.5 '''
+
+
 # 添加模块路径
 import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -33,7 +36,7 @@ class CanOpenMsgGenerator():
     @staticmethod
     def __int_to_hex_list(value: int) -> list:
         # 正数 int转换str 去除0x 大写字母 前面补0
-        if value >= 0: value_str = '0'*(8-len(value_str)) + hex(value)[2:].upper()
+        if value >= 0: value_str = '0'*(8-len(hex(value)[2:].upper())) + hex(value)[2:].upper()
         # 负数 取反加1 
         else: value_str = hex(int(bin(- value ^ 0xFFFFFFFF), 2) + 1)[2:].upper()
         # 写成列表
