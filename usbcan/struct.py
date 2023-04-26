@@ -1,13 +1,13 @@
 # -*- coding:utf-8 -*-
 
 
-'''struct.py 存放结构体 用python调用c++结构体'''
+''' struct.py 存放结构体 用python调用c++结构体 '''
 
 
 from ctypes import *
 
 
-'''USBCAN卡的初始化参数的结构体'''
+''' USBCAN卡的初始化参数的结构体 '''
 class INIT_CONFIG(Structure):
     _fields_ = [("AccCode" , c_int),   # 验收码
                 ("AccMask" , c_int),   # 屏蔽码
@@ -19,7 +19,7 @@ class INIT_CONFIG(Structure):
                 ]
 
 
-'''CAN消息的结构体'''
+''' CAN消息的结构体 '''
 class CAN_OBJ(Structure):
     _fields_ = [("ID"        , c_uint32),    # 帧ID 32位变量 数据格式为靠右对齐
                 ("TimeStamp" , c_uint32),    # 设备接收到某一帧的时间标识
