@@ -5,60 +5,56 @@
 import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# 导入自定义模块
 import canopen.protocol as protocol
 
 
 class CanOpenMsgGenerator():
-    __is_print = False
+    __is_print = False # 标志符 是否打印结果
     
     def __init__(self, node_id) -> None:
-        self.node_id = node_id
+        self.node_id = node_id # 节点ID
     
+    ''' 设置是否输出结果 '''
     @classmethod
-    def is_print_msg(cls, is_print):
+    def is_print_msg(cls, is_print: bool):
         cls.__is_print = is_print
+        return cls
     
+    ''' 将OD的地址拆分成两个hex '''
     @staticmethod
-    def __split_index(index) -> list:
-        hex_str = hex(index)[2:].upper()
-        
-        high_str = hex_str[0:2]
-        low_str = hex_str[2:]
-        
-        high_int = int(high_str, 16)
-        low_int = int(low_str, 16)
-        
+    def __split_index(index: int) -> list:
+        hex_str = hex(index)[2:].upper() # int转换str 去除0x 大写字母
+        high_int = int(hex_str[0:2], 16) # 高位
+        low_int = int(hex_str[2:], 16) # 低位
         return [low_int, high_int]
     
+    ''' 将int值转换成拆分好的hex列表 '''
     @staticmethod
-    def __int_to_hex_list(value_int) -> list:
-        if value_int >= 0:
-            value_str = hex(value_int)[2:].upper()
-            if len(value_str) < 8:
-                value_str = '0' * (8 - len(value_str)) + value_str
-        else:
-            value_str = hex(int(bin(- value_int ^ 0xFFFFFFFF), 2) + 1)[2:].upper()
-        
+    def __int_to_hex_list(value: int) -> list:
+        # 正数 int转换str 去除0x 大写字母 前面补0
+        if value >= 0: value_str = '0'*(8-len(value_str)) + hex(value)[2:].upper()
+        # 负数 取反加1 
+        else: value_str = hex(int(bin(- value ^ 0xFFFFFFFF), 2) + 1)[2:].upper()
+        # 写成列表
         value_list = [0x0] * 4
         value_list[0] = int(value_str[6:8], 16)
         value_list[1] = int(value_str[4:6], 16)
         value_list[2] = int(value_str[2:4], 16)
         value_list[3] = int(value_str[0:2], 16)
-        
         return value_list
     
+    ''' SDO读取指定标签 '''
     def sdo_read(self, label: str) -> list:
-        index = protocol.OD[label][0]
-        subindex = protocol.OD[label][1]
-        
-        cob_id = protocol.CAN_ID["SDO_R"] + self.node_id
-        
+        index = protocol.OD[label][0] # 获取地址
+        subindex = protocol.OD[label][1] # 获取索引
+        cob_id = protocol.CAN_ID["SDO_R"] + self.node_id # 计算COB-ID
         data = [0x00] * 8
-        data[0] = protocol.CMD_T["read"]
-        data[1] = self.__split_index(index)[0]
-        data[2] = self.__split_index(index)[1]
-        data[3] = subindex
-        
+        data[0] = protocol.CMD_T["read"] # CMD
+        data[1] = self.__split_index(index)[0] # 地址低位
+        data[2] = self.__split_index(index)[1] # 地址高位
+        data[3] = subindex # 索引
+        # 打印结果
         if CanOpenMsgGenerator.__is_print:
             hex_data = ["00"] * 8
             print("[sdo_read] {}".format(label))
@@ -68,25 +64,22 @@ class CanOpenMsgGenerator():
                 hex_data[i] = hex(data[i])[2:].upper()
                 print("{} ".format(hex_data[i]), end = "")
             print("\n")
-
         return [cob_id, data]
 
+    ''' SDO写指定标签 32bit数据 '''
     def sdo_write_32(self, label: str, value: int) -> list:
-        index = protocol.OD[label][0]
-        subindex = protocol.OD[label][1]
-        
-        cob_id = protocol.CAN_ID["SDO_R"] + self.node_id
-        
+        index = protocol.OD[label][0] # 获取地址
+        subindex = protocol.OD[label][1] # 获取索引
+        cob_id = protocol.CAN_ID["SDO_R"] + self.node_id # 计算COB-ID
         data = [0x00] * 8
-        data[0] = protocol.CMD_T["write_32"]
-        data[1] = self.__split_index(index)[0]
-        data[2] = self.__split_index(index)[1]
-        data[3] = subindex
-        
-        value = self.__int_to_hex_list(value)
+        data[0] = protocol.CMD_T["write_32"] # CMD
+        data[1] = self.__split_index(index)[0] # 地址低位
+        data[2] = self.__split_index(index)[1] # 地址高位
+        data[3] = subindex # 索引
+        value = self.__int_to_hex_list(value) # int转hex列表
         for i in range(4):
-            data[4+i] = value[i]
-        
+            data[4+i] = value[i] # 赋值
+        # 打印结果
         if CanOpenMsgGenerator.__is_print:
             hex_data = ["00"] * 8
             print("[sdo_write_32] {}".format(label))
@@ -96,20 +89,19 @@ class CanOpenMsgGenerator():
                 hex_data[i] = hex(data[i])[2:].upper()
                 print("{} ".format(hex_data[i]), end = "")
             print("\n")
-        
         return [cob_id, data]
 
+    ''' 写RPDO 指定通道 低字 高字 '''
     def rpdo(self, num: str, value_low: int, value_high: int) -> dict:
-        cob_id = protocol.CAN_ID["RPDO_" + num] + self.node_id
-
+        cob_id = protocol.CAN_ID["RPDO_" + num] + self.node_id # 计算COB-ID
         data = [0x00] * 8
-        value_low = self.__int_to_hex_list(value_low)
+        value_low = self.__int_to_hex_list(value_low) # 低字 int转hex列表
         for i in range(4):
-            data[i] = value_low[i]
-        value_high = self.__int_to_hex_list(value_high)
+            data[i] = value_low[i] # 赋值
+        value_high = self.__int_to_hex_list(value_high) # 高字 int转hex列表
         for i in range(4):
-            data[4+i] = value_high[i]
-
+            data[4+i] = value_high[i] # 赋值
+        # 打印结果
         if CanOpenMsgGenerator.__is_print:
             hex_data = ["00"] * 8
             print("[rpdo_{}]".format(num))
@@ -119,13 +111,13 @@ class CanOpenMsgGenerator():
                 hex_data[i] = hex(data[i])[2:].upper()
                 print("{} ".format(hex_data[i]), end = "")
             print("\n")
-        
         return [cob_id, data]
 
+    ''' 写NMT 指定状态 '''
     def nmt_change_status(self, label: str) -> list:
-        cob_id = protocol.CAN_ID["NMT_C"]
-        data = [protocol.CMD_NMT[label], self.node_id]
-
+        cob_id = protocol.CAN_ID["NMT_C"] # 计算COB-ID
+        data = [protocol.CMD_NMT[label], self.node_id] # 数据
+        # 打印结果
         if CanOpenMsgGenerator.__is_print:
             hex_data = ["00"] * 8
             print("[nmt_control]")
@@ -135,13 +127,13 @@ class CanOpenMsgGenerator():
                 hex_data[i] = hex(data[i])[2:].upper()
                 print("{} ".format(hex_data[i]), end = "")
             print("\n")
-        
         return [cob_id, data]
 
+    ''' 读NMT '''
     def nmt_get_status(self) -> list:
-        cob_id = protocol.CAN_ID["NMT_S"] + self.node_id
-        data = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
-
+        cob_id = protocol.CAN_ID["NMT_S"] + self.node_id # 计算COB-ID
+        data = [0x00] * 8 # 空数据
+        # 打印结果
         if CanOpenMsgGenerator.__is_print:
             hex_data = ["00"] * 8
             print("[nmt_status]")
@@ -151,10 +143,9 @@ class CanOpenMsgGenerator():
                 hex_data[i] = hex(data[i])[2:].upper()
                 print("{} ".format(hex_data[i]), end = "")
             print("\n")
-        
         return [cob_id, data]
 
-
+''' 测试用 '''
 if __name__ == "__main__":
     # sdo_read(1, "control_mode", True) # 查看控制模式
     # sdo_write_32(1, "control_mode", pro.CONTROL_MODE["position_control"], True) # 位置模式
