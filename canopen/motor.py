@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' motor.py 步进电机功能函数 v2.3 '''
+''' motor.py 步进电机功能函数 v2.4 '''
 
 
 import time
@@ -30,6 +30,9 @@ class Motor(CanOpenBusProcessor):
         
         self.target_position = Motor.position # 位置模式的目标位置
         self.target_speed = 0 # 速度模式的目标速度
+
+        self.current_position = 0 # 当前位置
+        self.current_speed = 0 # 当前速度
 
     ''' 检查电机的总线状态 '''
     def check_bus_status(self) -> bool:
@@ -84,7 +87,6 @@ class Motor(CanOpenBusProcessor):
         print("\033[0;32m[Motor] position: {}\033[0m".format(cls.position))
         cls.inhibit_time = time if (time >= 100 and time <= 500) else 500 # TPDO禁止时间限幅
         print("\033[0;32m[Motor] inhibit time: {}\033[0m".format(cls.inhibit_time))
-        print("=============================================================")
 
     ''' 类属性存放的参数 生效至电机 '''
     def __set_mode(self) -> None:
@@ -113,6 +115,7 @@ class Motor(CanOpenBusProcessor):
         else: print("\033[0;31m[Motor {}] set inhibit time failed\033[0m".format(self.node_id))
     ''' 电机初始化 '''
     def init_config(self) -> None:
+        print("=============================================================")
         self.__set_mode()
         self.__set_acceleration()
         self.__set_deceleration()
@@ -122,6 +125,7 @@ class Motor(CanOpenBusProcessor):
 
     ''' 启动PDO通讯 '''
     def start_feedback(self) -> bool:
+        print("=============================================================")
         if self.set_bus_status("start_remote_node"):
             if self.bus_status == "operational":
                 print("\033[0;32m[Motor {}] start pdo\033[0m".format(self.node_id))
@@ -133,15 +137,15 @@ class Motor(CanOpenBusProcessor):
     def set_position(self, value):
         if self.sdo_write_32("target_position", value):
             self.position = value
-            print("\033[0;32m[Motor {}] target_position: {}\033[0m".format(self.node_id, value))
-        else: print("\033[0;31m[Motor {}] set target_position failed\033[0m".format(self.node_id))
+            print("\033[0;32m[Motor {}] target position: {}\033[0m".format(self.node_id, value))
+        else: print("\033[0;31m[Motor {}] set target position failed\033[0m".format(self.node_id))
     
     '''  '''
     def set_speed(self, value):
         if self.sdo_write_32("target_speed", value):
             self.speed = value
-            print("\033[0;32m[Motor {}] target_speed: {}\033[0m".format(self.node_id, value))
-        else: print("\033[0;31m[Motor {}] set target_speed failed\033[0m".format(self.node_id))
+            print("\033[0;32m[Motor {}] target speed: {}\033[0m".format(self.node_id, value))
+        else: print("\033[0;31m[Motor {}] set target speed failed\033[0m".format(self.node_id))
 
     # 待测试，很可能会出问题
     def __switch_motor_status(self, label: str):
@@ -169,9 +173,9 @@ class Motor(CanOpenBusProcessor):
         self.set_bus_status("stop_remote_node")
         if self.bus_status == "stopped":
             if self.sdo_write_32("tpdo_2_timer", 0): # 定时器归0
-                print("\033[0;32m[Motor {}] stop feedback\033[0m".format(self.node_id))
+                print("\033[0;32m[Motor {}] stop pdo\033[0m".format(self.node_id))
                 return True
-        else: print("\033[0;31m[Motor {}] stop feedback failed\033[0m".format(self.node_id))
+        else: print("\033[0;31m[Motor {}] stop pdo failed\033[0m".format(self.node_id))
 
     '''  '''
     def release_brake(self):
