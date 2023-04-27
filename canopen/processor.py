@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' processor.py CANopen总线消息处理模块 v1.3 '''
+''' processor.py CANopen总线消息处理模块 v1.4 '''
 
 
 import time
@@ -100,6 +100,7 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
     def set_bus_status(self, label, /, *, repeat=0) -> bool:
         [cob_id, data] = self.nmt_change_status(label) # 生成消息
         if self.__send_msg(cob_id, data, data_len="remote", check=False): # 发送消息成功 不读取应答
+            time.sleep(0.05) # 等待一会儿 因为开启PDO后 节点会发送一次TPDO的数据 需要全部接收下来 
             self.get_bus_status() # 目的是更新当前状态
             # 判断当前状态和设置的状态是否一致
             if label == "start_remote_node" and self.bus_status == "operational": return True
