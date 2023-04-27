@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' function.py USBCAN卡功能函数 v2.2 '''
+''' function.py USBCAN卡功能函数 v2.2.1 '''
 
 
 # 添加路径
@@ -24,7 +24,7 @@ class UsbCan:
     __device_index = usbcan_param.DEVICE_INDEX["0"]
     __reserved     = usbcan_param.RESERVED
 
-    is_open = False # 标志符 设备是否开启
+    __is_open = False # 标志符 设备是否开启
 
     __is_log = False # 标志符 是否打印日志
 
@@ -51,8 +51,8 @@ class UsbCan:
         self.__send_type   = usbcan_param.SEND_TYPE["normal"]
         self.__extern_flag = usbcan_param.EXTERN_FLAG["standard"]
         
-        self.is_init = False # 标志符 通道是否初始化
-        self.is_start = False # 标志符 通道是否启动
+        self.__is_init = False # 标志符 通道是否初始化
+        self.__is_start = False # 标志符 通道是否启动
 
     ''' 初始化前 设置日志是否打印 '''
     @classmethod
@@ -67,10 +67,10 @@ class UsbCan:
         cls.__device_type = usbcan_param.DEVICE_TYPE[device_type]
         cls.__device_index = usbcan_param.DEVICE_INDEX[device_index]
         # 设备未开启
-        if not cls.is_open:
+        if not cls.__is_open:
             # 调用API
             if USBCAN_Lib.VCI_OpenDevice(UsbCan.__device_type, UsbCan.__device_index, UsbCan.__reserved):
-                cls.is_open = True # 成功 标志符开启
+                cls.__is_open = True # 成功 标志符开启
                 if UsbCan.__is_log: print("\033[0;32m[UsbCan] opened! type:{} index:{}\033[0m".format(UsbCan.__device_type, UsbCan.__device_index))
                 return True
             # 执行API失败 判断是否重复
@@ -88,13 +88,13 @@ class UsbCan:
     @classmethod
     def close_device(cls, repeat=0) -> bool:
         # 设备已开启
-        if cls.is_open:
+        if cls.__is_open:
             # 调用API
             if USBCAN_Lib.VCI_CloseDevice(UsbCan.__device_type, UsbCan.__device_index):
-                cls.is_open = False # 成功 标识符关闭
+                cls.__is_open = False # 成功 标识符关闭
                 for channel in cls.__channel_list:
-                    channel.is_init = False # 通道需重新初始化
-                    channel.is_start = False # 通道需重新打开
+                    channel.__is_init = False # 通道需重新初始化
+                    channel.__is_start = False # 通道需重新打开
                 if UsbCan.__is_log: print("\033[0;32m[UsbCan] closed\033[0m")
                 return True
             # 执行API失败 判断是否重复
@@ -122,10 +122,10 @@ class UsbCan:
     ''' 初始化通道 可设置重复次数 '''
     def init_can(self, repeat=0) -> bool:
         # 设备已开启 且设备未初始化
-        if UsbCan.is_open and not self.is_init:
+        if UsbCan.__is_open and not self.__is_init:
             # 调用API
             if USBCAN_Lib.VCI_InitCAN(UsbCan.__device_type, UsbCan.__device_index, self.__channel, byref(self.__init_config)):
-                self.is_init = True # 成功 初始化成功
+                self.__is_init = True # 成功 初始化成功
                 if UsbCan.__is_log: print("\033[0;32m[Channel {}] init\033[0m".format(self.__channel))
                 return True
             # 执行API失败 判断是否重复
@@ -142,11 +142,11 @@ class UsbCan:
     ''' 启动通道 可设置重复次数 '''
     def start_can(self, repeat=0) -> bool:
         # 通道已初始化
-        if self.is_init:
+        if self.__is_init:
             self.clear_buffer() # 清空缓存区的数据
             # 调用API
             if USBCAN_Lib.VCI_StartCAN(UsbCan.__device_type, UsbCan.__device_index, self.__channel):
-                self.is_start = True # 成功 启动成功
+                self.__is_start = True # 成功 启动成功
                 if UsbCan.__is_log: print("\033[0;32m[Channel {}] start\033[0m".format(self.__channel))
                 return True
             # 执行API失败 判断是否重复
@@ -161,12 +161,12 @@ class UsbCan:
             return False
 
     ''' 重置通道 可设置重复次数 '''
-    def reset_can(self, repeat=0) -> None:
+    def reset_can(self, repeat=0) -> bool:
         # 通道已开启
-        if self.is_start:
+        if self.__is_start:
             # 调用API
             if USBCAN_Lib.VCI_ResetCAN(UsbCan.__device_type, UsbCan.__device_index, self.__channel):
-                self.is_start = False # 成功 此时通道处于初始化但未启动的状态 通道开启置为False
+                self.__is_start = False # 成功 此时通道处于初始化但未启动的状态 通道开启置为False
                 # 重新开启通道
                 if self.start_can():
                     if UsbCan.__is_log: print("\033[0;32m[Channel {}] reset\033[0m".format(self.__channel))
@@ -185,7 +185,7 @@ class UsbCan:
     ''' 发送消息 设置帧类型和数据长度 '''
     def send(self, node_id: int, data: list, remote_flag="data", data_len="default") -> bool:
         # 通道已开启
-        if self.is_start:
+        if self.__is_start:
             length = len(data) # 统计消息个数 data是列表的列表 
             msgs = (usbcan_struct.CAN_OBJ * length)() # 消息结构体
             # 设置每一条消息的结构体参数
@@ -224,7 +224,7 @@ class UsbCan:
     ''' 获取当前通道缓冲区数据数量 '''
     def get_buffer_num(self) -> int:   
         # 通道已开启
-        if self.is_start:
+        if self.__is_start:
             # 调用API 返回数量
             buffer_num = USBCAN_Lib.VCI_GetReceiveNum(UsbCan.__device_type, UsbCan.__device_index, self.__channel)
             if UsbCan.__is_log: print("[Channel {}] buffer num: {}".format(self.__channel, buffer_num))
@@ -234,9 +234,9 @@ class UsbCan:
             return None
 
     ''' 读取缓冲区指定数量的数据 可设置未读取到数据时的等待时间 -1为永久等待 '''
-    def read_buffer(self, read_num, wait_time=-1) -> list: 
+    def read_buffer(self, read_num, wait_time=-1): 
         # 通道已开启
-        if self.is_start:
+        if self.__is_start:
             # 获取当前通道缓冲区的数据数量
             cache_num = self.get_buffer_num()
             # 读取数量不可超过当前数据数量
@@ -254,7 +254,7 @@ class UsbCan:
     ''' 清空当前通道缓冲区的数据 可设置重复次数 一定程度提高鲁棒性 '''
     def clear_buffer(self, repeat=0) -> bool:
         # 设备打开
-        if UsbCan.is_open:
+        if UsbCan.__is_open:
             # 执行API成功
             if USBCAN_Lib.VCI_ClearBuffer(UsbCan.__device_type, UsbCan.__device_index, self.__channel):
                 if UsbCan.__is_log: print("\033[0;32m[Channel {}] clear buffer\033[0m".format(self.__channel))
@@ -268,3 +268,4 @@ class UsbCan:
         # 设备未打开
         else:
             if UsbCan.__is_log: print("\033[0;31m[UsbCan] please open device first\033[0m")
+            return False
