@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' function.py GUI功能函数 v1.7 '''
+''' function.py GUI功能函数 v1.8 '''
 
 
 from PyQt5.QtWidgets import QMainWindow
@@ -18,7 +18,7 @@ from canopen.processor import CanOpenBusProcessor
 from canopen.motor import Motor
 from canopen.io_module import IoModule
 
-
+''' 登录界面 '''
 class LoginPanel(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
@@ -52,22 +52,23 @@ class LoginPanel(QMainWindow):
         else: pass
  
 
+''' 控制界面 '''
 class ControlPanel(QMainWindow):
     def __init__(self, account) -> None:
         super().__init__()
         self.ui = Ui_ControlPanel()
         self.ui.setupUi(self)
-        self.show()
         
+        # 是否是管理员权限
         self.is_admin = False if account == "测试人员" else True
         
-        self.usbcan_0 = UsbCan.is_show_log(False)("0")
-        self.usbcan_1 = UsbCan.is_show_log(False)("1")
+        # CAN卡实例化
+        self.usbcan_0 = UsbCan.is_show_log(False)("0") # 通道0
+        self.usbcan_1 = UsbCan.is_show_log(False)("1") # 通道1
         
-        CanOpenBusProcessor.link_device(self.usbcan_0)
+        CanOpenBusProcessor.link_device(self.usbcan_0) # 将CANopen总线绑定至CAN卡的通道0
         
-        self.motor_checked_num = 0
-        self.motor_ischeck_num = 1
+        # 电机实例化
         self.motor_1 = Motor(1)
         self.motor_2 = Motor(2)
         self.motor_3 = Motor(3)
@@ -78,28 +79,38 @@ class ControlPanel(QMainWindow):
         self.motor_8 = Motor(8)
         self.motor_9 = Motor(9)
         self.motor_10 = Motor(10)
+        self.motor_checked_num = 0 # 已检查成功的数量
+        self.motor_ischeck_num = 1 # 应当检查成功的数量
         
-        self.io_module_checked_num = 0
-        self.io_module_ischeck_num = 1
+        # IO实例化
         self.io_module = IoModule(11)
+        self.io_module_checked_num = 0 # 已检查成功的数量
+        self.io_module_ischeck_num = 1 # 应当检查成功的数量
 
-        self.initial_status() # 根据权限设置显示内容
+        self.initial_status() # 根据权限 显示初始页面
         
-        self.set_menu_jumping() # 设置菜单的按钮跳转
-        
-        self.set_usbcan_jumping() # 设置USBCAN初始化部分的按钮跳转
-        
-        self.set_motor_jumping() # 设置电机初始化部分的按钮跳转
+        # 按钮跳转的设置 也就是把按钮的signal和slot绑定
+        self.set_menu_jumping() # 菜单
+        self.set_usbcan_jumping() # USBCAN
+        self.set_motor_jumping() # 电机
+        self.set_io_jumping() # IO
 
-        self.set_io_jumping() # 设置IO初始化部分按钮跳转
+        self.show() # 显示界面
 
 
-    # 菜单
+    '''
+        以下是控制界面中 所有按钮的状态设置函数 包含是否激活和显示文字
+    '''
+    ''' 菜单 '''
     def enable_menu(self, init, control, log):
         self.ui.bt_init.setEnabled(init)
         self.ui.bt_control.setEnabled(control)
         self.ui.bt_log.setEnabled(log)
-    # USBCAN
+    
+    '''
+        第一页
+    '''
+    ''' USBCAN '''
     def enable_open_device(self, flag, text=None):
         self.ui.bt_open.setEnabled(flag)
         if text != None: self.ui.bt_open.setText(text)
@@ -118,7 +129,8 @@ class ControlPanel(QMainWindow):
     def enable_close_device(self, flag, text=None):
         self.ui.bt_close.setEnabled(flag)
         if text != None: self.ui.bt_close.setText(text)
-    # 电机
+    
+    ''' 电机 '''
     def enable_check_all(self, flag, text=None):
         self.ui.check_all.setEnabled(flag)
         if text != None: self.ui.check_all.setText(text)
@@ -161,10 +173,6 @@ class ControlPanel(QMainWindow):
         else: pass
         self.ui.r_pos.setEnabled(flag)
         self.ui.r_vel.setEnabled(flag)
-    def enable_default(self):
-        self.ui.tx_position.setEnabled(False)
-        self.ui.le_position.setEnabled(False) # 禁用位置设置
-        self.ui.le_position.setPlaceholderText("默认值0")
     def enable_set_param(self, flag, text0=None, text1=None, text2=None, text3=None, text4=None):
         self.ui.le_acc.clear()
         self.ui.tx_acc.setEnabled(flag)
@@ -186,80 +194,102 @@ class ControlPanel(QMainWindow):
         self.ui.tx_inhibit.setEnabled(flag)
         self.ui.le_inhibit.setEnabled(flag)
         if text3 != None: self.ui.le_inhibit.setPlaceholderText(text4) # TPDO禁止时间
-    def enable_save_param(self, flag):
+    def enable_save_param(self, flag, text=None):
         self.ui.bt_save.setEnabled(flag)
+        if text != None: self.ui.bt_save.setText(text)
     def enable_init_motor(self, flag, text=None):
         self.ui.bt_launch.setEnabled(flag)
         if text != None: self.ui.bt_launch.setText(text)
-    # IO
+    
+    ''' IO '''
     def enable_check_status(self, flag, text=None):
         self.ui.bt_check.setEnabled(flag)
         if text != None: self.ui.bt_check.setText(text)
     def enable_start_rpdo(self, flag, text=None):
         self.ui.bt_start.setEnabled(flag)
         if text != None: self.ui.bt_start.setText(text)
-    # 采集卡
+    
+    ''' 采集卡 '''
     ...
-    # 状态控制
+    
+    '''
+        第二页
+    '''
+    ''' 状态控制 '''
     def enable_quick_stop(self, flag, text=None):
         self.ui.bt_quick_stop.setEnabled(flag)
         if text != None: self.ui.bt_quick_stop.setText(text)
 
-    
-    def initial_status(self) -> None:
-        # 菜单 初始化激活 控制失效 日志失效
-        self.enable_menu(True, False, False)
-        # 显示第1页
-        self.ui.stackedWidget.setCurrentIndex(0)
-        # USBCSN
-        self.enable_open_device(True, "打开设备")
-        self.enable_channel0(False, False, "打开通道0", "重置0")
-        self.enable_channel1(False, False, "打开通道1", "重置1")
-        self.enable_close_device(False, "关闭")
-        # 电机
-        self.enable_check_all(False, "一键检查")
-        self.enable_check_1(False, "M1")
-        self.enable_check_2(False, "M2")
-        self.enable_check_3(False, "M3")
-        self.enable_check_4(False, "M4")
-        self.enable_check_5(False, "M5")
-        self.enable_check_6(False, "M6")
-        self.enable_check_7(False, "M7")
-        self.enable_check_8(False, "M8")
-        self.enable_check_9(False, "M9")
-        self.enable_check_10(False, "M10")
-        self.enable_start_pdo(False, "启动PDO")
-        self.enable_choose_mode(False, "position_control")
-        self.enable_default()
-        self.enable_set_param(False, "{}".format(Motor.acceleration), "{}".format(Motor.deceleration), "{}".format(Motor.velocity), "{}".format(Motor.position), "{}".format(Motor.inhibit_time))
-        self.enable_save_param(False)
-        self.enable_init_motor(False, "生效")
-        # IO
-        self.enable_check_status(False, "检查耦合器")
-        self.enable_start_rpdo(False, "启动RPDO")
+    '''
+        第三页
+    '''
+    '''  '''
+    ...
     
 
+    '''
+        界面的初始显示状态
+    '''
+    def initial_status(self) -> None:
+        ''' 菜单 '''
+        self.enable_menu(True, False, False) # 初始化激活 控制失效 日志失效
+        ''' 页面 '''
+        self.ui.stackedWidget.setCurrentIndex(0) # 显示第1页
+        ''' USBCAN '''
+        self.enable_open_device(True, "打开设备") # 激活
+        self.enable_channel0(False, False, "打开通道0", "重置0") # 失效
+        self.enable_channel1(False, False, "打开通道1", "重置1") # 失效
+        self.enable_close_device(False, "关闭") # 失效
+        ''' 电机 '''
+        self.enable_check_all(False, "一键检查") # 失效
+        self.enable_check_1(False, "M1") # 失效
+        self.enable_check_2(False, "M2") # 失效
+        self.enable_check_3(False, "M3") # 失效
+        self.enable_check_4(False, "M4") # 失效
+        self.enable_check_5(False, "M5") # 失效
+        self.enable_check_6(False, "M6") # 失效
+        self.enable_check_7(False, "M7") # 失效
+        self.enable_check_8(False, "M8") # 失效
+        self.enable_check_9(False, "M9") # 失效
+        self.enable_check_10(False, "M10") # 失效
+        self.enable_start_pdo(False, "启动PDO") # 失效
+        self.enable_choose_mode(False, "position_control") # 失效
+        # 参数设置 失效 并显示默认值
+        self.enable_set_param(False, "{}".format(Motor.acceleration), "{}".format(Motor.deceleration), "{}".format(Motor.velocity), "{}".format(Motor.position), "{}".format(Motor.inhibit_time))
+        self.enable_save_param(False, "保存") # 失效
+        self.enable_init_motor(False, "生效") # 失效
+        ''' IO '''
+        self.enable_check_status(False, "检查耦合器")
+        self.enable_start_rpdo(False, "启动RPDO")
+        ''' 传感器 '''
+    
+    '''
+        以下是控制界面中 按钮signal的slot函数
+    '''
+    ''' 菜单 '''
     def set_menu_jumping(self) -> None:
         self.ui.bt_init.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(0))
         self.ui.bt_control.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(1))
         self.ui.bt_log.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(2))
-
+    
+    ''' CAN卡 '''
     def set_usbcan_jumping(self) -> None:
+        '''
+            定义slot函数
+        '''
+        ''' 打开设备 '''
         def open_usbcan():
-            UsbCan.open_device()
-            if UsbCan.is_open:
+            if UsbCan.open_device():
                 self.enable_open_device(False, "设备已打开")
-                self.enable_close_device(True, "关闭设备")
+                self.enable_close_device(True)
                 self.enable_channel0(True, False)
                 self.enable_channel1(True, False)
+        ''' 开启通道0 '''
         def start_channel_0():
-            self.usbcan_0.set_timer(self.ui.bx_rate0.currentText())
-            self.usbcan_0.init_can()
-            self.usbcan_0.start_can()
-            if self.usbcan_0.is_start:
-                # USBCAN
-                self.enable_channel0(False, True, "通道0已打开")
-                # 电机
+            self.usbcan_0.set_timer(self.ui.bx_rate0.currentText()) # 记录波特率
+            if self.usbcan_0.init_can() and self.usbcan_0.start_can():
+                self.enable_channel0(False, True, "通道0已打开") # 打开失效 激活重置
+                # 电机检查全部激活
                 self.enable_check_all(True)
                 self.enable_check_1(True)
                 self.enable_check_2(True)
@@ -271,48 +301,28 @@ class ControlPanel(QMainWindow):
                 self.enable_check_8(True)
                 self.enable_check_9(True)
                 self.enable_check_10(True)
+        ''' 开启通道1 '''
         def start_channel_1():
-            self.usbcan_1.set_timer(self.ui.bx_rate1.currentText())
-            self.usbcan_1.init_can()
-            self.usbcan_1.start_can()
-            if self.usbcan_1.is_start:
-                self.enable_channel1(False, True, "通道1已打开")
-                # 其他的配置 后续补齐
+            self.usbcan_1.set_timer(self.ui.bx_rate1.currentText()) # 记录波特率
+            if self.usbcan_1.init_can() and self.usbcan_1.start_can():
+                self.enable_channel1(False, True, "通道1已打开") # 打开失效 激活重置
+                # 传感器的配置 后续补齐
                 ...
+                ...
+                ...
+        ''' 重置通道0 '''
         def reset_cannel_0():
-            self.usbcan_0.reset_can()
+            self.usbcan_0.reset_can() # 直接重置就行
+        ''' 重置通道1 '''
         def reset_cannel_1():
-            self.usbcan_1.reset_can()
+            self.usbcan_1.reset_can() # 直接重置就行
+        ''' 关闭设备 '''
         def close_usbcan():
-            UsbCan.close_device()
-            if not UsbCan.is_open:
-                # 菜单
-                self.enable_menu(True, False, False)
-                # USBCAN
-                self.enable_open_device(True, "打开设备")
-                self.enable_channel0(False, False, "打开0", "重置0")
-                self.enable_channel1(False, False, "打开1", "重置1")
-                self.enable_close_device(False, "已关闭")
-                # 电机
-                self.enable_check_all(False)
-                self.enable_start_pdo(False, "启动PDO")
-                self.enable_check_1(False, "M1")
-                self.enable_check_2(False, "M2")
-                self.enable_check_3(False, "M3")
-                self.enable_check_4(False, "M4")
-                self.enable_check_5(False, "M5")
-                self.enable_check_6(False, "M6")
-                self.enable_check_7(False, "M7")
-                self.enable_check_8(False, "M8")
-                self.enable_check_9(False, "M9")
-                self.enable_check_10(False, "M10")
-                self.enable_choose_mode(False)
-                self.enable_set_param(False, "{}".format(Motor.acceleration), "{}".format(Motor.deceleration), "{}".format(Motor.velocity), "{}".format(Motor.position), "{}".format(Motor.inhibit_time))
-                self.enable_save_param(False)
-                self.enable_init_motor(False, "生效")
-                # IO
-                self.enable_check_status(False, "检查耦合器")
-                self.enable_start_rpdo(False, "启动RPDO")
+            if UsbCan.close_device():
+                self.initial_status()
+        '''
+            绑定signal和slot
+        '''
         self.ui.bt_open.clicked.connect(lambda: open_usbcan())
         self.ui.bt_channel0.clicked.connect(lambda: start_channel_0())
         self.ui.bt_channel1.clicked.connect(lambda: start_channel_1())
@@ -320,13 +330,16 @@ class ControlPanel(QMainWindow):
         self.ui.bt_reset1.clicked.connect(lambda: reset_cannel_1())
         self.ui.bt_close.clicked.connect(lambda: close_usbcan())
     
-    def set_motor_jumping(self):
-        def ischecked():
+    ''' 电机 '''
+    def set_motor_jumping(self) -> None:
+        ''' 检查是否完成 '''
+        def __ischecked():
             if self.motor_checked_num == self.motor_ischeck_num:
                 if self.is_admin:
                     self.enable_choose_mode(True) # 激活 模式选择
                     self.enable_set_param(True) # 激活 设置参数
                 self.enable_save_param(True) # 激活 保存参数
+        ''' 一键检查 '''
         def check_bus_all():
             check_bus_1()
             check_bus_2()
@@ -339,77 +352,81 @@ class ControlPanel(QMainWindow):
             check_bus_9()
             check_bus_10()
             self.enable_check_all(False)
-            ischecked()
+            __ischecked()
+        ''' 单个检查 '''
         def check_bus_1():
             if self.motor_1.check_bus_status():
                 if self.motor_1.check_motor_status():
                     self.enable_check_1(False, "就绪")
                     self.motor_checked_num += 1
-            ischecked()
+            __ischecked()
         def check_bus_2():
             if self.motor_2.check_bus_status():
                 if self.motor_2.check_motor_status():
                     self.enable_check_2(False, "就绪")
                     self.motor_checked_num += 1
-            ischecked()
+            __ischecked()
         def check_bus_3():
             if self.motor_3.check_bus_status():
                 if self.motor_3.check_motor_status():
                     self.enable_check_3(False, "就绪")
                     self.motor_checked_num += 1
-            ischecked()
+            __ischecked()
         def check_bus_4():
             if self.motor_4.check_bus_status():
                 if self.motor_4.check_motor_status():
                     self.enable_check_4(False, "就绪")
                     self.motor_checked_num += 1
-            ischecked()
+            __ischecked()
         def check_bus_5():
             if self.motor_5.check_bus_status():
                 if self.motor_5.check_motor_status():
                     self.enable_check_5(False, "就绪")
                     self.motor_checked_num += 1
-            ischecked()
+            __ischecked()
         def check_bus_6():
             if self.motor_6.check_bus_status():
                 if self.motor_6.check_motor_status():
                     self.enable_check_6(False, "就绪")
                     self.motor_checked_num += 1
-            ischecked()
+            __ischecked()
         def check_bus_7():
             if self.motor_7.check_bus_status():
                 if self.motor_7.check_motor_status():
                     self.enable_check_7(False, "就绪")
                     self.motor_checked_num += 1
-            ischecked()
+            __ischecked()
         def check_bus_8():
             if self.motor_8.check_bus_status():
                 if self.motor_8.check_motor_status():
                     self.enable_check_8(False, "就绪")
                     self.motor_checked_num += 1
-            ischecked()
+            __ischecked()
         def check_bus_9():
             if self.motor_9.check_bus_status():
                 if self.motor_9.check_motor_status():
                     self.enable_check_9(False, "就绪")
                     self.motor_checked_num += 1
-            ischecked()
+            __ischecked()
         def check_bus_10():
             if self.motor_10.check_bus_status():
                 if self.motor_10.check_motor_status():
                     self.enable_check_10(False, "就绪")
                     self.motor_checked_num += 1
-            ischecked()
+            __ischecked()
+        ''' 保存参数 '''
         def save_config():
-            if not self.is_admin: Motor.config() # 直接保存默认参数
-            else:
-                mode = "position_control" if self.ui.r_pos.isChecked() else "speed_control"
-                acc = self.ui.le_acc.text() if self.ui.le_acc.text() != "" else "1000"
-                dec = self.ui.le_dec.text() if self.ui.le_dec.text() != "" else "10000"
-                vel = self.ui.le_vel.text() if self.ui.le_vel.text() != "" else "100"
-                position = self.ui.le_position.text() if self.ui.le_position.text() != "" else "50"
-                inhibit = self.ui.le_inhibit.text() if self.ui.le_inhibit.text() != "" else "500"
+            if not self.is_admin: Motor.config() # 无权限 直接保存默认参数
+            else: # 管理员权限
+                mode = "position_control" if self.ui.r_pos.isChecked() else "speed_control" # 记录模式
+                acc = self.ui.le_acc.text() if self.ui.le_acc.text() != "" else "1000" # 记录加速度
+                dec = self.ui.le_dec.text() if self.ui.le_dec.text() != "" else "10000" # 记录减速度
+                vel = self.ui.le_vel.text() if self.ui.le_vel.text() != "" else "100" # 记录动作速度
+                position = self.ui.le_position.text() if self.ui.le_position.text() != "" else "50" # 记录动作幅度
+                inhibit = self.ui.le_inhibit.text() if self.ui.le_inhibit.text() != "" else "500" # 记录禁止时间
+                # 保存上述参数
                 Motor.config(mode, int(acc), int(dec), int(vel), int(position), int(inhibit))
+                # 
                 self.enable_set_param(True, "{}".format(Motor.acceleration), "{}".format(Motor.deceleration), "{}".format(Motor.velocity), "{}".format(Motor.position), "{}".format(Motor.inhibit_time))
             self.enable_init_motor(True, "生效") # 激活 生效
         def init_motor():
@@ -418,7 +435,7 @@ class ControlPanel(QMainWindow):
             ...
             ...
             self.enable_init_motor(False, "完成")
-            self.enable_start_pdo(True) # 激活 开启TPDO...............................
+            self.enable_start_pdo(True) # 激活 开启TPDO
         def start_pdo():
             self.motor_2.start_feedback()
             ...
@@ -442,6 +459,7 @@ class ControlPanel(QMainWindow):
         self.ui.bt_save.clicked.connect(lambda: save_config())
         self.ui.bt_launch.clicked.connect(lambda: init_motor())
     
+    ''' IO '''
     def set_io_jumping(self):
         def check_status():
             if self.io_module.check_bus_status():
