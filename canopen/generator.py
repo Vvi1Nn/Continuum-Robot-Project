@@ -32,21 +32,6 @@ class CanOpenMsgGenerator():
         low_int = int(hex_str[2:], 16) # 低位
         return [low_int, high_int]
     
-    ''' 将int值转换成拆分好的hex列表 '''
-    @staticmethod
-    def __int_to_hex_list(value: int) -> list:
-        # 正数 int转换str 去除0x 大写字母 前面补0
-        if value >= 0: value_str = '0'*(8-len(hex(value)[2:].upper())) + hex(value)[2:].upper()
-        # 负数 取反加1 
-        else: value_str = hex(int(bin(- value ^ 0xFFFFFFFF), 2) + 1)[2:].upper()
-        # 写成列表
-        value_list = [0x0] * 4
-        value_list[0] = int(value_str[6:8], 16)
-        value_list[1] = int(value_str[4:6], 16)
-        value_list[2] = int(value_str[2:4], 16)
-        value_list[3] = int(value_str[0:2], 16)
-        return value_list
-    
     ''' SDO读取指定标签 '''
     def sdo_read(self, label: str) -> list:
         index = protocol.OD[label][0] # 获取地址
@@ -79,9 +64,12 @@ class CanOpenMsgGenerator():
         data[1] = self.__split_index(index)[0] # 地址低位
         data[2] = self.__split_index(index)[1] # 地址高位
         data[3] = subindex # 索引
-        value = self.__int_to_hex_list(value) # int转hex列表
+        # 正数 int转换str 去除0x 大写字母 前面补0
+        if value >= 0: value_str = '0'*(8-len(hex(value)[2:].upper())) + hex(value)[2:].upper()
+        # 负数 取反加1 
+        else: value_str = hex(int(bin(- value ^ 0xFFFFFFFF), 2) + 1)[2:].upper()
         for i in range(4):
-            data[4+i] = value[i] # 赋值
+            data[7-i] = int(value_str[2*i:2*(i+1)], 16)
         # 打印结果
         if CanOpenMsgGenerator.__is_print:
             hex_data = ["00"] * 8
@@ -94,16 +82,19 @@ class CanOpenMsgGenerator():
             print("\n")
         return [cob_id, data]
 
-    ''' 写RPDO 指定通道 低字 高字 '''
-    def rpdo(self, num: str, value_low: int, value_high: int) -> dict:
+    ''' 写RPDO 指定通道 传入数值可为1个 2个 4个 或利用format自动补齐参数'''
+    def rpdo(self, num: str, *args: int, format=None) -> dict:
         cob_id = protocol.CAN_ID["RPDO_" + num] + self.node_id # 计算COB-ID
-        data = [0x00] * 8
-        value_low = self.__int_to_hex_list(value_low) # 低字 int转hex列表
-        for i in range(4):
-            data[i] = value_low[i] # 赋值
-        value_high = self.__int_to_hex_list(value_high) # 高字 int转hex列表
-        for i in range(4):
-            data[4+i] = value_high[i] # 赋值
+        string = ""
+        if format != None: args = args + (0,)*(format-len(args))
+        for value in args:
+            # 正数 int转换str 去除0x 大写字母 前面补0
+            if value >= 0: string = '0'*(int(16/len(args))-len(hex(value)[2:].upper())) + hex(value)[2:].upper() + string
+            # 负数 取反加1
+            else: string = hex(int(bin(- value ^ int(int(16/len(args))*'F', 16)), 2) + 1)[2:].upper() + string
+        data = [0x0] * 8
+        for i in range(8):
+            data[7-i] = int(string[2*i:2*(i+1)], 16)
         # 打印结果
         if CanOpenMsgGenerator.__is_print:
             hex_data = ["00"] * 8
@@ -164,10 +155,15 @@ if __name__ == "__main__":
     # nmt_change_status(2, "start_remote_node", True)
     # nmt_change_status(2, "enter_pre-operational_state", True)
     # nmt_get_status(2, True)
+
     CanOpenMsgGenerator.is_print_msg(True)
-    generator_1 = CanOpenMsgGenerator(0xB)
+    generator_1 = CanOpenMsgGenerator(11)
     generator_1.nmt_change_status("start_remote_node")
     
-    generator_2 = CanOpenMsgGenerator(0x2)
+    generator_2 = CanOpenMsgGenerator(2)
     generator_2.sdo_write_32("tpdo_2_timer", 100)
     generator_2.sdo_write_32("tpdo_2_inhibit", 500)
+
+    generator_3 = CanOpenMsgGenerator(5)
+    generator_3.rpdo("1", 100)
+    
