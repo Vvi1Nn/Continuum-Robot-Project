@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' motor.py 步进电机功能函数 v2.4 '''
+''' motor.py 步进电机功能函数 v2.5 '''
 
 
 import time
@@ -22,9 +22,13 @@ class Motor(CanOpenBusProcessor):
     velocity     = 100 # 动作速度
     position     = 50 # 动作间隔
     inhibit_time = 500 # 禁止时间 微秒
+
+    __motor_list = []
     
     def __init__(self, node_id) -> None:
         super().__init__(node_id)
+
+        Motor.__motor_list.append(self)
         
         self.motor_status = "None" # 电机状态
         
@@ -113,99 +117,102 @@ class Motor(CanOpenBusProcessor):
         if self.sdo_write_32("tpdo_2_inhibit", Motor.inhibit_time):
             print("\033[0;32m[Motor {}] inhibit time: {}\033[0m".format(self.node_id, Motor.inhibit_time))
         else: print("\033[0;31m[Motor {}] set inhibit time failed\033[0m".format(self.node_id))
-    ''' 电机初始化 '''
-    def init_config(self) -> None:
-        print("=============================================================")
-        self.__set_mode()
-        self.__set_acceleration()
-        self.__set_deceleration()
-        self.__set_velocity()
-        self.__set_position()
-        self.__set_inhibit_time()
-
-    ''' 启动PDO通讯 '''
-    def start_feedback(self) -> bool:
-        print("=============================================================")
-        if self.set_bus_status("start_remote_node"):
-            if self.bus_status == "operational":
-                print("\033[0;32m[Motor {}] start pdo\033[0m".format(self.node_id))
-                return True
-        print("\033[0;31m[Motor {}] start pdo failed\033[0m".format(self.node_id))
+    
+    ''' 用RPDO更改电机的控制字 传入控制字对应的标签 '''
+    def __set_servo_status(self, label: str) -> bool:
+        if self.rpdo("1", protocol.CONTROL_WORD[label], format=4):
+            if label == "reset": self.motor_status = "switched_on"
+            elif label == "power_off": self.motor_status == "switch_on_disabled"
+            elif label == "quick_stop": self.motor_status == "switch_on_disabled"
+            elif label == "servo_close": self.motor_status == "ready_to_switch_on"
+            elif label == "servo_ready/stop": self.motor_status == "switched_on"
+            elif label == "servo_enable/start": self.motor_status == "operation_enabled"
+            print("\033[0;32m[Motor {}] set servo status: {}\033[0m".format(self.node_id, label))
+            return True
+        print("\033[0;31m[Motor {}] set servo status failed\033[0m".format(self.node_id))
         return False
 
-    '''  '''
-    def set_position(self, value):
-        if self.sdo_write_32("target_position", value):
-            self.position = value
-            print("\033[0;32m[Motor {}] target position: {}\033[0m".format(self.node_id, value))
-        else: print("\033[0;31m[Motor {}] set target position failed\033[0m".format(self.node_id))
+    ''' 用RPDO设置位置模式的动作幅度和速度 '''
+    def __set_position_velocity(self, pos, vel) -> bool:
+        if self.rpdo("2", pos, vel):
+            print("\033[0;32m[Motor {}] target position: {} velocity: {}\033[0m".format(self.node_id, pos, vel))
+            return True
+        print("\033[0;31m[Motor {}] set target position and velocity failed\033[0m".format(self.node_id))
+        return False
     
-    '''  '''
-    def set_speed(self, value):
-        if self.sdo_write_32("target_speed", value):
-            self.speed = value
-            print("\033[0;32m[Motor {}] target speed: {}\033[0m".format(self.node_id, value))
-        else: print("\033[0;31m[Motor {}] set target speed failed\033[0m".format(self.node_id))
+    ''' 用RPDO设置速度模式的速度 '''
+    def __set_speed(self, spe):
+        if self.rpdo("3", spe):
+            print("\033[0;32m[Motor {}] target speed: {}\033[0m".format(self.node_id, spe))
+            return True
+        print("\033[0;31m[Motor {}] set target speed failed\033[0m".format(self.node_id))
+        return False
 
-    # 待测试，很可能会出问题
-    def __switch_motor_status(self, label: str):
-        if self.sdo_write_32("control_word", protocol.CONTROL_WORD[label]):
-            self.get_bus_status()
-            self.get_motor_status()
-            if label == "reset" and self.motor_status == "switched_on" and self.bus_status == "pre-operational":
-                print("\033[0;31m[Motor {}] action: reset\033[0m".format(self.node_id))
-                return True
-            elif label == "power_off" and self.motor_status == "switch_on_disabled":
-                print("\033[0;31m[Motor {}] action: power_off\033[0m".format(self.node_id))
-                return True
-            elif label == "quick_stop" and self.motor_status == "switch_on_disabled":
-                print("\033[0;31m[Motor {}] action: quick_stop\033[0m".format(self.node_id))
-                return True
-            elif label == "servo_close" and self.motor_status == "ready_to_switch_on": return True
-            elif label == "servo_ready/stop" and self.motor_status == "switched_on": return True
-            elif label == "servo_enable/start" and self.motor_status == "operation_enabled": return True
-            else:
-                print("\033[0;31m[Motor {}] set motor status failed\033[0m".format(self.node_id))
-                return False
+    ''' 电机初始化 '''
+    @classmethod
+    def init_config(cls) -> None:
+        for motor in cls.__motor_list:
+            print("=============================================================")
+            motor.__set_mode()
+            motor.__set_acceleration()
+            motor.__set_deceleration()
+            motor.__set_velocity()
+            motor.__set_position()
+            motor.__set_inhibit_time()
 
-    '''  '''
-    def __stop_feedback(self):
-        self.set_bus_status("stop_remote_node")
-        if self.bus_status == "stopped":
-            if self.sdo_write_32("tpdo_2_timer", 0): # 定时器归0
-                print("\033[0;32m[Motor {}] stop pdo\033[0m".format(self.node_id))
-                return True
-        else: print("\033[0;31m[Motor {}] stop pdo failed\033[0m".format(self.node_id))
+    ''' 启动PDO通讯 '''
+    @classmethod
+    def start_feedback(cls) -> bool:
+        print("=============================================================")
+        for motor in cls.__motor_list:
+            if motor.set_bus_status("start_remote_node"):
+                if motor.bus_status == "operational":
+                    print("\033[0;32m[Motor {}] start pdo\033[0m".format(motor.node_id))
+                    return True
+            print("\033[0;31m[Motor {}] start pdo failed\033[0m".format(motor.node_id))
+            return False
+    
+    ''' 关闭PDO通讯 '''
+    @classmethod
+    def stop_feedback(cls) -> bool:
+        print("=============================================================")
+        for motor in cls.__motor_list:
+            if motor.set_bus_status("stop_remote_node"):
+                if motor.bus_status == "stopped":
+                    print("\033[0;32m[Motor {}] stop pdo\033[0m".format(motor.node_id))
+                    return True
+            print("\033[0;31m[Motor {}] stop pdo failed\033[0m".format(motor.node_id))
+            return False
 
-    '''  '''
-    def release_brake(self):
-        if self.sdo_write_32("control_word", protocol.CONTROL_WORD["servo_close"]):
-            self.get_motor_status()
-            if self.motor_status == "ready_to_switch_on":
-                print("\033[0;32m[Motor {}] release brake\033[0m".format(self.node_id))
-                return True
-        print("\033[0;31m[Motor {}] release brake failed\033[0m".format(self.node_id))
+    ''' 解除抱闸 '''
+    @classmethod
+    def release_brake(cls):
+        print("=============================================================")
+        for motor in cls.__motor_list:
+            if motor.__set_servo_status("servo_close"):
+                print("\033[0;32m[Motor {}] release brake\033[0m".format(motor.node_id))
+                continue
+            print("\033[0;31m[Motor {}] release brake failed\033[0m".format(motor.node_id))
 
-    '''  '''
-    def lock_brake(self):
-        if self.sdo_write_32("control_word", protocol.CONTROL_WORD["servo_ready/stop"]):
-            self.get_motor_status()
-            if self.motor_status == "switched_on":
-                print("\033[0;32m[Motor {}] lock brake\033[0m".format(self.node_id))
-                return True
-        print("\033[0;31m[Motor {}] lock brake failed\033[0m".format(self.node_id))
+    ''' 锁住抱闸 '''
+    @classmethod
+    def lock_brake(cls):
+        print("=============================================================")
+        for motor in cls.__motor_list:
+            if motor.__set_servo_status("servo_ready/stop"):
+                print("\033[0;32m[Motor {}] lock brake\033[0m".format(motor.node_id))
+                continue
+            print("\033[0;31m[Motor {}] lock brake failed\033[0m".format(motor.node_id))
 
-    def run(self):
-        pass
-
-    '''  '''
-    def quick_stop(self):
-        if self.sdo_write_32("control_word", protocol.CONTROL_WORD["quick_stop"]):
-            self.get_motor_status()
-            if self.motor_status == "switch_on_disabled":
-                print("\033[0;32m[Motor {}] quick stop\033[0m".format(self.node_id))
-                return True
-        print("\033[0;31m[Motor {}] quick stop failed\033[0m".format(self.node_id))
+    ''' 急停 '''
+    @classmethod
+    def quick_stop(cls):
+        print("=============================================================")
+        for motor in cls.__motor_list:
+            if motor.__set_servo_status("quick_stop"):
+                print("\033[0;32m[Motor {}] quick stop\033[0m".format(motor.node_id))
+                continue
+            print("\033[0;31m[Motor {}] quick stop failed\033[0m".format(motor.node_id))
 
     '''  '''
     def reset(self):
@@ -216,6 +223,13 @@ class Motor(CanOpenBusProcessor):
                 print("\033[0;32m[Motor {}] reset motor\033[0m".format(self.node_id))
                 return True
         print("\033[0;31m[Motor {}] reset motor failed\033[0m".format(self.node_id))
+
+    ''' 单电机运动测试 位置控制模式 相对运行 立即模式 可实现点击一次按钮动作一次 '''
+    def action(self):
+        print("=============================================================")
+        self.__set_servo_status("position_mode_ready")
+        self.__set_position_velocity(Motor.position, Motor.velocity)
+        self.__set_servo_status("position_mode_action")
 
 
 ''' 测试用 '''
