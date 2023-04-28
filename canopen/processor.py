@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' processor.py CANopen总线消息处理模块 v1.4 '''
+''' processor.py CANopen总线消息处理模块 v1.5 '''
 
 
 import time
@@ -66,7 +66,7 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
 
     ''' 发送消息 给定帧类型 数据长度 是否需要进行应答消息的接收 '''
     def __send_msg(self, cob_id: int, data: list, /, *, remote_flag="data", data_len="default", check=True):
-        CanOpenBusProcessor.device.clear_buffer() # 先清空缓存 保证应答消息在栈底
+        if check: CanOpenBusProcessor.device.clear_buffer() # 先清空缓存 保证应答消息在栈底
         if not CanOpenBusProcessor.device.send(cob_id, [data], remote_flag, data_len):
             if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] usbcan sending message ...\033[0m".format(self.node_id))
             return False # 发送失败
@@ -156,8 +156,8 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
         return self.sdo_write_32(label, value, repeat=repeat-1)
     
     ''' RPD写操作 分别写低字和高字 '''
-    def rpdo(self, channel: str, value_low: int, value_high: int, repeat=0) -> bool:
-        [cob_id, data] = super().rpdo(channel, value_low, value_high) # 生成消息
+    def rpdo(self, channel: str, *args: int, format=None, repeat=0) -> bool:
+        [cob_id, data] = super().rpdo(channel, *args, format=format) # 生成消息
         # 直接发送 无需校验
         if self.__send_msg(cob_id, data, check=False): return True
         # 上述所有操作有失败
@@ -165,7 +165,7 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
             if CanOpenBusProcessor.__is_log: print("\033[0;31m[Node-ID {}] rpdo() {} failed\033[0m".format(self.node_id, channel))
             return False
         if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] rpdo {} ...\033[0m".format(self.node_id, channel))
-        return self.rpdo(channel, value_low, value_high, repeat=repeat-1)
+        return self.rpdo(channel, *args, format=format, repeat=repeat-1)
 
     ''' 检查总线的状态 在操作之前 '''
     def check_bus_status(self) -> bool:
