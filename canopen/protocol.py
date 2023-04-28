@@ -69,6 +69,9 @@ CONTROL_WORD = {"reset"             : 0b10000000, # 0x80 优先级 1
                 "servo_close"       : 0b00000110, # 0x06 优先级 4
                 "servo_ready/stop"  : 0b01100111, # 0x67 优先级 5 立即模式 相对运行
                 "servo_enable/start": 0b01111111, # 0x7F 优先级 5 立即模式 相对运行
+
+                "position_mode_ready": 0b01101111,
+                "position_mode_action": 0b01111111,
                }
 
 # 电机的状态字 按位
