@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' generator.py CANopen消息生成器 v1.5 '''
+''' generator.py CANopen消息生成器 v1.6 '''
 
 
 # 添加模块路径
@@ -166,4 +166,3 @@ if __name__ == "__main__":
 
     generator_3 = CanOpenMsgGenerator(5)
     generator_3.rpdo("1", 100)
-    
