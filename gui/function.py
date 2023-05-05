@@ -67,6 +67,7 @@ class ControlPanel(QMainWindow):
         self.usbcan_1 = UsbCan.is_show_log(False)("1") # 通道1
         
         CanOpenBusProcessor.link_device(self.usbcan_0) # 将CANopen总线绑定至CAN卡的通道0
+        CanOpenBusProcessor.is_show_log(False)
         
         # 电机实例化
         self.motor_1 = Motor(1)
@@ -94,6 +95,8 @@ class ControlPanel(QMainWindow):
         self.set_usbcan_jumping() # USBCAN
         self.set_motor_jumping() # 电机
         self.set_io_jumping() # IO
+
+        self.set_test_jumping()
 
         self.show() # 显示界面
 
@@ -437,7 +440,8 @@ class ControlPanel(QMainWindow):
             self.enable_init_motor(False, "完成")
             self.enable_start_pdo(True) # 激活 开启TPDO
         def start_pdo():
-            self.motor_2.start_feedback()
+            Motor.start_feedback()
+            # self.motor_2.start_feedback()
             ...
             ...
             ...
@@ -473,3 +477,8 @@ class ControlPanel(QMainWindow):
                 self.enable_start_pdo(True) # 激活 开启TPDO
         self.ui.bt_check.clicked.connect(lambda: check_status())
         self.ui.bt_start.clicked.connect(lambda: start_output())
+
+    def set_test_jumping(self):
+        def test():
+            self.motor_2.action()
+        self.ui.pushButton_2.pressed.connect(lambda: test())
