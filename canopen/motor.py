@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' motor.py 步进电机功能函数 v2.5 '''
+''' motor.py 步进电机功能函数 v2.6 '''
 
 
 import time
@@ -120,7 +120,7 @@ class Motor(CanOpenBusProcessor):
     
     ''' 用RPDO更改电机的控制字 传入控制字对应的标签 '''
     def __set_servo_status(self, label: str) -> bool:
-        if self.rpdo("1", protocol.CONTROL_WORD[label], format=4):
+        if self.rpdo("1", protocol.CONTROL_WORD[label], format=8):
             if label == "reset": self.motor_status = "switched_on"
             elif label == "power_off": self.motor_status == "switch_on_disabled"
             elif label == "quick_stop": self.motor_status == "switch_on_disabled"
@@ -133,7 +133,7 @@ class Motor(CanOpenBusProcessor):
         return False
 
     ''' 用RPDO设置位置模式的动作幅度和速度 '''
-    def __set_position_velocity(self, pos, vel) -> bool:
+    def __set_position_and_velocity(self, pos, vel) -> bool:
         if self.rpdo("2", pos, vel):
             print("\033[0;32m[Motor {}] target position: {} velocity: {}\033[0m".format(self.node_id, pos, vel))
             return True
@@ -162,15 +162,13 @@ class Motor(CanOpenBusProcessor):
 
     ''' 启动PDO通讯 '''
     @classmethod
-    def start_feedback(cls) -> bool:
+    def start_feedback(cls) -> None:
         print("=============================================================")
         for motor in cls.__motor_list:
             if motor.set_bus_status("start_remote_node"):
                 if motor.bus_status == "operational":
                     print("\033[0;32m[Motor {}] start pdo\033[0m".format(motor.node_id))
-                    return True
             print("\033[0;31m[Motor {}] start pdo failed\033[0m".format(motor.node_id))
-            return False
     
     ''' 关闭PDO通讯 '''
     @classmethod
@@ -228,7 +226,7 @@ class Motor(CanOpenBusProcessor):
     def action(self):
         print("=============================================================")
         self.__set_servo_status("position_mode_ready")
-        self.__set_position_velocity(Motor.position, Motor.velocity)
+        self.__set_position_and_velocity(Motor.position, Motor.velocity)
         self.__set_servo_status("position_mode_action")
 
 
