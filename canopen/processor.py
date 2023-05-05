@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' processor.py CANopen总线消息处理模块 v1.5 '''
+''' processor.py CANopen总线消息处理模块 v1.6 '''
 
 
 import time
@@ -17,6 +17,9 @@ from canopen.generator import CanOpenMsgGenerator
 
 class CanOpenBusProcessor(CanOpenMsgGenerator):
     device = None # CANopen总线在CAN卡的通道
+
+    cache = [[["label", None] for i in range(0)] for i in range(256)] # 读取数据的缓存
+
     __is_log = False # 是否打印日志
 
     __node_list = [] # 节点对象列表
@@ -115,6 +118,21 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
         if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] set_bus_status ...\033[0m".format(self.node_id))
         return self.set_bus_status(label, repeat=repeat-1)
     
+    ''' 检查总线的状态 在操作之前 '''
+    def check_bus_status(self) -> bool:
+        self.get_bus_status() # 先获取总线的状态并更新
+        # 判断状态是否是预操作状态
+        if self.bus_status == "pre-operational":
+            if CanOpenBusProcessor.__is_log: print("\033[0;32m[Node-ID {}] checked\033[0m".format(self.node_id))
+            return True
+        # 不是预操作状态 人为设置一次总线状态 提示再次检查
+        if self.set_bus_status("enter_pre-operational_state"):
+            if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] try check again\033[0m".format(self.node_id))
+            return False
+        # 人为设置也失败了
+        if CanOpenBusProcessor.__is_log: print("\033[0;31m[Node-ID {}] unchecked\033[0m".format(self.node_id))
+        return False
+
     ''' 使用SDO进行寄存器读取数据 '''
     def sdo_read(self, label: str, /, *, repeat=0, format=1) -> list:
         [cob_id, data] = super().sdo_read(label) # 生成消息
@@ -167,18 +185,18 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
         if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] rpdo {} ...\033[0m".format(self.node_id, channel))
         return self.rpdo(channel, *args, format=format, repeat=repeat-1)
 
-    ''' 检查总线的状态 在操作之前 '''
-    def check_bus_status(self) -> bool:
-        self.get_bus_status() # 先获取总线的状态并更新
-        # 判断状态是否是预操作状态
-        if self.bus_status == "pre-operational":
-            if CanOpenBusProcessor.__is_log: print("\033[0;32m[Node-ID {}] checked\033[0m".format(self.node_id))
-            return True
-        # 不是预操作状态 人为设置一次总线状态 提示再次检查
-        if self.set_bus_status("enter_pre-operational_state"):
-            if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] try check again\033[0m".format(self.node_id))
-            return False
-        # 人为设置也失败了
-        if CanOpenBusProcessor.__is_log: print("\033[0;31m[Node-ID {}] unchecked\033[0m".format(self.node_id))
-        return False
+    ''' 接收TPDO的消息 并存入缓冲区 '''
+    @classmethod
+    def resolve_tpdo_msg(cls, count=1):
+        [num, msg] = cls.device.read_buffer(count, wait_time=0)
+        for i in num:
+            if msg[i].ID > 0x180 and msg[i].ID < 0x200:
+                cls.cache[msg[i].ID-0x180] = ["TPDO_1"]
+            elif msg[i].ID > 0x280 and msg[i].ID < 0x300:
+                label = "TPDO_2"
+            elif msg[i].ID > 0x380 and msg[i].ID < 0x400:
+                label = "TPDO_3"
+            elif msg[i].ID > 0x580 and msg[i].ID < 0x600:
+                label = "TPDO_4"
+            else: pass
     
