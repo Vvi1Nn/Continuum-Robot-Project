@@ -23,14 +23,13 @@ import time
 
 
 
-def a(b):
-    b = b + 1
-    print(b)
-    if b > 100:
-        return True
-    return False
-
-
-while not a(1):
-    time.sleep(1)
-    print("wait")
+cache = [[["label", None] for i in range(0)] for i in range(10)]
+print(cache)
+cache[1].append(["TPDO_1", 3])
+cache[1].append(["TPDO_1", 13])
+cache[1].append(["TPDO_1", 23])
+print(cache)
+cache[1].pop(0)
+print(cache)
+cache[0].append(["TPDO_1", 23])
+print(cache)
