@@ -17,6 +17,7 @@ from usbcan.function import UsbCan
 from canopen.processor import CanOpenBusProcessor
 from canopen.motor import Motor
 from canopen.io_module import IoModule
+from joystick.function import TestThread, JoystickThread
 
 ''' 登录界面 '''
 class LoginPanel(QMainWindow):
@@ -441,7 +442,6 @@ class ControlPanel(QMainWindow):
             self.enable_start_pdo(True) # 激活 开启TPDO
         def start_pdo():
             Motor.start_feedback()
-            # self.motor_2.start_feedback()
             ...
             ...
             ...
@@ -481,4 +481,16 @@ class ControlPanel(QMainWindow):
     def set_test_jumping(self):
         def test():
             self.motor_2.action()
+        def start():
+            print("start")
+            self.mythread = TestThread(100)
+            self.mythread.signal.connect(change)
+            self.mythread.start()
+        def change(msg):
+            print("hahaha: {}".format(msg))
+        def end():
+            self.yourthread = JoystickThread()
+            self.yourthread.start()
         self.ui.pushButton_2.pressed.connect(lambda: test())
+        self.ui.pushButton_6.clicked.connect(lambda: start())
+        self.ui.pushButton_7.clicked.connect(lambda: end())
