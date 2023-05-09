@@ -33,3 +33,28 @@ cache[1].pop(0)
 print(cache)
 cache[0].append(["TPDO_1", 23])
 print(cache)
+
+import pygame
+import time
+
+pygame.init()
+gamedisplay = pygame.display.set_mode((800,600))
+pygame.display.set_caption("dddd")
+clock = pygame.time.Clock()
+while True:
+    print(pygame.joystick.get_count())
+    for event in pygame.event.get():
+        if event.type==pygame.QUIT:
+            pygame.quit()
+            exit()
+    # print(pygame.mouse.get_pressed())
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_ESCAPE]:
+        pygame.quit()
+        exit()
+    if keys[pygame.K_SPACE]:
+        gamedisplay.fill((255,0,0))
+    else:
+        gamedisplay.fill((0,0,0))
+    pygame.display.update()
+    # clock.tick(60)
