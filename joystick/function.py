@@ -6,129 +6,100 @@
 
 import time
 import pygame
-from PyQt5.QtCore import QObject, QThread, pyqtSignal
+from PyQt5.QtCore import QThread, pyqtSignal
 
 
-class TestThread(QThread):
-    signal = pyqtSignal(str)
-
-    def __init__(self, t) -> None:
-        super().__init__()
-        self.t = t
-
-    def run(self):
-        for i in range(self.t):
-            time.sleep(1)
-            self.signal.emit(str(i))
-
-
-class TextPrint:
-    def __init__(self):
-        self.reset()
-        self.font = pygame.font.Font(None, 40)
- 
-    def print(self, screen, textString):
-        textBitmap = self.font.render(textString, True, BLACK)
-        screen.blit(textBitmap, [self.x, self.y])
-        self.y += self.line_height
-        
-    def reset(self):
-        self.x = 10
-        self.y = 10
-        self.line_height = 30
-        
-    def indent(self):
-        self.x += 10
-        
-    def unindent(self):
-        self.x -= 10
-BLACK = (   0,   0,   0)
-WHITE = ( 255, 255, 255)
 class JoystickThread(QThread):
-    joystick_signal = pyqtSignal(str)
-
+    button_signal_0 = pyqtSignal(int)
+    button_signal_1 = pyqtSignal(int)
+    button_signal_2 = pyqtSignal(int)
+    button_signal_3 = pyqtSignal(int)
+    button_signal_4 = pyqtSignal(int)
+    button_signal_5 = pyqtSignal(int)
+    button_signal_6 = pyqtSignal(int)
+    button_signal_7 = pyqtSignal(int)
+    button_signal_8 = pyqtSignal(int)
+    button_signal_9 = pyqtSignal(int)
+    button_signal_10 = pyqtSignal(int)
+    axis_signal_0 = pyqtSignal(float)
+    axis_signal_1 = pyqtSignal(float)
+    axis_signal_2 = pyqtSignal(float)
+    axis_signal_3 = pyqtSignal(float)
+    axis_signal_4 = pyqtSignal(float)
+    axis_signal_5 = pyqtSignal(float)
+    hat_signal_0 = pyqtSignal(tuple)
+    
     def __init__(self) -> None:
         super().__init__()
+        self.__is_joystick = False
+        self.__is_stop = False
         
+    def __setup(self):
+        self.__is_stop = False
+
         pygame.init() # 初始化模块
 
-        self.screen = pygame.display.set_mode([800, 800])
-        self.clock = pygame.time.Clock()
-        self.done = False
-        pygame.display.set_caption("My Game")
-        pygame.joystick.init()
-        self.textPrint = TextPrint()
+        # 界面
+        self.screen = pygame.display.set_mode([800, 500])
+        pygame.display.set_caption("连续体机器人遥操作界面")
+        self.screen.fill((255, 255, 255))
 
-    def run(self):
-        while self.done == False:
+        self.font = pygame.font.SysFont(None, 40) # 字体
+
+        self.clock = pygame.time.Clock() # 时钟
+
+        # 等待joystick插入
+        while not self.__is_joystick:
             for event in pygame.event.get():
-                if event.type == pygame.QUIT: self.done = True
-                if event.type == pygame.JOYBUTTONDOWN: print("Joystick button pressed.")
-                if event.type == pygame.JOYBUTTONUP: print("Joystick button released.")
-            self.screen.fill(WHITE)
-            self.textPrint.reset()
-        
-            # Get count of joysticks
-            joystick_count = pygame.joystick.get_count()
-        
-            self.textPrint.print(self.screen, "Number of joysticks: {}".format(joystick_count) )
-            self.textPrint.indent()
-            
-            # For each joystick:
-            for i in range(joystick_count):
-                joystick = pygame.joystick.Joystick(i)
-                joystick.init()
-            
-                self.textPrint.print(self.screen, "Joystick {}".format(i) )
-                self.textPrint.indent()
-            
-                # Get the name from the OS for the controller/joystick
-                name = joystick.get_name()
-                self.textPrint.print(self.screen, "Joystick name: {}".format(name) )
-                
-                # Usually axis run in pairs, up/down for one, and left/right for
-                # the other.
-                axes = joystick.get_numaxes()
-                self.textPrint.print(self.screen, "Number of axes: {}".format(axes) )
-                self.textPrint.indent()
-                
-                for i in range( axes ):
-                    axis = joystick.get_axis( i )
-                    self.textPrint.print(self.screen, "Axis {} value: {:>6.3f}".format(i, axis*100000) )
-                self.textPrint.unindent()
-                    
-                buttons = joystick.get_numbuttons()
-                self.textPrint.print(self.screen, "Number of buttons: {}".format(buttons) )
-                self.textPrint.indent()
-        
-                for i in range( buttons ):
-                    button = joystick.get_button( i )
-                    self.textPrint.print(self.screen, "Button {:>2} value: {}".format(i,button) )
-                    print(self.screen, "Button {:>2} value: {}".format(i,button) )
-                    
-                        
-                self.textPrint.unindent()
-                    
-                # Hat switch. All or nothing for direction, not like joysticks.
-                # Value comes back in an array.
-                hats = joystick.get_numhats()
-                self.textPrint.print(self.screen, "Number of hats: {}".format(hats) )
-                self.textPrint.indent()
-        
-                for i in range( hats ):
-                    hat = joystick.get_hat( i )
-                    self.textPrint.print(self.screen, "Hat {} value: {}".format(i, str(hat)) )
-                self.textPrint.unindent()
-                
-                self.textPrint.unindent()
-            
-            # Go ahead and update the screen with what we've drawn.
-            # pygame.display.flip()
-        
-            # Limit to 20 frames per second
+                if event.type == pygame.QUIT: pygame.quit()
+            if pygame.joystick.get_count() == 1:
+                self.__is_joystick = True
+                self.joystick = pygame.joystick.Joystick(0)
+            # 显示
+            self.screen.fill((255,255,255))
+            self.__print("No Joystick!", x=10, y=10)
+            # 刷新
+            pygame.display.flip()
             self.clock.tick(20)
+
+    def __print(self, text, /, *, x, y):
+        textBitmap = self.font.render(text, True, (0,0,0))
+        self.screen.blit(textBitmap, [x, y])
+    
+    def run(self):
+        self.__setup() # 初始化
+
+        while not self.__is_stop:
+            # 检测
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT: self.__is_stop = True
+                elif event.type == pygame.JOYBUTTONDOWN: print("Button pressed")
+                elif event.type == pygame.JOYBUTTONUP: print("Button released")
+                elif event.type == pygame.JOYHATMOTION: print("Joystick hat")
+                elif event.type == pygame.JOYAXISMOTION: print("Joystick axis")
+                else: pass
             
-        # Close the window and quit.
-        # If you forget this line, the program will 'hang'
-        # on exit if running from IDLE.
-        pygame.quit ()
+            # 显示
+            self.screen.fill((255,255,255))
+            x_current, y_current = 10, 10
+            self.__print("Joystick name: {}".format(self.joystick.get_name()), x=x_current, y=y_current)
+            for i in range(self.joystick.get_numbuttons()):
+                getattr(self, f"button_signal_{i}").emit(self.joystick.get_button(i))
+                y_current += 40
+                self.__print("Button {}:  {}".format(i, True if self.joystick.get_button(i) else False), x=x_current, y=y_current)
+            x_current, y_current = 310, 10
+            for i in range(self.joystick.get_numaxes()):
+                y_current += 40
+                self.__print("Axis {}:  {:.6f}".format(i, self.joystick.get_axis(i)), x=x_current, y=y_current)
+            x_current, y_current = 610, 10
+            for i in range(self.joystick.get_numhats()):
+                y_current += 40
+                self.__print("Hat {}:  {}".format(i, str(self.joystick.get_hat(i))), x=x_current, y=y_current)
+            
+            # 刷新
+            pygame.display.flip()
+            self.clock.tick(20)
+        pygame.quit()
+
+    def stop(self):
+        self.__is_stop = True
