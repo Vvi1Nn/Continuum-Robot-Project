@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' motor.py 步进电机功能函数 v2.6 '''
+''' motor.py 步进电机功能函数 v2.6.1 '''
 
 
 import time
@@ -172,15 +172,13 @@ class Motor(CanOpenBusProcessor):
     
     ''' 关闭PDO通讯 '''
     @classmethod
-    def stop_feedback(cls) -> bool:
+    def stop_feedback(cls) -> None:
         print("=============================================================")
         for motor in cls.__motor_list:
             if motor.set_bus_status("stop_remote_node"):
                 if motor.bus_status == "stopped":
                     print("\033[0;32m[Motor {}] stop pdo\033[0m".format(motor.node_id))
-                    return True
             print("\033[0;31m[Motor {}] stop pdo failed\033[0m".format(motor.node_id))
-            return False
 
     ''' 解除抱闸 '''
     @classmethod
@@ -194,7 +192,7 @@ class Motor(CanOpenBusProcessor):
 
     ''' 锁住抱闸 '''
     @classmethod
-    def lock_brake(cls):
+    def enable_servo(cls):
         print("=============================================================")
         for motor in cls.__motor_list:
             if motor.__set_servo_status("servo_ready/stop"):
@@ -223,10 +221,11 @@ class Motor(CanOpenBusProcessor):
         print("\033[0;31m[Motor {}] reset motor failed\033[0m".format(self.node_id))
 
     ''' 单电机运动测试 位置控制模式 相对运行 立即模式 可实现点击一次按钮动作一次 '''
-    def action(self):
+    def action(self, reverse=False):
         print("=============================================================")
         self.__set_servo_status("position_mode_ready")
-        self.__set_position_and_velocity(Motor.position, Motor.velocity)
+        if reverse: self.__set_position_and_velocity(-Motor.position, Motor.velocity)
+        else: self.__set_position_and_velocity(Motor.position, Motor.velocity)
         self.__set_servo_status("position_mode_action")
 
 
