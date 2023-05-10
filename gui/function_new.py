@@ -684,7 +684,9 @@ class ControlPanel(QMainWindow):
     '''
         以下是控制界面中 所有按钮的状态设置函数 包含是否激活和显示文字
     '''
-    ''' 菜单 '''
+    ''' 
+        菜单 
+    '''
     def enable_menu(self, init, control, log):
         self.ui.bt_init.setEnabled(init)
         self.ui.bt_control.setEnabled(control)
