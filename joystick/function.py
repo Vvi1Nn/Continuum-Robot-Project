@@ -4,7 +4,6 @@
 ''' function.py 操纵杆功能函数 v1.0 '''
 
 
-import time
 import pygame
 from PyQt5.QtCore import QThread, pyqtSignal
 
@@ -73,10 +72,10 @@ class JoystickThread(QThread):
             # 检测
             for event in pygame.event.get():
                 if event.type == pygame.QUIT: self.__is_stop = True
-                elif event.type == pygame.JOYBUTTONDOWN: print("Button pressed")
-                elif event.type == pygame.JOYBUTTONUP: print("Button released")
-                elif event.type == pygame.JOYHATMOTION: print("Joystick hat")
-                elif event.type == pygame.JOYAXISMOTION: print("Joystick axis")
+                # elif event.type == pygame.JOYBUTTONDOWN: print("Button pressed")
+                # elif event.type == pygame.JOYBUTTONUP: print("Button released")
+                # elif event.type == pygame.JOYHATMOTION: print("Joystick hat")
+                # elif event.type == pygame.JOYAXISMOTION: print("Joystick axis")
                 else: pass
             
             # 显示
@@ -89,6 +88,7 @@ class JoystickThread(QThread):
                 self.__print("Button {}:  {}".format(i, True if self.joystick.get_button(i) else False), x=x_current, y=y_current)
             x_current, y_current = 310, 10
             for i in range(self.joystick.get_numaxes()):
+                getattr(self, f"axis_signal_{i}").emit(self.joystick.get_axis(i))
                 y_current += 40
                 self.__print("Axis {}:  {:.6f}".format(i, self.joystick.get_axis(i)), x=x_current, y=y_current)
             x_current, y_current = 610, 10
