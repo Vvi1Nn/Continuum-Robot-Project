@@ -7,7 +7,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from usbcan.function import UsbCan
 from canopen.processor import CanOpenBusProcessor
 from canopen.motor import Motor
-from canopen.io_module import IoModule
+from io_module.function import IoModule
  
 # Define some colors
 BLACK = (   0,   0,   0)
@@ -105,7 +105,7 @@ while done==False:
         
         for i in range( axes ):
             axis = joystick.get_axis( i )
-            textPrint.print(screen, "Axis {} value: {:>6.3f}".format(i, axis*100000) )
+            textPrint.print(screen, "Axis {} value: {:>6.3f}".format(i, axis) )
         textPrint.unindent()
             
         buttons = joystick.get_numbuttons()
