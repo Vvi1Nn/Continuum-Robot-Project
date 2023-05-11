@@ -18,43 +18,54 @@ print("\033[7;35m紫红+反白\033[0m")
 print("\033[0;36m青蓝\033[0m")
 print("\033[8;37m白+不可见\033[0m")
 
-import threading
-import time
 
 
 
-cache = [[["label", None] for i in range(0)] for i in range(10)]
-print(cache)
-cache[1].append(["TPDO_1", 3])
-cache[1].append(["TPDO_1", 13])
-cache[1].append(["TPDO_1", 23])
-print(cache)
-cache[1].pop(0)
-print(cache)
-cache[0].append(["TPDO_1", 23])
-print(cache)
+from PyQt5.QtCore import QThread, pyqtSignal, QMutex
+from PyQt5.QtWidgets import QApplication
+import time,sys
+cache = []
+abc = 10
 
-import pygame
-import time
+class Thread1(QThread):
+    def __init__(self, mutex: QMutex) -> None:
+        super().__init__()
+        self.__is_stop = False
+        self.__lock = mutex
+    
+    def run(self):
+        while not self.__is_stop:
+            # self.__lock.lock()
+            cache.append("abc")
+            print("change")
+            # self.__lock.unlock()
+            time.sleep(1)
+    
+    def stop(self):
+        self.__is_stop = True
 
-pygame.init()
-gamedisplay = pygame.display.set_mode((800,600))
-pygame.display.set_caption("dddd")
-clock = pygame.time.Clock()
-while True:
-    print(pygame.joystick.get_count())
-    for event in pygame.event.get():
-        if event.type==pygame.QUIT:
-            pygame.quit()
-            exit()
-    # print(pygame.mouse.get_pressed())
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_ESCAPE]:
-        pygame.quit()
-        exit()
-    if keys[pygame.K_SPACE]:
-        gamedisplay.fill((255,0,0))
-    else:
-        gamedisplay.fill((0,0,0))
-    pygame.display.update()
-    # clock.tick(60)
+class Thread2(QThread):
+    def __init__(self, mutex: QMutex) -> None:
+        super().__init__()
+        self.__is_stop = False
+        self.__lock = mutex
+    
+    def run(self):
+        while not self.__is_stop:
+            # self.__lock.lock()
+            cache.pop(0)
+            print(cache)
+            # self.__lock.unlock()
+            time.sleep(5)
+    
+    def stop(self):
+        self.__is_stop = True
+
+app = QApplication(sys.argv)
+    
+mutex = QMutex()
+thread1 = Thread1(mutex)
+thread2 = Thread2(mutex)
+thread1.start()
+thread2.start()
+sys.exit(app.exec_())
