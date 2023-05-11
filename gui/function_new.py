@@ -7,15 +7,16 @@
 from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtCore import QThread, QMutex, QObject, pyqtSignal
 
-from ui_login import Ui_MainWindow as Ui_LoginPanel
-from ui_control_new import Ui_MainWindow as Ui_ControlPanel
 
 # 添加模块路径
 import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from gui.ui_login import Ui_MainWindow as Ui_LoginPanel
+from gui.ui_control_new import Ui_MainWindow as Ui_ControlPanel
 from usbcan.function import UsbCan
+import canopen.protocol as protocol
 from canopen.processor import CanOpenBusProcessor
-from canopen.motor import Motor
+from motor.function import Motor
 from joystick.function import JoystickThread
 
 
@@ -247,9 +248,9 @@ class ControlPanel(QMainWindow):
                     self.enable_choose_mode(True) # 激活 模式选择
                     self.enable_set_param(True) # 激活 设置参数
                 self.enable_save_param(True) # 激活 保存参数
+                self.enable_check_all(False, "结束")
         ''' 一键检查 '''
         def check_bus_all():
-            self.enable_check_all(False, "等待中...")
             check_bus_1()
             check_bus_2()
             check_bus_3()
@@ -264,7 +265,6 @@ class ControlPanel(QMainWindow):
             check_bus_12()
             check_bus_13()
             check_bus_14()
-            self.enable_check_all(False, "结束")
         ''' 单个检查 '''
         def check_bus_1():
             if self.motor_1.check_bus_status():
@@ -373,16 +373,23 @@ class ControlPanel(QMainWindow):
             Motor.start_feedback()
             self.enable_start_pdo(False)
             self.enable_stop_pdo(True)
+            self.enable_set_param(False) # 失效
+            self.enable_save_param(False) # 失效
+            self.enable_choose_mode(False, mode=None) # 失效
             ''' 状态控制 '''
             self.enable_quick_stop(True) # 生效
             self.enable_release_break(True) # 生效
             ''' 遥操作 '''
-            self.enable_joint_control(True) # 生效
+            if Motor.control_mode == protocol.CONTROL_MODE["position_control"]:
+                self.enable_joint_control(True) # 生效
             self.enable_end_control(True) # 生效
         def stop_pdo():
             Motor.stop_feedback()
             self.enable_start_pdo(True)
             self.enable_stop_pdo(False)
+            self.enable_set_param(True)
+            self.enable_save_param(True)
+            self.enable_choose_mode(True, mode=None)
             ''' 状态控制 '''
             self.enable_quick_stop(False) # 失效
             self.enable_release_break(False) # 失效
@@ -432,24 +439,33 @@ class ControlPanel(QMainWindow):
     def set_control_jumping(self):
         ''' 状态控制 '''
         def quick_stop():
-            self.enable_quick_stop(False)
-            self.enable_release_break(False)
-            self.enable_enable_servo(True)
-            self.enable_joint_control(False)
-            self.enable_end_control(False)
             Motor.quick_stop()
-        def release_break():
             self.enable_quick_stop(False)
             self.enable_release_break(False)
             self.enable_enable_servo(True)
             self.enable_joint_control(False)
             self.enable_end_control(False)
+            self.enable_exit(False)
+            self.joystick.stop() # 终止joystick线程
+            self.joystick.wait() # 等待退出
+            self.joystick = JoystickThread() # 必须重新创建线程！！！
+        def release_break():
             Motor.release_brake()
+            self.enable_quick_stop(False)
+            self.enable_release_break(False)
+            self.enable_enable_servo(True)
+            self.enable_joint_control(False)
+            self.enable_end_control(False)
+            self.enable_exit(False)
+            self.joystick.stop() # 终止joystick线程
+            self.joystick.wait() # 等待退出
+            self.joystick = JoystickThread() # 必须重新创建线程！！！
         def enable_servo():
             self.enable_quick_stop(True)
             self.enable_release_break(True)
             self.enable_enable_servo(False)
-            self.enable_joint_control(True)
+            if Motor.control_mode == protocol.CONTROL_MODE["position_control"]:
+                self.enable_joint_control(True) # 生效
             self.enable_end_control(True)
             Motor.enable_servo()
         ''' 关节控制 '''
@@ -462,7 +478,8 @@ class ControlPanel(QMainWindow):
                     method = getattr(self, f"enable_motor_group_{i+1}")
                     method(True)
         def quit_joint_control():
-            self.enable_joint_control(True)
+            if Motor.control_mode == protocol.CONTROL_MODE["position_control"]:
+                self.enable_joint_control(True) # 生效
             self.enable_end_control(True)
             self.enable_quit(False)
             for i in range(14):
@@ -529,15 +546,44 @@ class ControlPanel(QMainWindow):
             self.enable_joint_control(False)
             self.enable_end_control(False)
             self.enable_exit(True)
-            def zheng(status):
-                if status == 1: self.motor_2.action()
-            def fu(status):
-                if status == 1: self.motor_2.action(reverse=True)
-            self.joystick.button_signal_5.connect(zheng)
-            self.joystick.button_signal_4.connect(fu)
+            def test_front(status):
+                if status == 1:
+                    self.motor_1.action()
+                    self.motor_2.action()
+                    self.motor_3.action()
+                    self.motor_4.action()
+                    self.motor_5.action()
+                    self.motor_6.action()
+                    self.motor_7.action()
+                    self.motor_8.action()
+                    self.motor_9.action()
+            def test_back(status):
+                if status == 1:
+                    self.motor_1.action(reverse=True)
+                    self.motor_2.action(reverse=True)
+                    self.motor_3.action(reverse=True)
+                    self.motor_4.action(reverse=True)
+                    self.motor_5.action(reverse=True)
+                    self.motor_6.action(reverse=True)
+                    self.motor_7.action(reverse=True)
+                    self.motor_8.action(reverse=True)
+                    self.motor_9.action(reverse=True)
+            def test_speed_1(value):
+                if abs(value) < 0.5: value = 0
+                speed = int(value*100)
+                self.motor_1.action_speed(speed)
+            def test_speed_4(value):
+                if abs(value) < 0.5: value = 0
+                speed = int(value*100)
+                self.motor_4.action_speed(speed)
+            self.joystick.button_signal_5.connect(test_front)
+            self.joystick.button_signal_4.connect(test_back)
+            self.joystick.axis_signal_4.connect(test_speed_4)
+            self.joystick.axis_signal_1.connect(test_speed_1)
             self.joystick.start() # 开启joystick线程
         def exit_end_control():
-            self.enable_joint_control(True)
+            if Motor.control_mode == protocol.CONTROL_MODE["position_control"]:
+                self.enable_joint_control(True) # 生效
             self.enable_end_control(True)
             self.enable_exit(False)
             self.joystick.stop() # 终止joystick线程
