@@ -146,4 +146,8 @@ class Ui_MainWindow(object):
         self.action4.setText(_translate("MainWindow", "4"))
         self.action5.setText(_translate("MainWindow", "5"))
         self.action6.setText(_translate("MainWindow", "6"))
-import resourece_rc
+
+import sys, os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import gui.resourece_rc as resourece_rc
+# import resourece_rc
