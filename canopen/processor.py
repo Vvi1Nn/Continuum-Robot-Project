@@ -18,7 +18,7 @@ from canopen.generator import CanOpenMsgGenerator
 class CanOpenBusProcessor(CanOpenMsgGenerator):
     device = None # CANopen总线在CAN卡的通道
 
-    cache = [[("label", None) for i in range(0)] for i in range(256)] # 读取数据的缓存
+    # cache = [[("label", None) for i in range(0)] for i in range(256)] # 读取数据的缓存
 
     __is_log = False # 是否打印日志
 
@@ -185,40 +185,40 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
         if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] rpdo {} ...\033[0m".format(self.node_id, channel))
         return self.rpdo(channel, *args, format=format, repeat=repeat-1)
 
-    ''' 接收TPDO的消息 并存入缓冲区 '''
-    @classmethod
-    def resolve_tpdo_msg(cls, count=1, tpdo1_format=8, tpdo2_format=2, tpdo3_format=0, tpdo4_format=8) -> None:
-        ret = cls.device.read_buffer(count, wait_time=0)
-        if ret != None:
-            [num, msg] = ret
-            for i in num:
-                if msg[i].ID > 0x180 and msg[i].ID < 0x200:
-                    node_id = msg[i].ID-0x180
-                    label = "TPDO_1" # 状态字
-                    value = ()
-                    for num in range(tpdo1_format):
-                        value += (cls.__hex_list_to_int([msg[i].Data[j] for j in range(int(num*8/tpdo1_format), int((num+1)*8/tpdo1_format))]), )
-                elif msg[i].ID > 0x280 and msg[i].ID < 0x300:
-                    node_id = msg[i].ID-0x280
-                    label = "TPDO_2" # 当前位置+速度
-                    value = ()
-                    for num in range(tpdo2_format):
-                        value += (cls.__hex_list_to_int([msg[i].Data[j] for j in range(int(num*8/tpdo1_format), int((num+1)*8/tpdo1_format))]), )
-                elif msg[i].ID > 0x380 and msg[i].ID < 0x400:
-                    node_id = msg[i].ID-0x380
-                    label = "TPDO_3" # 无
-                    value = ()
-                    for num in range(tpdo3_format):
-                        value += (cls.__hex_list_to_int([msg[i].Data[j] for j in range(int(num*8/tpdo1_format), int((num+1)*8/tpdo1_format))]), )
-                elif msg[i].ID > 0x480 and msg[i].ID < 0x500:
-                    node_id = msg[i].ID-0x480
-                    label = "TPDO_4" # 控制模式
-                    value = ()
-                    for num in range(tpdo4_format):
-                        value += (cls.__hex_list_to_int([msg[i].Data[j] for j in range(int(num*8/tpdo1_format), int((num+1)*8/tpdo1_format))]), )
-                else: pass
-                cls.cache[node_id].append((label, value))
-        if CanOpenBusProcessor.__is_log: 
-            for i in range(10):
-                print("[Node-ID {}] current cache num = {}".format(i, len(cls.cache[i])))
+    # ''' 接收TPDO的消息 并存入缓冲区 '''
+    # @classmethod
+    # def resolve_tpdo_msg(cls, count=1, tpdo1_format=8, tpdo2_format=2, tpdo3_format=0, tpdo4_format=8) -> None:
+    #     ret = cls.device.read_buffer(count, wait_time=0)
+    #     if ret != None:
+    #         [num, msg] = ret
+    #         for i in num:
+    #             if msg[i].ID > 0x180 and msg[i].ID < 0x200:
+    #                 node_id = msg[i].ID-0x180
+    #                 label = "TPDO_1" # 状态字
+    #                 value = ()
+    #                 for num in range(tpdo1_format):
+    #                     value += (cls.__hex_list_to_int([msg[i].Data[j] for j in range(int(num*8/tpdo1_format), int((num+1)*8/tpdo1_format))]), )
+    #             elif msg[i].ID > 0x280 and msg[i].ID < 0x300:
+    #                 node_id = msg[i].ID-0x280
+    #                 label = "TPDO_2" # 当前位置+速度
+    #                 value = ()
+    #                 for num in range(tpdo2_format):
+    #                     value += (cls.__hex_list_to_int([msg[i].Data[j] for j in range(int(num*8/tpdo1_format), int((num+1)*8/tpdo1_format))]), )
+    #             elif msg[i].ID > 0x380 and msg[i].ID < 0x400:
+    #                 node_id = msg[i].ID-0x380
+    #                 label = "TPDO_3" # 无
+    #                 value = ()
+    #                 for num in range(tpdo3_format):
+    #                     value += (cls.__hex_list_to_int([msg[i].Data[j] for j in range(int(num*8/tpdo1_format), int((num+1)*8/tpdo1_format))]), )
+    #             elif msg[i].ID > 0x480 and msg[i].ID < 0x500:
+    #                 node_id = msg[i].ID-0x480
+    #                 label = "TPDO_4" # 控制模式
+    #                 value = ()
+    #                 for num in range(tpdo4_format):
+    #                     value += (cls.__hex_list_to_int([msg[i].Data[j] for j in range(int(num*8/tpdo1_format), int((num+1)*8/tpdo1_format))]), )
+    #             else: pass
+    #             cls.cache[node_id].append((label, value))
+    #     if CanOpenBusProcessor.__is_log: 
+    #         for i in range(10):
+    #             print("[Node-ID {}] current cache num = {}".format(i, len(cls.cache[i])))
     
