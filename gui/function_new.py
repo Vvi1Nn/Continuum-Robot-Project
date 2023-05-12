@@ -17,6 +17,7 @@ from usbcan.function import UsbCan
 import canopen.protocol as protocol
 from canopen.processor import CanOpenBusProcessor
 from motor.function import Motor
+from motor.update import MotorUpdateThread
 from joystick.function import JoystickThread
 
 
@@ -89,8 +90,9 @@ class ControlPanel(QMainWindow):
         self.check_list = [False] * 14 # 记录电机检查状态的列表
         self.checked_num = 0
 
-        # 操纵杆
-        self.joystick = JoystickThread()
+        self.joystick = JoystickThread() # 操纵杆
+
+        self.motor_update = MotorUpdateThread() # 电机状态更新
 
         self.initial_status() # 根据权限 显示初始页面
         
@@ -99,6 +101,7 @@ class ControlPanel(QMainWindow):
         self.set_usbcan_jumping() # USBCAN
         self.set_motor_jumping() # 电机
         self.set_control_jumping() # 控制面板
+        self.set_update_jumping() # 状态更新
 
         self.show() # 显示界面
 
@@ -108,7 +111,7 @@ class ControlPanel(QMainWindow):
     '''
     def initial_status(self) -> None:
         ''' 菜单 '''
-        self.enable_menu(True, True, True) # 初始化激活 控制失效 日志失效
+        self.enable_menu(True, True, True) # 初始化激活 控制激活 日志激活
         ''' 页面 '''
         self.ui.stackedWidget.setCurrentIndex(0) # 显示第1页
         ''' USBCAN '''
@@ -162,6 +165,21 @@ class ControlPanel(QMainWindow):
         self.enable_motor_group_14(False) # 失效
         self.enable_end_control(False, "末端操作") # 失效
         self.enable_exit(False, "退出") # 失效
+        ''' 状态 '''
+        self.enable_status_1(False)
+        self.enable_status_2(False)
+        self.enable_status_3(False)
+        self.enable_status_4(False)
+        self.enable_status_5(False)
+        self.enable_status_6(False)
+        self.enable_status_7(False)
+        self.enable_status_8(False)
+        self.enable_status_9(False)
+        self.enable_status_10(False)
+        self.enable_status_11(False)
+        self.enable_status_12(False)
+        self.enable_status_13(False)
+        self.enable_status_14(False)
     
 
     '''
@@ -271,84 +289,140 @@ class ControlPanel(QMainWindow):
                 if self.motor_1.check_motor_status():
                     self.enable_check_1(False, "就绪")
                     self.check_list[0] = True
+                    self.enable_status_1(True)
+            self.ui.servo_1.setText(self.motor_1.motor_status)
+            self.ui.position_1.setText(str(self.motor_1.current_position))
+            self.ui.speed_1.setText(str(self.motor_1.current_speed))
             __ischecked()
         def check_bus_2():
             if self.motor_2.check_bus_status():
                 if self.motor_2.check_motor_status():
                     self.enable_check_2(False, "就绪")
                     self.check_list[1] = True
+                    self.enable_status_2(True)
+            self.ui.servo_2.setText(self.motor_2.motor_status)
+            self.ui.position_2.setText(str(self.motor_2.current_position))
+            self.ui.speed_2.setText(str(self.motor_2.current_speed))
             __ischecked()
         def check_bus_3():
             if self.motor_3.check_bus_status():
                 if self.motor_3.check_motor_status():
                     self.enable_check_3(False, "就绪")
                     self.check_list[2] = True
+                    self.enable_status_3(True)
+            self.ui.servo_3.setText(self.motor_3.motor_status)
+            self.ui.position_3.setText(str(self.motor_3.current_position))
+            self.ui.speed_3.setText(str(self.motor_3.current_speed))
             __ischecked()
         def check_bus_4():
             if self.motor_4.check_bus_status():
                 if self.motor_4.check_motor_status():
                     self.enable_check_4(False, "就绪")
                     self.check_list[3] = True
+                    self.enable_status_4(True)
+            self.ui.servo_4.setText(self.motor_4.motor_status)
+            self.ui.position_4.setText(str(self.motor_4.current_position))
+            self.ui.speed_4.setText(str(self.motor_4.current_speed))
             __ischecked()
         def check_bus_5():
             if self.motor_5.check_bus_status():
                 if self.motor_5.check_motor_status():
                     self.enable_check_5(False, "就绪")
                     self.check_list[4] = True
+                    self.enable_status_5(True)
+            self.ui.servo_5.setText(self.motor_5.motor_status)
+            self.ui.position_5.setText(str(self.motor_5.current_position))
+            self.ui.speed_5.setText(str(self.motor_5.current_speed))
             __ischecked()
         def check_bus_6():
             if self.motor_6.check_bus_status():
                 if self.motor_6.check_motor_status():
                     self.enable_check_6(False, "就绪")
                     self.check_list[5] = True
+                    self.enable_status_6(True)
+            self.ui.servo_6.setText(self.motor_6.motor_status)
+            self.ui.position_6.setText(str(self.motor_6.current_position))
+            self.ui.speed_6.setText(str(self.motor_6.current_speed))
             __ischecked()
         def check_bus_7():
             if self.motor_7.check_bus_status():
                 if self.motor_7.check_motor_status():
                     self.enable_check_7(False, "就绪")
                     self.check_list[6] = True
+                    self.enable_status_7(True)
+            self.ui.servo_7.setText(self.motor_7.motor_status)
+            self.ui.position_7.setText(str(self.motor_7.current_position))
+            self.ui.speed_7.setText(str(self.motor_7.current_speed))
             __ischecked()
         def check_bus_8():
             if self.motor_8.check_bus_status():
                 if self.motor_8.check_motor_status():
                     self.enable_check_8(False, "就绪")
                     self.check_list[7] = True
+                    self.enable_status_8(True)
+            self.ui.servo_8.setText(self.motor_8.motor_status)
+            self.ui.position_8.setText(str(self.motor_8.current_position))
+            self.ui.speed_8.setText(str(self.motor_8.current_speed))
             __ischecked()
         def check_bus_9():
             if self.motor_9.check_bus_status():
                 if self.motor_9.check_motor_status():
                     self.enable_check_9(False, "就绪")
                     self.check_list[8] = True
+                    self.enable_status_9(True)
+            self.ui.servo_9.setText(self.motor_9.motor_status)
+            self.ui.position_9.setText(str(self.motor_9.current_position))
+            self.ui.speed_9.setText(str(self.motor_9.current_speed))
             __ischecked()
         def check_bus_10():
             if self.motor_10.check_bus_status():
                 if self.motor_10.check_motor_status():
                     self.enable_check_10(False, "就绪")
                     self.check_list[9] = True
+                    self.enable_status_10(True)
+            self.ui.servo_10.setText(self.motor_10.motor_status)
+            self.ui.position_10.setText(str(self.motor_10.current_position))
+            self.ui.speed_10.setText(str(self.motor_10.current_speed))
             __ischecked()
         def check_bus_11():
             if self.motor_11.check_bus_status():
                 if self.motor_11.check_motor_status():
                     self.enable_check_11(False, "就绪")
                     self.check_list[10] = True
+                    self.enable_status_11(True)
+            self.ui.servo_11.setText(self.motor_11.motor_status)
+            self.ui.position_11.setText(str(self.motor_11.current_position))
+            self.ui.speed_11.setText(str(self.motor_11.current_speed))
             __ischecked()
         def check_bus_12():
             if self.motor_12.check_bus_status():
                 if self.motor_12.check_motor_status():
                     self.enable_check_12(False, "就绪")
                     self.check_list[11] = True
+                    self.enable_status_12(True)
+            self.ui.servo_12.setText(self.motor_12.motor_status)
+            self.ui.position_12.setText(str(self.motor_12.current_position))
+            self.ui.speed_12.setText(str(self.motor_12.current_speed))
             __ischecked()
         def check_bus_13():
             if self.motor_13.check_bus_status():
                 if self.motor_13.check_motor_status():
                     self.enable_check_13(False, "就绪")
                     self.check_list[12] = True
+                    self.enable_status_13(True)
+            self.ui.servo_13.setText(self.motor_13.motor_status)
+            self.ui.position_13.setText(str(self.motor_13.current_position))
+            self.ui.speed_13.setText(str(self.motor_13.current_speed))
             __ischecked()
         def check_bus_14():
             if self.motor_14.check_bus_status():
                 if self.motor_14.check_motor_status():
                     self.enable_check_14(False, "就绪")
                     self.check_list[13] = True
+                    self.enable_status_14(True)
+            self.ui.servo_14.setText(self.motor_14.motor_status)
+            self.ui.position_14.setText(str(self.motor_14.current_position))
+            self.ui.speed_14.setText(str(self.motor_14.current_speed))
             __ischecked()
         ''' 保存参数 '''
         def save_config():
@@ -371,6 +445,8 @@ class ControlPanel(QMainWindow):
             self.enable_start_pdo(True) # 激活 开启TPDO
         def start_pdo():
             Motor.start_feedback()
+            self.motor_update.start() # 开启线程
+            self.enable_close_device(False)
             self.enable_start_pdo(False)
             self.enable_stop_pdo(True)
             self.enable_set_param(False) # 失效
@@ -385,6 +461,10 @@ class ControlPanel(QMainWindow):
             self.enable_end_control(True) # 生效
         def stop_pdo():
             Motor.stop_feedback()
+            self.motor_update.stop()
+            self.motor_update.wait()
+            self.motor_update = MotorUpdateThread() # 重新创建线程
+            self.enable_close_device(True)
             self.enable_start_pdo(True)
             self.enable_stop_pdo(False)
             self.enable_set_param(True)
@@ -726,6 +806,16 @@ class ControlPanel(QMainWindow):
         self.ui.bt_end_control.clicked.connect(lambda: end_control())
         self.ui.bt_exit.clicked.connect(lambda: exit_end_control())
     
+    ''' 状态更新 '''
+    def set_update_jumping(self):
+        def update(node_id):
+            status = getattr(self, f"motor_{node_id}").motor_status
+            position = getattr(self, f"motor_{node_id}").current_position
+            speed = getattr(self, f"motor_{node_id}").current_speed
+            getattr(self.ui, f"servo_{node_id}").setText(status)
+            getattr(self.ui, f"position_{node_id}").setText(str(position))
+            getattr(self.ui, f"speed_{node_id}").setText(str(speed))
+        self.motor_update.update_signal.connect(update)
 
     '''
         以下是控制界面中 所有按钮的状态设置函数 包含是否激活和显示文字
@@ -900,3 +990,36 @@ class ControlPanel(QMainWindow):
     def enable_exit(self, flag, text=None):
         self.ui.bt_exit.setEnabled(flag)
         if text != None: self.ui.bt_exit.setText(text)
+
+    '''
+        第三页
+    '''
+    def enable_status_1(self, flag):
+        self.ui.status_1.setEnabled(flag)
+    def enable_status_2(self, flag):
+        self.ui.status_2.setEnabled(flag)
+    def enable_status_3(self, flag):
+        self.ui.status_3.setEnabled(flag)
+    def enable_status_4(self, flag):
+        self.ui.status_4.setEnabled(flag)
+    def enable_status_5(self, flag):
+        self.ui.status_6.setEnabled(flag)
+    def enable_status_6(self, flag):
+        self.ui.status_6.setEnabled(flag)
+    def enable_status_7(self, flag):
+        self.ui.status_7.setEnabled(flag)
+    def enable_status_8(self, flag):
+        self.ui.status_8.setEnabled(flag)
+    def enable_status_9(self, flag):
+        self.ui.status_9.setEnabled(flag)
+    def enable_status_10(self, flag):
+        self.ui.status_10.setEnabled(flag)
+    def enable_status_11(self, flag):
+        self.ui.status_11.setEnabled(flag)
+    def enable_status_12(self, flag):
+        self.ui.status_12.setEnabled(flag)
+    def enable_status_13(self, flag):
+        self.ui.status_13.setEnabled(flag)
+    def enable_status_14(self, flag):
+        self.ui.status_14.setEnabled(flag)
+    
