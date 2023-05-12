@@ -209,7 +209,7 @@ QStackedWidget QTextBrowser {
           <string notr="true"/>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>2</number>
          </property>
          <widget class="QWidget" name="pg_init">
           <layout class="QVBoxLayout" name="verticalLayout_7" stretch="1,5">
@@ -2210,16 +2210,6 @@ QStackedWidget QTextBrowser {
                     <number>0</number>
                    </property>
                    <item>
-                    <widget class="QLabel" name="bus_1">
-                     <property name="text">
-                      <string>bus</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="QLabel" name="servo_1">
                      <property name="text">
                       <string>servo</string>
@@ -2232,7 +2222,17 @@ QStackedWidget QTextBrowser {
                    <item>
                     <widget class="QLabel" name="position_1">
                      <property name="text">
-                      <string>0</string>
+                      <string>position</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="speed_1">
+                     <property name="text">
+                      <string>speed</string>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignCenter</set>
@@ -2267,16 +2267,6 @@ QStackedWidget QTextBrowser {
                     <number>0</number>
                    </property>
                    <item>
-                    <widget class="QLabel" name="bus_2">
-                     <property name="text">
-                      <string>bus</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="QLabel" name="servo_2">
                      <property name="text">
                       <string>servo</string>
@@ -2289,7 +2279,17 @@ QStackedWidget QTextBrowser {
                    <item>
                     <widget class="QLabel" name="position_2">
                      <property name="text">
-                      <string>0</string>
+                      <string>position</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="speed_2">
+                     <property name="text">
+                      <string>speed</string>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignCenter</set>
@@ -2324,16 +2324,6 @@ QStackedWidget QTextBrowser {
                     <number>0</number>
                    </property>
                    <item>
-                    <widget class="QLabel" name="bus_3">
-                     <property name="text">
-                      <string>bus</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="QLabel" name="servo_3">
                      <property name="text">
                       <string>servo</string>
@@ -2346,7 +2336,17 @@ QStackedWidget QTextBrowser {
                    <item>
                     <widget class="QLabel" name="position_3">
                      <property name="text">
-                      <string>0</string>
+                      <string>position</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="speed_3">
+                     <property name="text">
+                      <string>speed</string>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignCenter</set>
@@ -2381,16 +2381,6 @@ QStackedWidget QTextBrowser {
                     <number>0</number>
                    </property>
                    <item>
-                    <widget class="QLabel" name="bus_4">
-                     <property name="text">
-                      <string>bus</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="QLabel" name="servo_4">
                      <property name="text">
                       <string>servo</string>
@@ -2403,7 +2393,17 @@ QStackedWidget QTextBrowser {
                    <item>
                     <widget class="QLabel" name="position_4">
                      <property name="text">
-                      <string>0</string>
+                      <string>position</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="speed_4">
+                     <property name="text">
+                      <string>speed</string>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignCenter</set>
@@ -2438,16 +2438,6 @@ QStackedWidget QTextBrowser {
                     <number>0</number>
                    </property>
                    <item>
-                    <widget class="QLabel" name="bus_5">
-                     <property name="text">
-                      <string>bus</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="QLabel" name="servo_5">
                      <property name="text">
                       <string>servo</string>
@@ -2460,7 +2450,17 @@ QStackedWidget QTextBrowser {
                    <item>
                     <widget class="QLabel" name="position_5">
                      <property name="text">
-                      <string>0</string>
+                      <string>position</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="speed_5">
+                     <property name="text">
+                      <string>speed</string>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignCenter</set>
@@ -2502,16 +2502,6 @@ QStackedWidget QTextBrowser {
                     <number>0</number>
                    </property>
                    <item>
-                    <widget class="QLabel" name="bus_6">
-                     <property name="text">
-                      <string>bus</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="QLabel" name="servo_6">
                      <property name="text">
                       <string>servo</string>
@@ -2524,7 +2514,17 @@ QStackedWidget QTextBrowser {
                    <item>
                     <widget class="QLabel" name="position_6">
                      <property name="text">
-                      <string>0</string>
+                      <string>position</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="speed_6">
+                     <property name="text">
+                      <string>speed</string>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignCenter</set>
@@ -2559,16 +2559,6 @@ QStackedWidget QTextBrowser {
                     <number>0</number>
                    </property>
                    <item>
-                    <widget class="QLabel" name="bus_7">
-                     <property name="text">
-                      <string>bus</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="QLabel" name="servo_7">
                      <property name="text">
                       <string>servo</string>
@@ -2581,7 +2571,17 @@ QStackedWidget QTextBrowser {
                    <item>
                     <widget class="QLabel" name="position_7">
                      <property name="text">
-                      <string>0</string>
+                      <string>position</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="speed_7">
+                     <property name="text">
+                      <string>speed</string>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignCenter</set>
@@ -2616,16 +2616,6 @@ QStackedWidget QTextBrowser {
                     <number>0</number>
                    </property>
                    <item>
-                    <widget class="QLabel" name="bus_8">
-                     <property name="text">
-                      <string>bus</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="QLabel" name="servo_8">
                      <property name="text">
                       <string>servo</string>
@@ -2638,7 +2628,17 @@ QStackedWidget QTextBrowser {
                    <item>
                     <widget class="QLabel" name="position_8">
                      <property name="text">
-                      <string>0</string>
+                      <string>position</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="speed_8">
+                     <property name="text">
+                      <string>speed</string>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignCenter</set>
@@ -2673,16 +2673,6 @@ QStackedWidget QTextBrowser {
                     <number>0</number>
                    </property>
                    <item>
-                    <widget class="QLabel" name="bus_9">
-                     <property name="text">
-                      <string>bus</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="QLabel" name="servo_9">
                      <property name="text">
                       <string>servo</string>
@@ -2695,7 +2685,17 @@ QStackedWidget QTextBrowser {
                    <item>
                     <widget class="QLabel" name="position_9">
                      <property name="text">
-                      <string>0</string>
+                      <string>position</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="speed_9">
+                     <property name="text">
+                      <string>speed</string>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignCenter</set>
@@ -2730,16 +2730,6 @@ QStackedWidget QTextBrowser {
                     <number>0</number>
                    </property>
                    <item>
-                    <widget class="QLabel" name="bus_10">
-                     <property name="text">
-                      <string>bus</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="QLabel" name="servo_10">
                      <property name="text">
                       <string>servo</string>
@@ -2752,7 +2742,17 @@ QStackedWidget QTextBrowser {
                    <item>
                     <widget class="QLabel" name="position_10">
                      <property name="text">
-                      <string>0</string>
+                      <string>position</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="speed_10">
+                     <property name="text">
+                      <string>speed</string>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignCenter</set>
@@ -2794,16 +2794,6 @@ QStackedWidget QTextBrowser {
                     <number>0</number>
                    </property>
                    <item>
-                    <widget class="QLabel" name="bus_11">
-                     <property name="text">
-                      <string>bus</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="QLabel" name="servo_11">
                      <property name="text">
                       <string>servo</string>
@@ -2816,7 +2806,17 @@ QStackedWidget QTextBrowser {
                    <item>
                     <widget class="QLabel" name="position_11">
                      <property name="text">
-                      <string>0</string>
+                      <string>position</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="speed_11">
+                     <property name="text">
+                      <string>speed</string>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignCenter</set>
@@ -2851,16 +2851,6 @@ QStackedWidget QTextBrowser {
                     <number>0</number>
                    </property>
                    <item>
-                    <widget class="QLabel" name="bus_12">
-                     <property name="text">
-                      <string>bus</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="QLabel" name="servo_12">
                      <property name="text">
                       <string>servo</string>
@@ -2873,7 +2863,17 @@ QStackedWidget QTextBrowser {
                    <item>
                     <widget class="QLabel" name="position_12">
                      <property name="text">
-                      <string>0</string>
+                      <string>position</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="speed_12">
+                     <property name="text">
+                      <string>speed</string>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignCenter</set>
@@ -2908,16 +2908,6 @@ QStackedWidget QTextBrowser {
                     <number>0</number>
                    </property>
                    <item>
-                    <widget class="QLabel" name="bus_13">
-                     <property name="text">
-                      <string>bus</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="QLabel" name="servo_13">
                      <property name="text">
                       <string>servo</string>
@@ -2930,7 +2920,17 @@ QStackedWidget QTextBrowser {
                    <item>
                     <widget class="QLabel" name="position_13">
                      <property name="text">
-                      <string>0</string>
+                      <string>position</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="speed_13">
+                     <property name="text">
+                      <string>speed</string>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignCenter</set>
@@ -2965,16 +2965,6 @@ QStackedWidget QTextBrowser {
                     <number>0</number>
                    </property>
                    <item>
-                    <widget class="QLabel" name="bus_14">
-                     <property name="text">
-                      <string>bus</string>
-                     </property>
-                     <property name="alignment">
-                      <set>Qt::AlignCenter</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="QLabel" name="servo_14">
                      <property name="text">
                       <string>servo</string>
@@ -2987,7 +2977,17 @@ QStackedWidget QTextBrowser {
                    <item>
                     <widget class="QLabel" name="position_14">
                      <property name="text">
-                      <string>0</string>
+                      <string>position</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="speed_14">
+                     <property name="text">
+                      <string>speed</string>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignCenter</set>
