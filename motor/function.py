@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' function.py 步进电机功能函数 v2.6.1 '''
+''' function.py 步进电机功能函数 v2.7 '''
 
 
 # 添加模块路径
@@ -20,12 +20,12 @@ class Motor(CanOpenBusProcessor):
     position     = 50 # 动作间隔
     inhibit_time = 500 # 禁止时间 微秒
 
-    __motor_list = []
+    __motor_list = [None] * 255
     
     def __init__(self, node_id) -> None:
         super().__init__(node_id)
 
-        Motor.__motor_list.append(self)
+        Motor.__motor_list[node_id-1] = self
         
         self.motor_status = "None" # 电机状态
         
@@ -149,76 +149,122 @@ class Motor(CanOpenBusProcessor):
     @classmethod
     def init_config(cls) -> None:
         for motor in cls.__motor_list:
-            print("=============================================================")
-            motor.__set_mode()
-            motor.__set_acceleration()
-            motor.__set_deceleration()
-            motor.__set_velocity()
-            motor.__set_position()
-            motor.__set_inhibit_time()
+            if motor != None:
+                print("=============================================================")
+                motor.__set_mode()
+                motor.__set_acceleration()
+                motor.__set_deceleration()
+                motor.__set_velocity()
+                motor.__set_position()
+                motor.__set_inhibit_time()
 
     ''' 启动PDO通讯 '''
     @classmethod
     def start_feedback(cls) -> None:
         print("=============================================================")
         for motor in cls.__motor_list:
-            if motor.set_bus_status("start_remote_node"):
-                if motor.bus_status == "operational":
-                    print("\033[0;32m[Motor {}] start pdo\033[0m".format(motor.node_id))
-                    continue
-            print("\033[0;31m[Motor {}] start pdo failed\033[0m".format(motor.node_id))
+            if motor != None:
+                if motor.set_bus_status("start_remote_node"):
+                    if motor.bus_status == "operational":
+                        print("\033[0;32m[Motor {}] start pdo\033[0m".format(motor.node_id))
+                        continue
+                print("\033[0;31m[Motor {}] start pdo failed\033[0m".format(motor.node_id))
     
     ''' 关闭PDO通讯 '''
     @classmethod
     def stop_feedback(cls) -> None:
         print("=============================================================")
         for motor in cls.__motor_list:
-            if motor.set_bus_status("enter_pre-operational_state"):
-                if motor.bus_status == "pre-operational":
-                    print("\033[0;32m[Motor {}] stop pdo\033[0m".format(motor.node_id))
-                    continue
-            print("\033[0;31m[Motor {}] stop pdo failed\033[0m".format(motor.node_id))
+            if motor != None:
+                if motor.set_bus_status("enter_pre-operational_state"):
+                    if motor.bus_status == "pre-operational":
+                        print("\033[0;32m[Motor {}] stop pdo\033[0m".format(motor.node_id))
+                        continue
+                print("\033[0;31m[Motor {}] stop pdo failed\033[0m".format(motor.node_id))
 
     ''' 解除抱闸 '''
     @classmethod
     def release_brake(cls):
         print("=============================================================")
         for motor in cls.__motor_list:
-            if motor.__set_servo_status("servo_close"):
-                print("\033[0;32m[Motor {}] release brake\033[0m".format(motor.node_id))
-                continue
-            print("\033[0;31m[Motor {}] release brake failed\033[0m".format(motor.node_id))
+            if motor != None:
+                if motor.__set_servo_status("servo_close"):
+                    print("\033[0;32m[Motor {}] release brake\033[0m".format(motor.node_id))
+                    continue
+                print("\033[0;31m[Motor {}] release brake failed\033[0m".format(motor.node_id))
 
     ''' 锁住抱闸 '''
     @classmethod
     def enable_servo(cls):
         print("=============================================================")
         for motor in cls.__motor_list:
-            if motor.__set_servo_status("servo_ready/stop"):
-                print("\033[0;32m[Motor {}] lock brake\033[0m".format(motor.node_id))
-                continue
-            print("\033[0;31m[Motor {}] lock brake failed\033[0m".format(motor.node_id))
+            if motor != None:
+                if motor.__set_servo_status("servo_ready/stop"):
+                    print("\033[0;32m[Motor {}] lock brake\033[0m".format(motor.node_id))
+                    continue
+                print("\033[0;31m[Motor {}] lock brake failed\033[0m".format(motor.node_id))
 
     ''' 急停 '''
     @classmethod
     def quick_stop(cls):
         print("=============================================================")
         for motor in cls.__motor_list:
-            if motor.__set_servo_status("quick_stop"):
-                print("\033[0;32m[Motor {}] quick stop\033[0m".format(motor.node_id))
-                continue
-            print("\033[0;31m[Motor {}] quick stop failed\033[0m".format(motor.node_id))
+            if motor != None:
+                if motor.__set_servo_status("quick_stop"):
+                    print("\033[0;32m[Motor {}] quick stop\033[0m".format(motor.node_id))
+                    continue
+                print("\033[0;31m[Motor {}] quick stop failed\033[0m".format(motor.node_id))
 
     ''' 错误 重置 '''
     @classmethod
     def reset(cls):
         print("=============================================================")
         for motor in cls.__motor_list:
-            if motor.__set_servo_status("reset"):
-                print("\033[0;32m[Motor {}] reset\033[0m".format(motor.node_id))
-                continue
-            print("\033[0;31m[Motor {}] reset failed\033[0m".format(motor.node_id))
+            if motor != None:
+                if motor.__set_servo_status("reset"):
+                    print("\033[0;32m[Motor {}] reset\033[0m".format(motor.node_id))
+                    continue
+                print("\033[0;31m[Motor {}] reset failed\033[0m".format(motor.node_id))
 
+    ''' hex列表转换为int '''
+    @staticmethod
+    def __hex_list_to_int(data_list) -> int:
+        data_str = ""
+        for i in range(len(data_list)):
+            data_bin = bin(data_list[i])[2:] # 首先转换为bin 去除0b
+            data_bin = '0' * (8 - len(data_bin)) + data_bin # 头部补齐
+            data_str = data_bin + data_str # 拼接
+        # 首位是0 正数
+        if int(data_str[0]) == 0: return int(data_str, 2)
+        # 首位是1 负数
+        else: return - ((int(data_str, 2) ^ 0xFFFFFFFF) + 1)
+    
+    ''' 更新状态 '''
+    @classmethod
+    def update_motor_status(cls) -> int:
+        ret = cls.device.read_buffer(1, wait_time=0)
+        if ret != None:
+            [num, msg] = ret
+            for i in range(num):
+                if msg[i].ID > 0x180 and msg[i].ID < 0x200:
+                    node_id = msg[i].ID-0x180
+                    status = cls.__hex_list_to_int([msg[i].Data[0]]) # 状态字
+                    for key in protocol.STATUS_WORD: # 遍历字典关键字
+                        for r in protocol.STATUS_WORD[key]: # 在每一个关键字对应的列表中 核对数值
+                            if status == r:
+                                cls.__motor_list[node_id-1].motor_status = key # 更新电机的伺服状态
+                                return node_id
+                elif msg[i].ID > 0x280 and msg[i].ID < 0x300:
+                    node_id = msg[i].ID-0x280
+                    position = cls.__hex_list_to_int([msg[i].Data[j] for j in range(0,4)]) # 当前位置
+                    speed = cls.__hex_list_to_int([msg[i].Data[j] for j in range(4,8)]) # 当前速度
+                    cls.__motor_list[node_id-1].current_position = position
+                    cls.__motor_list[node_id-1].current_speed = speed
+                    return node_id
+                else: pass
+        return 0
+    
+    
     ''' 单电机运动测试 位置控制模式 相对运行 立即模式 可实现点击一次按钮动作一次 '''
     def action(self, reverse=False):
         print("=============================================================")
@@ -240,3 +286,5 @@ class Motor(CanOpenBusProcessor):
         print("=============================================================")
         self.__set_servo_status("servo_enable/start")
         self.__set_speed(s)
+
+    
