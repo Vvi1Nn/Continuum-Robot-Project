@@ -105,6 +105,9 @@ class ControlPanel(QMainWindow):
 
         self.show() # 显示界面
 
+        # test
+        self.action = False
+
     
     '''
         界面的初始显示状态
@@ -629,15 +632,20 @@ class ControlPanel(QMainWindow):
             def test_stop(status):
                 if status == 1: quick_stop()
             def test_speed_1(value):
-                if abs(value) < 0.1: value = 0
-                speed = int(value*100)
-                self.motor_1.action_speed(speed)
+                if abs(value) < 0.1:
+                    self.motor_1.set_servo_status("quick_stop")
+                    self.action = False
+                else:
+                    if not self.action:
+                        self.motor_1.set_servo_status("servo_enable/start")
+                        self.action = True
+                    self.motor_1.set_speed(int(value*100))
             def test_speed_4(value):
                 if abs(value) < 0.1: value = 0
                 speed = int(value*100)
                 self.motor_4.action_speed(speed)
             self.joystick.button_signal_1.connect(test_stop)
-            self.joystick.axis_signal_0.connect(test_speed_4)
+            # self.joystick.axis_signal_0.connect(test_speed_4)
             self.joystick.axis_signal_1.connect(test_speed_1)
             self.joystick.start() # 开启joystick线程
         def exit_end_control():
