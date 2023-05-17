@@ -78,15 +78,15 @@ class Motor(CanOpenBusProcessor):
         print("=============================================================")
         cls.control_mode = protocol.CONTROL_MODE[mode]
         print("\033[0;32m[Motor] control_mode: {}\033[0m".format(cls.control_mode))
-        cls.acceleration = acc if (acc >= 1000 and acc <= 50000) else 1000 # 加速度限幅
+        cls.acceleration = acc if (acc >= 0 and acc <= 50000) else 1000 # 加速度限幅
         print("\033[0;32m[Motor] acceleration: {}\033[0m".format(cls.acceleration))
-        cls.deceleration = dec if (dec >= 5000 and dec <= 100000) else 10000 # 减速度限幅
+        cls.deceleration = dec if (dec >= 0 and dec <= 100000) else 10000 # 减速度限幅
         print("\033[0;32m[Motor] deceleration: {}\033[0m".format(cls.deceleration))
-        cls.velocity = vel if (vel >= 50 and vel <= 200) else 100 # 动作速度限幅
+        cls.velocity = vel if (vel >= 0 and vel <= 200) else 100 # 动作速度限幅
         print("\033[0;32m[Motor] run velocity: {}\033[0m".format(cls.velocity))
-        cls.position = pos if (pos >= 0 and pos <= 50) else 50 # 动作间隔限幅
+        cls.position = pos if (pos >= 0 and pos <= 100) else 50 # 动作间隔限幅
         print("\033[0;32m[Motor] position: {}\033[0m".format(cls.position))
-        cls.inhibit_time = time if (time >= 100 and time <= 500) else 500 # TPDO禁止时间限幅
+        cls.inhibit_time = time if (time >= 0 and time <= 500) else 500 # TPDO禁止时间限幅
         print("\033[0;32m[Motor] inhibit time: {}\033[0m".format(cls.inhibit_time))
 
     ''' 类属性存放的参数 生效至电机 '''
@@ -116,7 +116,7 @@ class Motor(CanOpenBusProcessor):
         else: print("\033[0;31m[Motor {}] set inhibit time failed\033[0m".format(self.node_id))
     
     ''' 用RPDO更改电机的控制字 传入控制字对应的标签 '''
-    def __set_servo_status(self, label: str) -> bool:
+    def set_servo_status(self, label: str) -> bool:
         if self.rpdo("1", protocol.CONTROL_WORD[label], format=8):
             if label == "reset": self.motor_status = "switched_on"
             elif label == "power_off": self.motor_status == "switch_on_disabled"
@@ -130,7 +130,7 @@ class Motor(CanOpenBusProcessor):
         return False
 
     ''' 用RPDO设置位置模式的动作幅度和速度 '''
-    def __set_position_and_velocity(self, pos, vel) -> bool:
+    def set_position_and_velocity(self, pos, vel) -> bool:
         if self.rpdo("2", pos, vel):
             print("\033[0;32m[Motor {}] target position: {} velocity: {}\033[0m".format(self.node_id, pos, vel))
             return True
@@ -138,7 +138,7 @@ class Motor(CanOpenBusProcessor):
         return False
     
     ''' 用RPDO设置速度模式的速度 '''
-    def __set_speed(self, spe) -> bool:
+    def set_speed(self, spe) -> bool:
         if self.rpdo("3", spe):
             print("\033[0;32m[Motor {}] target speed: {}\033[0m".format(self.node_id, spe))
             return True
@@ -188,7 +188,7 @@ class Motor(CanOpenBusProcessor):
         print("=============================================================")
         for motor in cls.__motor_list:
             if motor != None:
-                if motor.__set_servo_status("servo_close"):
+                if motor.set_servo_status("servo_close"):
                     print("\033[0;32m[Motor {}] release brake\033[0m".format(motor.node_id))
                     continue
                 print("\033[0;31m[Motor {}] release brake failed\033[0m".format(motor.node_id))
@@ -199,7 +199,7 @@ class Motor(CanOpenBusProcessor):
         print("=============================================================")
         for motor in cls.__motor_list:
             if motor != None:
-                if motor.__set_servo_status("servo_ready/stop"):
+                if motor.set_servo_status("servo_ready/stop"):
                     print("\033[0;32m[Motor {}] lock brake\033[0m".format(motor.node_id))
                     continue
                 print("\033[0;31m[Motor {}] lock brake failed\033[0m".format(motor.node_id))
@@ -210,7 +210,7 @@ class Motor(CanOpenBusProcessor):
         print("=============================================================")
         for motor in cls.__motor_list:
             if motor != None:
-                if motor.__set_servo_status("quick_stop"):
+                if motor.set_servo_status("quick_stop"):
                     print("\033[0;32m[Motor {}] quick stop\033[0m".format(motor.node_id))
                     continue
                 print("\033[0;31m[Motor {}] quick stop failed\033[0m".format(motor.node_id))
@@ -221,7 +221,7 @@ class Motor(CanOpenBusProcessor):
         print("=============================================================")
         for motor in cls.__motor_list:
             if motor != None:
-                if motor.__set_servo_status("reset"):
+                if motor.set_servo_status("reset"):
                     print("\033[0;32m[Motor {}] reset\033[0m".format(motor.node_id))
                     continue
                 print("\033[0;31m[Motor {}] reset failed\033[0m".format(motor.node_id))
@@ -268,23 +268,23 @@ class Motor(CanOpenBusProcessor):
     ''' 单电机运动测试 位置控制模式 相对运行 立即模式 可实现点击一次按钮动作一次 '''
     def action(self, reverse=False):
         print("=============================================================")
-        self.__set_servo_status("position_mode_ready")
-        if reverse: self.__set_position_and_velocity(-Motor.position, Motor.velocity)
-        else: self.__set_position_and_velocity(Motor.position, Motor.velocity)
-        self.__set_servo_status("position_mode_action")
+        self.set_servo_status("position_mode_ready")
+        if reverse: self.set_position_and_velocity(-Motor.position, Motor.velocity)
+        else: self.set_position_and_velocity(Motor.position, Motor.velocity)
+        self.set_servo_status("position_mode_action")
 
     '''  '''
     def follow(self, p, v, reverse=False):
         print("=============================================================")
-        self.__set_servo_status("position_mode_ready")
-        if reverse: self.__set_position_and_velocity(-p, v)
-        else: self.__set_position_and_velocity(p, v)
-        self.__set_servo_status("position_mode_action")
+        self.set_servo_status("position_mode_ready")
+        if reverse: self.set_position_and_velocity(-p, v)
+        else: self.set_position_and_velocity(p, v)
+        self.set_servo_status("position_mode_action")
 
     '''  '''
     def action_speed(self, s):
         print("=============================================================")
-        self.__set_servo_status("servo_enable/start")
-        self.__set_speed(s)
+        self.set_servo_status("servo_enable/start")
+        self.set_speed(s)
 
     
