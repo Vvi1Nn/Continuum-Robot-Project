@@ -626,39 +626,18 @@ class ControlPanel(QMainWindow):
             self.enable_joint_control(False)
             self.enable_end_control(False)
             self.enable_exit(True)
-            def test_front(status):
-                if status == 1:
-                    self.motor_1.action()
-                    self.motor_2.action()
-                    self.motor_3.action()
-                    self.motor_4.action()
-                    self.motor_5.action()
-                    self.motor_6.action()
-                    self.motor_7.action()
-                    self.motor_8.action()
-                    self.motor_9.action()
-            def test_back(status):
-                if status == 1:
-                    self.motor_1.action(reverse=True)
-                    self.motor_2.action(reverse=True)
-                    self.motor_3.action(reverse=True)
-                    self.motor_4.action(reverse=True)
-                    self.motor_5.action(reverse=True)
-                    self.motor_6.action(reverse=True)
-                    self.motor_7.action(reverse=True)
-                    self.motor_8.action(reverse=True)
-                    self.motor_9.action(reverse=True)
+            def test_stop(status):
+                if status == 1: quick_stop()
             def test_speed_1(value):
-                if abs(value) < 0.5: value = 0
+                if abs(value) < 0.1: value = 0
                 speed = int(value*100)
                 self.motor_1.action_speed(speed)
             def test_speed_4(value):
-                if abs(value) < 0.5: value = 0
+                if abs(value) < 0.1: value = 0
                 speed = int(value*100)
                 self.motor_4.action_speed(speed)
-            self.joystick.button_signal_5.connect(test_front)
-            self.joystick.button_signal_4.connect(test_back)
-            self.joystick.axis_signal_4.connect(test_speed_4)
+            self.joystick.button_signal_1.connect(test_stop)
+            self.joystick.axis_signal_0.connect(test_speed_4)
             self.joystick.axis_signal_1.connect(test_speed_1)
             self.joystick.start() # 开启joystick线程
         def exit_end_control():
