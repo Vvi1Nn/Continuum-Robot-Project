@@ -20,12 +20,11 @@ class JoystickThread(QThread):
     button_signal_8 = pyqtSignal(int)
     button_signal_9 = pyqtSignal(int)
     button_signal_10 = pyqtSignal(int)
+    button_signal_11 = pyqtSignal(int)
     axis_signal_0 = pyqtSignal(float)
     axis_signal_1 = pyqtSignal(float)
     axis_signal_2 = pyqtSignal(float)
     axis_signal_3 = pyqtSignal(float)
-    axis_signal_4 = pyqtSignal(float)
-    axis_signal_5 = pyqtSignal(float)
     hat_signal_0 = pyqtSignal(tuple)
     
     def __init__(self) -> None:
