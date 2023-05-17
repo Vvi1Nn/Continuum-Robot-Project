@@ -6,7 +6,7 @@ import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from usbcan.function import UsbCan
 from canopen.processor import CanOpenBusProcessor
-from canopen.motor import Motor
+from motor.function import Motor
 from io_module.function import IoModule
  
 # Define some colors
