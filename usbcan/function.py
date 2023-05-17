@@ -48,7 +48,7 @@ class UsbCan:
         # 消息结构体 一部分 剩余参数在函数中给定
         self.__time_stamp  = usbcan_param.TIME_STAMP["off"]
         self.__time_flag   = usbcan_param.TIME_FLAG["off"]
-        self.__send_type   = usbcan_param.SEND_TYPE["normal"]
+        self.__send_type   = usbcan_param.SEND_TYPE["single"] # 不自动重发
         self.__extern_flag = usbcan_param.EXTERN_FLAG["standard"]
         
         self.__is_init = False # 标志符 通道是否初始化
