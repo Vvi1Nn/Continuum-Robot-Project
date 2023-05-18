@@ -27,6 +27,7 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
     def __init__(self, node_id) -> None:
         super().__init__(node_id)
         self.bus_status = None # 总线状态
+        self.bus_is_checked = False # 总线检查
 
         CanOpenBusProcessor.__node_list.append(self) # 加入节点对象列表
     
@@ -103,7 +104,7 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
     def set_bus_status(self, label, /, *, repeat=0) -> bool:
         [cob_id, data] = self.nmt_change_status(label) # 生成消息
         if self.__send_msg(cob_id, data, data_len="remote", check=False): # 发送消息成功 不读取应答
-            time.sleep(0.05) # 等待一会儿 因为开启PDO后 节点会发送一次TPDO的数据 需要全部接收下来 
+            time.sleep(0.05) # 等待一会儿 因为开启PDO后 节点会发送一次TPDO的数据 需要全部接收下来
             self.get_bus_status() # 目的是更新当前状态
             # 判断当前状态和设置的状态是否一致
             if label == "start_remote_node" and self.bus_status == "operational": return True
@@ -123,6 +124,7 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
         self.get_bus_status() # 先获取总线的状态并更新
         # 判断状态是否是预操作状态
         if self.bus_status == "pre-operational":
+            self.bus_is_checked = True
             if CanOpenBusProcessor.__is_log: print("\033[0;32m[Node-ID {}] checked\033[0m".format(self.node_id))
             return True
         # 不是预操作状态 人为设置一次总线状态 提示再次检查
