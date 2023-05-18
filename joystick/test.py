@@ -1,18 +1,34 @@
 import pygame
-import time
-
-# 添加模块路径
-import sys, os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from usbcan.function import UsbCan
-from canopen.processor import CanOpenBusProcessor
-from motor.function import Motor
-from io_module.function import IoModule
+from pygame.locals import *
  
+from OpenGL.GL import *
+from OpenGL.GLU import *
+
 # Define some colors
 BLACK = (   0,   0,   0)
 WHITE = ( 255, 255, 255)
- 
+
+verticies = (
+    (0,0,0),
+    (0,0,1),
+    (0,1,0),
+    (1,0,0),
+)
+
+edges = (
+    (0,1),
+    (0,2),
+    (0,3),
+)
+
+def cube():
+    glBegin(GL_LINES)
+    for edge in edges:
+        for vertex in edge:
+            glVertex3fv(verticies[vertex])
+    glEnd()
+
+
 # This is a simple class that will help us print to the screen
 # It has nothing to do with the joysticks, just outputting the
 # information.
@@ -43,7 +59,11 @@ pygame.init()
  
 # Set the width and height of the screen [width,height]
 size = [800, 800]
-screen = pygame.display.set_mode(size)
+screen = pygame.display.set_mode(size, DOUBLEBUF|OPENGL)
+
+gluPerspective(45, (size[0]/size[1]), 0.1, 50.0)
+
+glTranslatef(0, 0, -5)
 
 pygame.display.set_caption("My Game")
  
@@ -105,6 +125,18 @@ while done==False:
         
         for i in range( axes ):
             axis = joystick.get_axis( i )
+            if i == 0:
+                glRotatef(axis,1,0,0)
+                glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
+                cube()
+            if i == 1:
+                glRotatef(axis,0,1,0)
+                glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
+                cube()
+            if i == 2:
+                glRotatef(axis,0,0,1)
+                glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
+                cube()
             textPrint.print(screen, "Axis {} value: {:>6.3f}".format(i, axis) )
         textPrint.unindent()
             
@@ -134,6 +166,7 @@ while done==False:
  
     
     # ALL CODE TO DRAW SHOULD GO ABOVE THIS COMMENT
+    
     
     # Go ahead and update the screen with what we've drawn.
     pygame.display.flip()
