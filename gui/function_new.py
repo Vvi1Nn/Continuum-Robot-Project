@@ -87,7 +87,6 @@ class ControlPanel(QMainWindow):
         self.motor_12 = Motor(12)
         self.motor_13 = Motor(13)
         self.motor_14 = Motor(14)
-        self.check_list = [False] * 14 # 记录电机检查状态的列表
         self.checked_num = 0
 
         self.joystick = JoystickThread() # 操纵杆
@@ -123,21 +122,9 @@ class ControlPanel(QMainWindow):
         self.enable_channel1(False, False, "打开通道1", "重置1") # 失效
         self.enable_close_device(False, "关闭") # 失效
         ''' 电机 '''
-        self.enable_check_all(False, "一键检查所有电机") # 失效
-        self.enable_check_1(False, "M1") # 失效
-        self.enable_check_2(False, "M2") # 失效
-        self.enable_check_3(False, "M3") # 失效
-        self.enable_check_4(False, "M4") # 失效
-        self.enable_check_5(False, "M5") # 失效
-        self.enable_check_6(False, "M6") # 失效
-        self.enable_check_7(False, "M7") # 失效
-        self.enable_check_8(False, "M8") # 失效
-        self.enable_check_9(False, "M9") # 失效
-        self.enable_check_10(False, "M10") # 失效
-        self.enable_check_11(False, "M11") # 失效
-        self.enable_check_12(False, "M12") # 失效
-        self.enable_check_13(False, "M13") # 失效
-        self.enable_check_14(False, "M14") # 失效
+        self.enable_check_all(False, "电机状态确认") # 失效
+        for i in range(1, 15):
+            getattr(self, f"enable_check_{i}")(False, "M{}".format(i)) # 失效
         self.enable_choose_mode(False, "position_control") # 失效
         # 参数设置 失效 并显示默认值
         self.enable_set_param(False, "{}".format(Motor.acceleration), "{}".format(Motor.deceleration), "{}".format(Motor.velocity), "{}".format(Motor.position), "{}".format(Motor.inhibit_time))
@@ -152,37 +139,13 @@ class ControlPanel(QMainWindow):
         ''' 遥操作 '''
         self.enable_joint_control(False, "关节操作") # 失效
         self.enable_quit(False, "退出") # 失效
-        self.enable_motor_group_1(False) # 失效
-        self.enable_motor_group_2(False) # 失效
-        self.enable_motor_group_3(False) # 失效
-        self.enable_motor_group_4(False) # 失效
-        self.enable_motor_group_5(False) # 失效
-        self.enable_motor_group_6(False) # 失效
-        self.enable_motor_group_7(False) # 失效
-        self.enable_motor_group_8(False) # 失效
-        self.enable_motor_group_9(False) # 失效
-        self.enable_motor_group_10(False) # 失效
-        self.enable_motor_group_11(False) # 失效
-        self.enable_motor_group_12(False) # 失效
-        self.enable_motor_group_13(False) # 失效
-        self.enable_motor_group_14(False) # 失效
+        for i in range(1, 15):
+            getattr(self, f"enable_motor_group_{i}")(False) # 失效
         self.enable_end_control(False, "末端操作") # 失效
         self.enable_exit(False, "退出") # 失效
         ''' 状态 '''
-        self.enable_status_1(False)
-        self.enable_status_2(False)
-        self.enable_status_3(False)
-        self.enable_status_4(False)
-        self.enable_status_5(False)
-        self.enable_status_6(False)
-        self.enable_status_7(False)
-        self.enable_status_8(False)
-        self.enable_status_9(False)
-        self.enable_status_10(False)
-        self.enable_status_11(False)
-        self.enable_status_12(False)
-        self.enable_status_13(False)
-        self.enable_status_14(False)
+        for i in range(1, 15):
+            getattr(self, f"enable_status_{i}")(False) # 失效
     
 
     '''
@@ -251,182 +214,34 @@ class ControlPanel(QMainWindow):
         '''
             绑定signal和slot
         '''
-        self.ui.bt_open.clicked.connect(lambda: open_usbcan())
-        self.ui.bt_channel0.clicked.connect(lambda: start_channel_0())
-        self.ui.bt_channel1.clicked.connect(lambda: start_channel_1())
-        self.ui.bt_reset0.clicked.connect(lambda: reset_cannel_0())
-        self.ui.bt_reset1.clicked.connect(lambda: reset_cannel_1())
-        self.ui.bt_close.clicked.connect(lambda: close_usbcan())
+        self.ui.bt_open.clicked.connect(open_usbcan)
+        self.ui.bt_channel0.clicked.connect(start_channel_0)
+        self.ui.bt_channel1.clicked.connect(start_channel_1)
+        self.ui.bt_reset0.clicked.connect(reset_cannel_0)
+        self.ui.bt_reset1.clicked.connect(reset_cannel_1)
+        self.ui.bt_close.clicked.connect(close_usbcan)
     
     ''' 电机 '''
     def set_motor_jumping(self) -> None:
-        ''' 检查是否完成 '''
-        def __ischecked():
-            for checked in self.check_list:
-                if checked: self.checked_num += 1
-            if self.checked_num == 1:
+        ''' 检查状态 '''
+        def check_motor():
+            for node_id in Motor.motor_dict:
+                if not Motor.motor_dict[node_id].motor_is_checked:
+                    Motor.motor_dict[node_id].check_bus_status()
+                    Motor.motor_dict[node_id].check_motor_status()
+                    if Motor.motor_dict[node_id].motor_is_checked:
+                        self.checked_num += 1
+                        getattr(self, f"enable_check_{node_id}")(False, "OK")
+                        getattr(self, f"enable_status_{node_id}")(True)
+                getattr(self.ui, f"servo_{node_id}").setText(getattr(self, f"motor_{node_id}").motor_status)
+                getattr(self.ui, f"position_{node_id}").setText(str(getattr(self, f"motor_{node_id}").current_position))
+                getattr(self.ui, f"speed_{node_id}").setText(str(getattr(self, f"motor_{node_id}").current_speed))
+            if self.checked_num == 9:
                 if self.is_admin:
                     self.enable_choose_mode(True) # 激活 模式选择
                     self.enable_set_param(True) # 激活 设置参数
                 self.enable_save_param(True) # 激活 保存参数
-                self.enable_check_all(False, "结束")
-        ''' 一键检查 '''
-        def check_bus_all():
-            check_bus_1()
-            check_bus_2()
-            check_bus_3()
-            check_bus_4()
-            check_bus_5()
-            check_bus_6()
-            check_bus_7()
-            check_bus_8()
-            check_bus_9()
-            check_bus_10()
-            check_bus_11()
-            check_bus_12()
-            check_bus_13()
-            check_bus_14()
-        ''' 单个检查 '''
-        def check_bus_1():
-            if self.motor_1.check_bus_status():
-                if self.motor_1.check_motor_status():
-                    self.enable_check_1(False, "就绪")
-                    self.check_list[0] = True
-                    self.enable_status_1(True)
-            self.ui.servo_1.setText(self.motor_1.motor_status)
-            self.ui.position_1.setText(str(self.motor_1.current_position))
-            self.ui.speed_1.setText(str(self.motor_1.current_speed))
-            __ischecked()
-        def check_bus_2():
-            if self.motor_2.check_bus_status():
-                if self.motor_2.check_motor_status():
-                    self.enable_check_2(False, "就绪")
-                    self.check_list[1] = True
-                    self.enable_status_2(True)
-            self.ui.servo_2.setText(self.motor_2.motor_status)
-            self.ui.position_2.setText(str(self.motor_2.current_position))
-            self.ui.speed_2.setText(str(self.motor_2.current_speed))
-            __ischecked()
-        def check_bus_3():
-            if self.motor_3.check_bus_status():
-                if self.motor_3.check_motor_status():
-                    self.enable_check_3(False, "就绪")
-                    self.check_list[2] = True
-                    self.enable_status_3(True)
-            self.ui.servo_3.setText(self.motor_3.motor_status)
-            self.ui.position_3.setText(str(self.motor_3.current_position))
-            self.ui.speed_3.setText(str(self.motor_3.current_speed))
-            __ischecked()
-        def check_bus_4():
-            if self.motor_4.check_bus_status():
-                if self.motor_4.check_motor_status():
-                    self.enable_check_4(False, "就绪")
-                    self.check_list[3] = True
-                    self.enable_status_4(True)
-            self.ui.servo_4.setText(self.motor_4.motor_status)
-            self.ui.position_4.setText(str(self.motor_4.current_position))
-            self.ui.speed_4.setText(str(self.motor_4.current_speed))
-            __ischecked()
-        def check_bus_5():
-            if self.motor_5.check_bus_status():
-                if self.motor_5.check_motor_status():
-                    self.enable_check_5(False, "就绪")
-                    self.check_list[4] = True
-                    self.enable_status_5(True)
-            self.ui.servo_5.setText(self.motor_5.motor_status)
-            self.ui.position_5.setText(str(self.motor_5.current_position))
-            self.ui.speed_5.setText(str(self.motor_5.current_speed))
-            __ischecked()
-        def check_bus_6():
-            if self.motor_6.check_bus_status():
-                if self.motor_6.check_motor_status():
-                    self.enable_check_6(False, "就绪")
-                    self.check_list[5] = True
-                    self.enable_status_6(True)
-            self.ui.servo_6.setText(self.motor_6.motor_status)
-            self.ui.position_6.setText(str(self.motor_6.current_position))
-            self.ui.speed_6.setText(str(self.motor_6.current_speed))
-            __ischecked()
-        def check_bus_7():
-            if self.motor_7.check_bus_status():
-                if self.motor_7.check_motor_status():
-                    self.enable_check_7(False, "就绪")
-                    self.check_list[6] = True
-                    self.enable_status_7(True)
-            self.ui.servo_7.setText(self.motor_7.motor_status)
-            self.ui.position_7.setText(str(self.motor_7.current_position))
-            self.ui.speed_7.setText(str(self.motor_7.current_speed))
-            __ischecked()
-        def check_bus_8():
-            if self.motor_8.check_bus_status():
-                if self.motor_8.check_motor_status():
-                    self.enable_check_8(False, "就绪")
-                    self.check_list[7] = True
-                    self.enable_status_8(True)
-            self.ui.servo_8.setText(self.motor_8.motor_status)
-            self.ui.position_8.setText(str(self.motor_8.current_position))
-            self.ui.speed_8.setText(str(self.motor_8.current_speed))
-            __ischecked()
-        def check_bus_9():
-            if self.motor_9.check_bus_status():
-                if self.motor_9.check_motor_status():
-                    self.enable_check_9(False, "就绪")
-                    self.check_list[8] = True
-                    self.enable_status_9(True)
-            self.ui.servo_9.setText(self.motor_9.motor_status)
-            self.ui.position_9.setText(str(self.motor_9.current_position))
-            self.ui.speed_9.setText(str(self.motor_9.current_speed))
-            __ischecked()
-        def check_bus_10():
-            if self.motor_10.check_bus_status():
-                if self.motor_10.check_motor_status():
-                    self.enable_check_10(False, "就绪")
-                    self.check_list[9] = True
-                    self.enable_status_10(True)
-            self.ui.servo_10.setText(self.motor_10.motor_status)
-            self.ui.position_10.setText(str(self.motor_10.current_position))
-            self.ui.speed_10.setText(str(self.motor_10.current_speed))
-            __ischecked()
-        def check_bus_11():
-            if self.motor_11.check_bus_status():
-                if self.motor_11.check_motor_status():
-                    self.enable_check_11(False, "就绪")
-                    self.check_list[10] = True
-                    self.enable_status_11(True)
-            self.ui.servo_11.setText(self.motor_11.motor_status)
-            self.ui.position_11.setText(str(self.motor_11.current_position))
-            self.ui.speed_11.setText(str(self.motor_11.current_speed))
-            __ischecked()
-        def check_bus_12():
-            if self.motor_12.check_bus_status():
-                if self.motor_12.check_motor_status():
-                    self.enable_check_12(False, "就绪")
-                    self.check_list[11] = True
-                    self.enable_status_12(True)
-            self.ui.servo_12.setText(self.motor_12.motor_status)
-            self.ui.position_12.setText(str(self.motor_12.current_position))
-            self.ui.speed_12.setText(str(self.motor_12.current_speed))
-            __ischecked()
-        def check_bus_13():
-            if self.motor_13.check_bus_status():
-                if self.motor_13.check_motor_status():
-                    self.enable_check_13(False, "就绪")
-                    self.check_list[12] = True
-                    self.enable_status_13(True)
-            self.ui.servo_13.setText(self.motor_13.motor_status)
-            self.ui.position_13.setText(str(self.motor_13.current_position))
-            self.ui.speed_13.setText(str(self.motor_13.current_speed))
-            __ischecked()
-        def check_bus_14():
-            if self.motor_14.check_bus_status():
-                if self.motor_14.check_motor_status():
-                    self.enable_check_14(False, "就绪")
-                    self.check_list[13] = True
-                    self.enable_status_14(True)
-            self.ui.servo_14.setText(self.motor_14.motor_status)
-            self.ui.position_14.setText(str(self.motor_14.current_position))
-            self.ui.speed_14.setText(str(self.motor_14.current_speed))
-            __ischecked()
+                self.enable_check_all(False, "完成")
         ''' 保存参数 '''
         def save_config():
             if not self.is_admin: Motor.config() # 无权限 直接保存默认参数
@@ -442,10 +257,12 @@ class ControlPanel(QMainWindow):
                 # 
                 self.enable_set_param(True, "{}".format(Motor.acceleration), "{}".format(Motor.deceleration), "{}".format(Motor.velocity), "{}".format(Motor.position), "{}".format(Motor.inhibit_time))
             self.enable_init_motor(True, "生效") # 激活 生效
+        ''' 生效 '''
         def init_motor():
             Motor.init_config() # 将所有参数生效给所有电机
             self.enable_init_motor(False, "完成")
             self.enable_start_pdo(True) # 激活 开启TPDO
+        ''' 开启PDO '''
         def start_pdo():
             Motor.start_feedback()
             self.motor_update.start() # 开启线程
@@ -461,62 +278,39 @@ class ControlPanel(QMainWindow):
             ''' 遥操作 '''
             if Motor.control_mode == protocol.CONTROL_MODE["position_control"]:
                 self.enable_joint_control(True) # 生效
-            self.enable_end_control(True) # 生效
+            else:
+                self.enable_end_control(True) # 生效
+        ''' 关闭PDO '''
         def stop_pdo():
-            Motor.stop_feedback()
             self.motor_update.stop()
             self.motor_update.wait()
             self.motor_update = MotorUpdateThread() # 重新创建线程
+            Motor.stop_feedback() # 停止读取线程之后 再进行操作
             self.enable_close_device(True)
             self.enable_start_pdo(True)
             self.enable_stop_pdo(False)
-            self.enable_set_param(True)
+            if self.is_admin:
+                self.enable_set_param(True)
+                self.enable_choose_mode(True, mode=None)
             self.enable_save_param(True)
-            self.enable_choose_mode(True, mode=None)
             ''' 状态控制 '''
             self.enable_quick_stop(False) # 失效
             self.enable_release_break(False) # 失效
             self.enable_enable_servo(False) # 失效
             ''' 遥操作 '''
             self.enable_joint_control(False) # 失效
-            self.enable_motor_group_1(False) # 失效
-            self.enable_motor_group_2(False) # 失效
-            self.enable_motor_group_3(False) # 失效
-            self.enable_motor_group_4(False) # 失效
-            self.enable_motor_group_5(False) # 失效
-            self.enable_motor_group_6(False) # 失效
-            self.enable_motor_group_7(False) # 失效
-            self.enable_motor_group_8(False) # 失效
-            self.enable_motor_group_9(False) # 失效
-            self.enable_motor_group_10(False) # 失效
-            self.enable_motor_group_11(False) # 失效
-            self.enable_motor_group_12(False) # 失效
-            self.enable_motor_group_13(False) # 失效
-            self.enable_motor_group_14(False) # 失效
+            for i in range(1, 15):
+                getattr(self, f"enable_motor_group_{i}")(False) # 失效
             self.enable_end_control(False) # 失效
             self.enable_exit(False) # 失效
         '''
             绑定signal和slot
         '''
-        self.ui.check_all.clicked.connect(lambda: check_bus_all())
-        self.ui.check_1.clicked.connect(lambda: check_bus_1())
-        self.ui.check_2.clicked.connect(lambda: check_bus_2())
-        self.ui.check_3.clicked.connect(lambda: check_bus_3())
-        self.ui.check_4.clicked.connect(lambda: check_bus_4())
-        self.ui.check_5.clicked.connect(lambda: check_bus_5())
-        self.ui.check_6.clicked.connect(lambda: check_bus_6())
-        self.ui.check_7.clicked.connect(lambda: check_bus_7())
-        self.ui.check_8.clicked.connect(lambda: check_bus_8())
-        self.ui.check_9.clicked.connect(lambda: check_bus_9())
-        self.ui.check_10.clicked.connect(lambda: check_bus_10())
-        self.ui.check_11.clicked.connect(lambda: check_bus_11())
-        self.ui.check_12.clicked.connect(lambda: check_bus_12())
-        self.ui.check_13.clicked.connect(lambda: check_bus_13())
-        self.ui.check_14.clicked.connect(lambda: check_bus_14())
-        self.ui.bt_save.clicked.connect(lambda: save_config())
-        self.ui.bt_launch.clicked.connect(lambda: init_motor())
-        self.ui.start.clicked.connect(lambda: start_pdo())
-        self.ui.stop.clicked.connect(lambda: stop_pdo())
+        self.ui.check_all.clicked.connect(check_motor)
+        self.ui.bt_save.clicked.connect(save_config)
+        self.ui.bt_launch.clicked.connect(init_motor)
+        self.ui.start.clicked.connect(start_pdo)
+        self.ui.stop.clicked.connect(stop_pdo)
     
     ''' 控制 '''
     def set_control_jumping(self):
@@ -556,79 +350,31 @@ class ControlPanel(QMainWindow):
             self.enable_joint_control(False)
             self.enable_end_control(False)
             self.enable_quit(True)
-            for i, checked in enumerate(self.check_list):
-                if checked:
-                    method = getattr(self, f"enable_motor_group_{i+1}")
-                    method(True)
+            for node_id in Motor.motor_dict:
+                if Motor.motor_dict[node_id].motor_is_checked:
+                    getattr(self, f"enable_motor_group_{node_id}")(True)
         def quit_joint_control():
-            if Motor.control_mode == protocol.CONTROL_MODE["position_control"]:
-                self.enable_joint_control(True) # 生效
-            self.enable_end_control(True)
+            self.enable_joint_control(True) # 生效
             self.enable_quit(False)
             for i in range(14):
                 getattr(self, f"enable_motor_group_{i+1}")(False)
-        ''' 各个关节 '''
-        def motor_1_positive():
-            self.motor_1.action()
-        def motor_1_negative():
-            self.motor_1.action(reverse=True)
-        def motor_2_positive():
-            self.motor_2.action()
-        def motor_2_negative():
-            self.motor_2.action(reverse=True)
-        def motor_3_positive():
-            self.motor_3.action()
-        def motor_3_negative():
-            self.motor_3.action(reverse=True)
-        def motor_4_positive():
-            self.motor_4.action()
-        def motor_4_negative():
-            self.motor_4.action(reverse=True)
-        def motor_5_positive():
-            self.motor_5.action()
-        def motor_5_negative():
-            self.motor_5.action(reverse=True)
-        def motor_6_positive():
-            self.motor_6.action()
-        def motor_6_negative():
-            self.motor_6.action(reverse=True)
-        def motor_7_positive():
-            self.motor_7.action()
-        def motor_7_negative():
-            self.motor_7.action(reverse=True)
-        def motor_8_positive():
-            self.motor_8.action()
-        def motor_8_negative():
-            self.motor_8.action(reverse=True)
-        def motor_9_positive():
-            self.motor_9.action()
-        def motor_9_negative():
-            self.motor_9.action(reverse=True)
-        def motor_10_positive():
-            self.motor_10.action()
-        def motor_10_negative():
-            self.motor_10.action(reverse=True)
-        def motor_11_positive():
-            self.motor_11.action()
-        def motor_11_negative():
-            self.motor_11.action(reverse=True)
-        def motor_12_positive():
-            self.motor_12.action()
-        def motor_12_negative():
-            self.motor_12.action(reverse=True)
-        def motor_13_positive():
-            self.motor_13.action()
-        def motor_13_negative():
-            self.motor_13.action(reverse=True)
-        def motor_14_positive():
-            self.motor_14.action()
-        def motor_14_negative():
-            self.motor_14.action(reverse=True)
         ''' 操纵杆 '''
         def end_control():
             self.enable_joint_control(False)
             self.enable_end_control(False)
             self.enable_exit(True)
+            ''' 操纵 '''
+            def start_manipulate(status):
+                if status == 0: self.motor_2.set_servo_status("servo_close") # 不操作
+                else: # 操作
+                    if self.motor_2.is_in_range(): self.motor_2.set_servo_status("servo_enable/start") # 在范围内
+                    else: # 超出范围
+                        if self.motor_2.current_position >= self.motor_2.max_position: # 大于max
+                            if self.motor_2.target_speed < 0: self.motor_2.set_servo_status("servo_enable/start") # 反方向速度 可动
+                            else: self.motor_2.set_servo_status("servo_close") # 继续超出范围 不可动
+                        elif self.motor_2.current_position <= self.motor_2.min_position: # 小于min
+                            if self.motor_2.target_speed > 0: self.motor_2.set_servo_status("servo_enable/start") # 反方向速度 可动
+                            else: self.motor_2.set_servo_status("servo_close") # 继续超出范围 不可动
             def test_stop(status):
                 if status == 1: quick_stop()
             def test_speed_1(value):
@@ -640,17 +386,16 @@ class ControlPanel(QMainWindow):
                         self.motor_1.set_servo_status("servo_enable/start")
                         self.action = True
                     self.motor_1.set_speed(int(value*100))
-            def test_speed_4(value):
+            def test_speed_2(value):
                 if abs(value) < 0.1: value = 0
-                speed = int(value*100)
-                self.motor_4.action_speed(speed)
-            self.joystick.button_signal_1.connect(test_stop)
-            # self.joystick.axis_signal_0.connect(test_speed_4)
-            self.joystick.axis_signal_1.connect(test_speed_1)
+                self.motor_2.set_speed(int(value*200))
+            ''' 绑定 '''
+            self.joystick.button_signal_0.connect(start_manipulate)
+            # self.joystick.button_signal_1.connect(test_stop)
+            self.joystick.axis_signal_2.connect(test_speed_2)
+            # self.joystick.axis_signal_1.connect(test_speed_1)
             self.joystick.start() # 开启joystick线程
         def exit_end_control():
-            if Motor.control_mode == protocol.CONTROL_MODE["position_control"]:
-                self.enable_joint_control(True) # 生效
             self.enable_end_control(True)
             self.enable_exit(False)
             self.joystick.stop() # 终止joystick线程
@@ -659,139 +404,22 @@ class ControlPanel(QMainWindow):
         '''
             绑定signal和slot
         '''
-        self.ui.bt_quick_stop.clicked.connect(lambda: quick_stop())
-        self.ui.bt_unlock.clicked.connect(lambda: release_break())
-        self.ui.bt_enable.clicked.connect(lambda: enable_servo())
-        self.ui.bt_joint_control.clicked.connect(lambda: joint_control())
-        self.ui.bt_quit.clicked.connect(lambda: quit_joint_control())
-        # 1
-        self.ui.bt_positive_1.clicked.connect(lambda: motor_1_positive())
-        self.ui.bt_positive_1.setAutoRepeat(True)
-        self.ui.bt_positive_1.setAutoRepeatInterval(50)
-        self.ui.bt_positive_1.setAutoRepeatDelay(100)
-        self.ui.bt_negative_1.clicked.connect(lambda: motor_1_negative())
-        self.ui.bt_negative_1.setAutoRepeat(True)
-        self.ui.bt_negative_1.setAutoRepeatInterval(50)
-        self.ui.bt_negative_1.setAutoRepeatDelay(100)
-        # 2
-        self.ui.bt_positive_2.clicked.connect(lambda: motor_2_positive())
-        self.ui.bt_positive_2.setAutoRepeat(True)
-        self.ui.bt_positive_2.setAutoRepeatInterval(50)
-        self.ui.bt_positive_2.setAutoRepeatDelay(100)
-        self.ui.bt_negative_2.clicked.connect(lambda: motor_2_negative())
-        self.ui.bt_negative_2.setAutoRepeat(True)
-        self.ui.bt_negative_2.setAutoRepeatInterval(50)
-        self.ui.bt_negative_2.setAutoRepeatDelay(100)
-        # 3
-        self.ui.bt_positive_3.clicked.connect(lambda: motor_3_positive())
-        self.ui.bt_positive_3.setAutoRepeat(True)
-        self.ui.bt_positive_3.setAutoRepeatInterval(50)
-        self.ui.bt_positive_3.setAutoRepeatDelay(100)
-        self.ui.bt_negative_3.clicked.connect(lambda: motor_3_negative())
-        self.ui.bt_negative_3.setAutoRepeat(True)
-        self.ui.bt_negative_3.setAutoRepeatInterval(50)
-        self.ui.bt_negative_3.setAutoRepeatDelay(100)
-        # 4
-        self.ui.bt_positive_4.clicked.connect(lambda: motor_4_positive())
-        self.ui.bt_positive_4.setAutoRepeat(True)
-        self.ui.bt_positive_4.setAutoRepeatInterval(50)
-        self.ui.bt_positive_4.setAutoRepeatDelay(100)
-        self.ui.bt_negative_4.clicked.connect(lambda: motor_4_negative())
-        self.ui.bt_negative_4.setAutoRepeat(True)
-        self.ui.bt_negative_4.setAutoRepeatInterval(50)
-        self.ui.bt_negative_4.setAutoRepeatDelay(100)
-        # 5
-        self.ui.bt_positive_5.clicked.connect(lambda: motor_5_positive())
-        self.ui.bt_positive_5.setAutoRepeat(True)
-        self.ui.bt_positive_5.setAutoRepeatInterval(50)
-        self.ui.bt_positive_5.setAutoRepeatDelay(100)
-        self.ui.bt_negative_5.clicked.connect(lambda: motor_5_negative())
-        self.ui.bt_negative_5.setAutoRepeat(True)
-        self.ui.bt_negative_5.setAutoRepeatInterval(50)
-        self.ui.bt_negative_5.setAutoRepeatDelay(100)
-        # 6
-        self.ui.bt_positive_6.clicked.connect(lambda: motor_6_positive())
-        self.ui.bt_positive_6.setAutoRepeat(True)
-        self.ui.bt_positive_6.setAutoRepeatInterval(50)
-        self.ui.bt_positive_6.setAutoRepeatDelay(100)
-        self.ui.bt_negative_6.clicked.connect(lambda: motor_6_negative())
-        self.ui.bt_negative_6.setAutoRepeat(True)
-        self.ui.bt_negative_6.setAutoRepeatInterval(50)
-        self.ui.bt_negative_6.setAutoRepeatDelay(100)
-        # 7
-        self.ui.bt_positive_7.clicked.connect(lambda: motor_7_positive())
-        self.ui.bt_positive_7.setAutoRepeat(True)
-        self.ui.bt_positive_7.setAutoRepeatInterval(50)
-        self.ui.bt_positive_7.setAutoRepeatDelay(100)
-        self.ui.bt_negative_7.clicked.connect(lambda: motor_7_negative())
-        self.ui.bt_negative_7.setAutoRepeat(True)
-        self.ui.bt_negative_7.setAutoRepeatInterval(50)
-        self.ui.bt_negative_7.setAutoRepeatDelay(100)
-        # 8
-        self.ui.bt_positive_8.clicked.connect(lambda: motor_8_positive())
-        self.ui.bt_positive_8.setAutoRepeat(True)
-        self.ui.bt_positive_8.setAutoRepeatInterval(50)
-        self.ui.bt_positive_8.setAutoRepeatDelay(100)
-        self.ui.bt_negative_8.clicked.connect(lambda: motor_8_negative())
-        self.ui.bt_negative_8.setAutoRepeat(True)
-        self.ui.bt_negative_8.setAutoRepeatInterval(50)
-        self.ui.bt_negative_8.setAutoRepeatDelay(100)
-        # 9
-        self.ui.bt_positive_9.clicked.connect(lambda: motor_9_positive())
-        self.ui.bt_positive_9.setAutoRepeat(True)
-        self.ui.bt_positive_9.setAutoRepeatInterval(50)
-        self.ui.bt_positive_9.setAutoRepeatDelay(100)
-        self.ui.bt_negative_9.clicked.connect(lambda: motor_9_negative())
-        self.ui.bt_negative_9.setAutoRepeat(True)
-        self.ui.bt_negative_9.setAutoRepeatInterval(50)
-        self.ui.bt_negative_9.setAutoRepeatDelay(100)
-        # 10
-        self.ui.bt_positive_10.clicked.connect(lambda: motor_10_positive())
-        self.ui.bt_positive_10.setAutoRepeat(True)
-        self.ui.bt_positive_10.setAutoRepeatInterval(50)
-        self.ui.bt_positive_10.setAutoRepeatDelay(100)
-        self.ui.bt_negative_10.clicked.connect(lambda: motor_10_negative())
-        self.ui.bt_negative_10.setAutoRepeat(True)
-        self.ui.bt_negative_10.setAutoRepeatInterval(50)
-        self.ui.bt_negative_10.setAutoRepeatDelay(100)
-        # 11
-        self.ui.bt_positive_11.clicked.connect(lambda: motor_11_positive())
-        self.ui.bt_positive_11.setAutoRepeat(True)
-        self.ui.bt_positive_11.setAutoRepeatInterval(50)
-        self.ui.bt_positive_11.setAutoRepeatDelay(100)
-        self.ui.bt_negative_11.clicked.connect(lambda: motor_11_negative())
-        self.ui.bt_negative_11.setAutoRepeat(True)
-        self.ui.bt_negative_11.setAutoRepeatInterval(50)
-        self.ui.bt_negative_11.setAutoRepeatDelay(100)
-        # 12
-        self.ui.bt_positive_12.clicked.connect(lambda: motor_12_positive())
-        self.ui.bt_positive_12.setAutoRepeat(True)
-        self.ui.bt_positive_12.setAutoRepeatInterval(50)
-        self.ui.bt_positive_12.setAutoRepeatDelay(100)
-        self.ui.bt_negative_12.clicked.connect(lambda: motor_12_negative())
-        self.ui.bt_negative_12.setAutoRepeat(True)
-        self.ui.bt_negative_12.setAutoRepeatInterval(50)
-        self.ui.bt_negative_12.setAutoRepeatDelay(100)
-        # 13
-        self.ui.bt_positive_13.clicked.connect(lambda: motor_13_positive())
-        self.ui.bt_positive_13.setAutoRepeat(True)
-        self.ui.bt_positive_13.setAutoRepeatInterval(50)
-        self.ui.bt_positive_13.setAutoRepeatDelay(100)
-        self.ui.bt_negative_13.clicked.connect(lambda: motor_13_negative())
-        self.ui.bt_negative_13.setAutoRepeat(True)
-        self.ui.bt_negative_13.setAutoRepeatInterval(50)
-        self.ui.bt_negative_13.setAutoRepeatDelay(100)
-        # 14
-        self.ui.bt_positive_14.clicked.connect(lambda: motor_14_positive())
-        self.ui.bt_positive_14.setAutoRepeat(True)
-        self.ui.bt_positive_14.setAutoRepeatInterval(50)
-        self.ui.bt_positive_14.setAutoRepeatDelay(100)
-        self.ui.bt_negative_14.clicked.connect(lambda: motor_14_negative())
-        self.ui.bt_negative_14.setAutoRepeat(True)
-        self.ui.bt_negative_14.setAutoRepeatInterval(50)
-        self.ui.bt_negative_14.setAutoRepeatDelay(100)
-        self.ui.bt_end_control.clicked.connect(lambda: end_control())
-        self.ui.bt_exit.clicked.connect(lambda: exit_end_control())
+        self.ui.bt_quick_stop.clicked.connect(quick_stop)
+        self.ui.bt_unlock.clicked.connect(release_break)
+        self.ui.bt_enable.clicked.connect(enable_servo)
+        self.ui.bt_joint_control.clicked.connect(joint_control)
+        self.ui.bt_quit.clicked.connect(quit_joint_control)
+        for node_id in Motor.motor_dict:
+            getattr(self.ui, f"bt_positive_{node_id}").clicked.connect(Motor.motor_dict[node_id].action_forward)
+            getattr(self.ui, f"bt_positive_{node_id}").setAutoRepeat(True)
+            getattr(self.ui, f"bt_positive_{node_id}").setAutoRepeatInterval(50)
+            getattr(self.ui, f"bt_positive_{node_id}").setAutoRepeatDelay(100)
+            getattr(self.ui, f"bt_negative_{node_id}").clicked.connect(Motor.motor_dict[node_id].action_reverse)
+            getattr(self.ui, f"bt_negative_{node_id}").setAutoRepeat(True)
+            getattr(self.ui, f"bt_negative_{node_id}").setAutoRepeatInterval(50)
+            getattr(self.ui, f"bt_negative_{node_id}").setAutoRepeatDelay(100)
+        self.ui.bt_end_control.clicked.connect(end_control)
+        self.ui.bt_exit.clicked.connect(exit_end_control)
     
     ''' 状态更新 '''
     def set_update_jumping(self):
@@ -990,7 +618,7 @@ class ControlPanel(QMainWindow):
     def enable_status_4(self, flag):
         self.ui.status_4.setEnabled(flag)
     def enable_status_5(self, flag):
-        self.ui.status_6.setEnabled(flag)
+        self.ui.status_5.setEnabled(flag)
     def enable_status_6(self, flag):
         self.ui.status_6.setEnabled(flag)
     def enable_status_7(self, flag):
