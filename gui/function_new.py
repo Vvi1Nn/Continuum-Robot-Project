@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' function_new.py 新GUI功能函数 v2.1 '''
+''' function_new.py 新GUI功能函数 v2.2 更改了阻塞部分'''
 
 
 from PyQt5.QtWidgets import QMainWindow
@@ -17,7 +17,7 @@ from usbcan.function import UsbCan
 import canopen.protocol as protocol
 from canopen.processor import CanOpenBusProcessor
 from motor.function import Motor
-from motor.threads import MotorUpdateThread, JointControlThread, InitMotorThread, CheckMotorThread
+from motor.threads import MotorUpdateThread, JointControlThread, InitMotorThread, CheckMotorThread, StartPDO, StopPDO
 from joystick.function import JoystickThread
 
 
@@ -89,8 +89,11 @@ class ControlPanel(QMainWindow):
         self.motor_14 = Motor(14)
         self.checked_num = 0
 
+        self.check_motor_thread = CheckMotorThread() # 检查电机
+        self.init_motor_thread = InitMotorThread() # 初始化电机
+        self.start_pdo_thread = StartPDO() # 开启PDO
+        self.stop_pdo_thread = StopPDO() # 关闭PDO
         self.joystick = JoystickThread() # 操纵杆
-
         self.motor_update = MotorUpdateThread() # 电机状态更新
 
         self.initial_status() # 根据权限 显示初始页面
@@ -262,14 +265,24 @@ class ControlPanel(QMainWindow):
         def change(status):
             if status == True: self.enable_check_all(False, "进行中...")
             else:
-                if self.checked_num == 9:
-                    if self.is_admin:
-                        self.enable_choose_mode(True) # 激活 模式选择
-                        self.enable_set_param(True) # 激活 设置参数
-                    self.enable_save_param(True) # 激活 保存参数
-                    self.enable_check_all(False, "完成")
-        self.check_motor_thread = CheckMotorThread(self)
+                self.enable_check_all(False, "再次检查")
+                self.check_motor_thread = CheckMotorThread()
+        def update(node_id):
+            getattr(self, f"enable_check_{node_id}")(False, "OK")
+            getattr(self, f"enable_status_{node_id}")(True)
+            getattr(self.ui, f"servo_{node_id}").setText(getattr(self, f"motor_{node_id}").motor_status)
+            getattr(self.ui, f"position_{node_id}").setText(str(getattr(self, f"motor_{node_id}").current_position))
+            getattr(self.ui, f"speed_{node_id}").setText(str(getattr(self, f"motor_{node_id}").current_speed))
+        def next():
+            if self.is_admin:
+                self.enable_choose_mode(True) # 激活 模式选择
+                self.enable_set_param(True) # 激活 设置参数
+            self.enable_save_param(True) # 激活 保存参数
+            self.enable_check_all(False, "完成")
+        # self.check_motor_thread = CheckMotorThread(self)
         self.check_motor_thread.running_signal.connect(change)
+        self.check_motor_thread.check_signal.connect(update)
+        self.check_motor_thread.finish_signal.connect(next)
         self.check_motor_thread.start()
         # for node_id in Motor.motor_dict:
         #     if not Motor.motor_dict[node_id].motor_is_checked:
@@ -306,11 +319,11 @@ class ControlPanel(QMainWindow):
         self.enable_init_motor(True, "生效") # 激活 生效
     def init_motor(self):
         def change(status):
-            if status == True: self.enable_init_motor(False, "...")
+            if status == True: self.enable_init_motor(False, "等待")
             else:
                 self.enable_init_motor(False, "完成")
                 self.enable_start_pdo(True) # 激活 开启TPDO
-        self.init_motor_thread = InitMotorThread()
+        # self.init_motor_thread = InitMotorThread()
         self.init_motor_thread.running_signal.connect(change)
         self.init_motor_thread.start()
         # Motor.init_config() # 将所有参数生效给所有电机
@@ -319,44 +332,88 @@ class ControlPanel(QMainWindow):
     
     ''' PDO '''
     def start_pdo(self):
-        Motor.start_feedback()
-        self.motor_update.start() # 开启线程
-        self.enable_close_device(False)
-        self.enable_start_pdo(False)
-        self.enable_stop_pdo(True)
-        self.enable_set_param(False) # 失效
-        self.enable_save_param(False) # 失效
-        self.enable_choose_mode(False, mode=None) # 失效
-        ''' 状态控制 '''
-        self.enable_quick_stop(True) # 生效
-        self.enable_release_break(True) # 生效
-        ''' 遥操作 '''
-        if Motor.control_mode == protocol.CONTROL_MODE["position_control"]:
-            self.enable_joint_control(True) # 生效
-        else:
-            self.enable_end_control(True) # 生效
+        def change(status):
+            if status == True: self.enable_start_pdo(False, "启动中")
+            else:
+                self.motor_update.start() # 开启线程
+                self.enable_close_device(False)
+                self.enable_start_pdo(False, "已启动")
+                self.enable_stop_pdo(True, "关闭PDO")
+                self.enable_set_param(False) # 失效
+                self.enable_save_param(False) # 失效
+                self.enable_choose_mode(False, mode=None) # 失效
+                ''' 状态控制 '''
+                self.enable_quick_stop(True) # 生效
+                self.enable_release_break(True) # 生效
+                ''' 遥操作 '''
+                if Motor.control_mode == protocol.CONTROL_MODE["position_control"]:
+                    self.enable_joint_control(True) # 生效
+                else:
+                    self.enable_end_control(True) # 生效
+        self.start_pdo_thread.running_signal.connect(change)
+        self.start_pdo_thread.start()
+        self.stop_pdo_thread = StopPDO()
+        # Motor.start_feedback()
+        # self.motor_update.start() # 开启线程
+        # self.enable_close_device(False)
+        # self.enable_start_pdo(False)
+        # self.enable_stop_pdo(True)
+        # self.enable_set_param(False) # 失效
+        # self.enable_save_param(False) # 失效
+        # self.enable_choose_mode(False, mode=None) # 失效
+        # ''' 状态控制 '''
+        # self.enable_quick_stop(True) # 生效
+        # self.enable_release_break(True) # 生效
+        # ''' 遥操作 '''
+        # if Motor.control_mode == protocol.CONTROL_MODE["position_control"]:
+        #     self.enable_joint_control(True) # 生效
+        # else:
+        #     self.enable_end_control(True) # 生效
     def stop_pdo(self):
+        def change(status):
+            if status == True: self.enable_stop_pdo(False, "关闭中")
+            else:
+                self.enable_close_device(True)
+                self.enable_start_pdo(True, "启动PDO")
+                self.enable_stop_pdo(False, "已关闭")
+                if self.is_admin:
+                    self.enable_set_param(True)
+                    self.enable_choose_mode(True, mode=None)
+                self.enable_save_param(True)
+                ''' 状态控制 '''
+                self.enable_quick_stop(False) # 失效
+                self.enable_release_break(False) # 失效
+                self.enable_enable_servo(False) # 失效
+                ''' 遥操作 '''
+                self.enable_joint_control(False) # 失效
+                for i in range(1, 15):
+                    getattr(self, f"enable_motor_group_{i}")(False) # 失效
+                self.enable_end_control(False) # 失效
+                self.enable_exit(False) # 失效
         self.motor_update.stop()
         self.motor_update.wait()
         self.motor_update = MotorUpdateThread() # 重新创建线程
-        Motor.stop_feedback() # 停止读取线程之后 再进行操作
-        self.enable_close_device(True)
-        self.enable_start_pdo(True)
-        self.enable_stop_pdo(False)
-        if self.is_admin:
-            self.enable_set_param(True)
-            self.enable_choose_mode(True, mode=None)
-        self.enable_save_param(True)
-        ''' 状态控制 '''
-        self.enable_quick_stop(False) # 失效
-        self.enable_release_break(False) # 失效
-        self.enable_enable_servo(False) # 失效
-        ''' 遥操作 '''
-        self.enable_joint_control(False) # 失效
-        for i in range(1, 15):
-            getattr(self, f"enable_motor_group_{i}")(False) # 失效
-        self.enable_end_control(False) # 失效
-        self.enable_exit(False) # 失效
+        self.stop_pdo_thread.running_signal.connect(change)
+        self.stop_pdo_thread.start()
+        self.start_pdo_thread = StartPDO()
+        # Motor.stop_feedback() # 停止读取线程之后 再进行操作
+        # self.enable_close_device(True)
+        # self.enable_start_pdo(True)
+        # self.enable_stop_pdo(False)
+        # if self.is_admin:
+        #     self.enable_set_param(True)
+        #     self.enable_choose_mode(True, mode=None)
+        # self.enable_save_param(True)
+        # ''' 状态控制 '''
+        # self.enable_quick_stop(False) # 失效
+        # self.enable_release_break(False) # 失效
+        # self.enable_enable_servo(False) # 失效
+        # ''' 遥操作 '''
+        # self.enable_joint_control(False) # 失效
+        # for i in range(1, 15):
+        #     getattr(self, f"enable_motor_group_{i}")(False) # 失效
+        # self.enable_end_control(False) # 失效
+        # self.enable_exit(False) # 失效
     
     ''' 状态控制 '''
     def quick_stop(self):
