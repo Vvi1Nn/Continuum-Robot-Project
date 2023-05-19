@@ -282,21 +282,36 @@ class Motor(CanOpenBusProcessor):
                 else: pass
         return 0
     
-    ''' 单电机运动测试 位置控制模式 相对运行 立即模式 可实现点击一次按钮动作一次 '''
-    def action_forward(self):
-        print("=============================================================")
-        if self.is_in_range():
-            self.set_servo_status("position_mode_ready")
-            self.set_position_and_velocity(Motor.position, Motor.velocity)
-            self.set_servo_status("position_mode_action")
+    # ''' 单电机运动测试 位置控制模式 相对运行 立即模式 可实现点击按钮动作 '''
+    # def start_joint_forward(self):
+    #     # print("=============================================================")
+    #     self.joint_control_thread = JointControlThread(self, True, Motor.position, Motor.velocity)
+    #     self.joint_control_thread.start()
+    # def start_joint_reverse(self):
+    #     # print("=============================================================")
+    #     self.joint_control_thread = JointControlThread(self, False, Motor.position, Motor.velocity)
+    #     self.joint_control_thread.start()
+    # def stop_joint(self):
+    #     # print("=============================================================")
+    #     self.joint_control_thread.stop()
+    #     self.joint_control_thread.wait()
+
+
+    # ''' 单电机运动测试 位置控制模式 相对运行 立即模式 可实现点击一次按钮动作一次 '''
+    # def action_forward(self):
+    #     print("=============================================================")
+    #     if self.is_in_range():
+    #         self.set_servo_status("position_mode_ready")
+    #         self.set_position_and_velocity(Motor.position, Motor.velocity)
+    #         self.set_servo_status("position_mode_action")
     
-    ''' 单电机运动测试 位置控制模式 相对运行 立即模式 可实现点击一次按钮动作一次 '''
-    def action_reverse(self):
-        print("=============================================================")
-        if self.is_in_range():
-            self.set_servo_status("position_mode_ready")
-            self.set_position_and_velocity(-Motor.position, Motor.velocity)
-            self.set_servo_status("position_mode_action")
+    # ''' 单电机运动测试 位置控制模式 相对运行 立即模式 可实现点击一次按钮动作一次 '''
+    # def action_reverse(self):
+    #     print("=============================================================")
+    #     if self.is_in_range():
+    #         self.set_servo_status("position_mode_ready")
+    #         self.set_position_and_velocity(-Motor.position, Motor.velocity)
+    #         self.set_servo_status("position_mode_action")
     
     '''  '''
     def follow(self, p, v, reverse=False):
