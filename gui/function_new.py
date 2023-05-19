@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' function_new.py 新GUI功能函数 v1.0 '''
+''' function_new.py 新GUI功能函数 v2.1 '''
 
 
 from PyQt5.QtWidgets import QMainWindow
@@ -17,7 +17,7 @@ from usbcan.function import UsbCan
 import canopen.protocol as protocol
 from canopen.processor import CanOpenBusProcessor
 from motor.function import Motor
-from motor.update import MotorUpdateThread
+from motor.threads import MotorUpdateThread, JointControlThread, InitMotorThread, CheckMotorThread
 from joystick.function import JoystickThread
 
 
@@ -148,289 +148,346 @@ class ControlPanel(QMainWindow):
             getattr(self, f"enable_status_{i}")(False) # 失效
     
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     '''
-        以下是控制界面中 按钮signal的slot函数
+        signal绑定
     '''
     ''' 菜单 '''
     def set_menu_jumping(self) -> None:
         self.ui.bt_init.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(0))
         self.ui.bt_control.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(1))
         self.ui.bt_log.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(2))
-    
     ''' CAN卡 '''
     def set_usbcan_jumping(self) -> None:
-        '''
-            定义slot函数
-        '''
-        ''' 打开设备 '''
-        def open_usbcan():
-            if UsbCan.open_device():
-                self.enable_open_device(False, "设备已打开")
-                self.enable_close_device(True)
-                self.enable_channel0(True, False)
-                self.enable_channel1(True, False)
-        ''' 开启通道0 '''
-        def start_channel_0():
-            self.usbcan_0.set_timer(self.ui.bx_rate0.currentText()) # 记录波特率
-            if self.usbcan_0.init_can() and self.usbcan_0.start_can():
-                self.enable_channel0(False, True, "通道0已打开") # 打开失效 激活重置
-                # 电机检查全部激活
-                self.enable_check_all(True)
-                self.enable_check_1(True)
-                self.enable_check_2(True)
-                self.enable_check_3(True)
-                self.enable_check_4(True)
-                self.enable_check_5(True)
-                self.enable_check_6(True)
-                self.enable_check_7(True)
-                self.enable_check_8(True)
-                self.enable_check_9(True)
-                self.enable_check_10(True)
-                self.enable_check_11(True)
-                self.enable_check_12(True)
-                self.enable_check_13(True)
-                self.enable_check_14(True)
-        ''' 开启通道1 '''
-        def start_channel_1():
-            self.usbcan_1.set_timer(self.ui.bx_rate1.currentText()) # 记录波特率
-            if self.usbcan_1.init_can() and self.usbcan_1.start_can():
-                self.enable_channel1(False, True, "通道1已打开") # 打开失效 激活重置
-                # 传感器的配置 后续补齐
-                ...
-                ...
-                ...
-        ''' 重置通道0 '''
-        def reset_cannel_0():
-            self.usbcan_0.reset_can() # 直接重置就行
-        ''' 重置通道1 '''
-        def reset_cannel_1():
-            self.usbcan_1.reset_can() # 直接重置就行
-        ''' 关闭设备 '''
-        def close_usbcan():
-            if UsbCan.close_device():
-                self.check_list = [False] * 14
-                self.checked_num = 0
-                self.initial_status()
-        '''
-            绑定signal和slot
-        '''
-        self.ui.bt_open.clicked.connect(open_usbcan)
-        self.ui.bt_channel0.clicked.connect(start_channel_0)
-        self.ui.bt_channel1.clicked.connect(start_channel_1)
-        self.ui.bt_reset0.clicked.connect(reset_cannel_0)
-        self.ui.bt_reset1.clicked.connect(reset_cannel_1)
-        self.ui.bt_close.clicked.connect(close_usbcan)
-    
+        self.ui.bt_open.clicked.connect(self.open_usbcan)
+        self.ui.bt_channel0.clicked.connect(self.start_channel_0)
+        self.ui.bt_channel1.clicked.connect(self.start_channel_1)
+        self.ui.bt_reset0.clicked.connect(self.reset_cannel_0)
+        self.ui.bt_reset1.clicked.connect(self.reset_cannel_1)
+        self.ui.bt_close.clicked.connect(self.close_usbcan)
     ''' 电机 '''
     def set_motor_jumping(self) -> None:
-        ''' 检查状态 '''
-        def check_motor():
-            for node_id in Motor.motor_dict:
-                if not Motor.motor_dict[node_id].motor_is_checked:
-                    Motor.motor_dict[node_id].check_bus_status()
-                    Motor.motor_dict[node_id].check_motor_status()
-                    if Motor.motor_dict[node_id].motor_is_checked:
-                        self.checked_num += 1
-                        getattr(self, f"enable_check_{node_id}")(False, "OK")
-                        getattr(self, f"enable_status_{node_id}")(True)
-                getattr(self.ui, f"servo_{node_id}").setText(getattr(self, f"motor_{node_id}").motor_status)
-                getattr(self.ui, f"position_{node_id}").setText(str(getattr(self, f"motor_{node_id}").current_position))
-                getattr(self.ui, f"speed_{node_id}").setText(str(getattr(self, f"motor_{node_id}").current_speed))
-            if self.checked_num == 9:
-                if self.is_admin:
-                    self.enable_choose_mode(True) # 激活 模式选择
-                    self.enable_set_param(True) # 激活 设置参数
-                self.enable_save_param(True) # 激活 保存参数
-                self.enable_check_all(False, "完成")
-        ''' 保存参数 '''
-        def save_config():
-            if not self.is_admin: Motor.config() # 无权限 直接保存默认参数
-            else: # 管理员权限
-                mode = "position_control" if self.ui.r_pos.isChecked() else "speed_control" # 记录模式
-                acc = self.ui.le_acc.text() if self.ui.le_acc.text() != "" else "1000" # 记录加速度
-                dec = self.ui.le_dec.text() if self.ui.le_dec.text() != "" else "10000" # 记录减速度
-                vel = self.ui.le_vel.text() if self.ui.le_vel.text() != "" else "100" # 记录动作速度
-                position = self.ui.le_position.text() if self.ui.le_position.text() != "" else "50" # 记录动作幅度
-                inhibit = self.ui.le_inhibit.text() if self.ui.le_inhibit.text() != "" else "500" # 记录禁止时间
-                # 保存上述参数
-                Motor.config(mode, int(acc), int(dec), int(vel), int(position), int(inhibit))
-                # 
-                self.enable_set_param(True, "{}".format(Motor.acceleration), "{}".format(Motor.deceleration), "{}".format(Motor.velocity), "{}".format(Motor.position), "{}".format(Motor.inhibit_time))
-            self.enable_init_motor(True, "生效") # 激活 生效
-        ''' 生效 '''
-        def init_motor():
-            Motor.init_config() # 将所有参数生效给所有电机
-            self.enable_init_motor(False, "完成")
-            self.enable_start_pdo(True) # 激活 开启TPDO
-        ''' 开启PDO '''
-        def start_pdo():
-            Motor.start_feedback()
-            self.motor_update.start() # 开启线程
-            self.enable_close_device(False)
-            self.enable_start_pdo(False)
-            self.enable_stop_pdo(True)
-            self.enable_set_param(False) # 失效
-            self.enable_save_param(False) # 失效
-            self.enable_choose_mode(False, mode=None) # 失效
-            ''' 状态控制 '''
-            self.enable_quick_stop(True) # 生效
-            self.enable_release_break(True) # 生效
-            ''' 遥操作 '''
-            if Motor.control_mode == protocol.CONTROL_MODE["position_control"]:
-                self.enable_joint_control(True) # 生效
-            else:
-                self.enable_end_control(True) # 生效
-        ''' 关闭PDO '''
-        def stop_pdo():
-            self.motor_update.stop()
-            self.motor_update.wait()
-            self.motor_update = MotorUpdateThread() # 重新创建线程
-            Motor.stop_feedback() # 停止读取线程之后 再进行操作
-            self.enable_close_device(True)
-            self.enable_start_pdo(True)
-            self.enable_stop_pdo(False)
-            if self.is_admin:
-                self.enable_set_param(True)
-                self.enable_choose_mode(True, mode=None)
-            self.enable_save_param(True)
-            ''' 状态控制 '''
-            self.enable_quick_stop(False) # 失效
-            self.enable_release_break(False) # 失效
-            self.enable_enable_servo(False) # 失效
-            ''' 遥操作 '''
-            self.enable_joint_control(False) # 失效
-            for i in range(1, 15):
-                getattr(self, f"enable_motor_group_{i}")(False) # 失效
-            self.enable_end_control(False) # 失效
-            self.enable_exit(False) # 失效
-        '''
-            绑定signal和slot
-        '''
-        self.ui.check_all.clicked.connect(check_motor)
-        self.ui.bt_save.clicked.connect(save_config)
-        self.ui.bt_launch.clicked.connect(init_motor)
-        self.ui.start.clicked.connect(start_pdo)
-        self.ui.stop.clicked.connect(stop_pdo)
-    
+        self.ui.check_all.clicked.connect(self.check_motor)
+        self.ui.bt_save.clicked.connect(self.save_config)
+        self.ui.bt_launch.clicked.connect(self.init_motor)
+        self.ui.start.clicked.connect(self.start_pdo)
+        self.ui.stop.clicked.connect(self.stop_pdo)
     ''' 控制 '''
     def set_control_jumping(self):
-        ''' 状态控制 '''
-        def quick_stop():
-            Motor.quick_stop()
-            self.enable_quick_stop(False)
-            self.enable_release_break(False)
-            self.enable_enable_servo(True)
-            self.enable_joint_control(False)
-            self.enable_end_control(False)
-            self.enable_exit(False)
-            self.joystick.stop() # 终止joystick线程
-            self.joystick.wait() # 等待退出
-            self.joystick = JoystickThread() # 必须重新创建线程！！！
-        def release_break():
-            Motor.release_brake()
-            self.enable_quick_stop(False)
-            self.enable_release_break(False)
-            self.enable_enable_servo(True)
-            self.enable_joint_control(False)
-            self.enable_end_control(False)
-            self.enable_exit(False)
-            self.joystick.stop() # 终止joystick线程
-            self.joystick.wait() # 等待退出
-            self.joystick = JoystickThread() # 必须重新创建线程！！！
-        def enable_servo():
-            self.enable_quick_stop(True)
-            self.enable_release_break(True)
-            self.enable_enable_servo(False)
-            if Motor.control_mode == protocol.CONTROL_MODE["position_control"]:
-                self.enable_joint_control(True) # 生效
-            self.enable_end_control(True)
-            Motor.enable_servo()
-        ''' 关节控制 '''
-        def joint_control():
-            self.enable_joint_control(False)
-            self.enable_end_control(False)
-            self.enable_quit(True)
-            for node_id in Motor.motor_dict:
-                if Motor.motor_dict[node_id].motor_is_checked:
-                    getattr(self, f"enable_motor_group_{node_id}")(True)
-        def quit_joint_control():
-            self.enable_joint_control(True) # 生效
-            self.enable_quit(False)
-            for i in range(14):
-                getattr(self, f"enable_motor_group_{i+1}")(False)
-        ''' 操纵杆 '''
-        def end_control():
-            self.enable_joint_control(False)
-            self.enable_end_control(False)
-            self.enable_exit(True)
-            ''' 操纵 '''
-            def start_manipulate(status):
-                if status == 0: self.motor_2.set_servo_status("servo_close") # 不操作
-                else: # 操作
-                    if self.motor_2.is_in_range(): self.motor_2.set_servo_status("servo_enable/start") # 在范围内
-                    else: # 超出范围
-                        if self.motor_2.current_position >= self.motor_2.max_position: # 大于max
-                            if self.motor_2.target_speed < 0: self.motor_2.set_servo_status("servo_enable/start") # 反方向速度 可动
-                            else: self.motor_2.set_servo_status("servo_close") # 继续超出范围 不可动
-                        elif self.motor_2.current_position <= self.motor_2.min_position: # 小于min
-                            if self.motor_2.target_speed > 0: self.motor_2.set_servo_status("servo_enable/start") # 反方向速度 可动
-                            else: self.motor_2.set_servo_status("servo_close") # 继续超出范围 不可动
-            def test_stop(status):
-                if status == 1: quick_stop()
-            def test_speed_1(value):
-                if abs(value) < 0.1:
-                    self.motor_1.set_servo_status("quick_stop")
-                    self.action = False
-                else:
-                    if not self.action:
-                        self.motor_1.set_servo_status("servo_enable/start")
-                        self.action = True
-                    self.motor_1.set_speed(int(value*100))
-            def test_speed_2(value):
-                if abs(value) < 0.1: value = 0
-                self.motor_2.set_speed(int(value*200))
-            ''' 绑定 '''
-            self.joystick.button_signal_0.connect(start_manipulate)
-            # self.joystick.button_signal_1.connect(test_stop)
-            self.joystick.axis_signal_2.connect(test_speed_2)
-            # self.joystick.axis_signal_1.connect(test_speed_1)
-            self.joystick.start() # 开启joystick线程
-        def exit_end_control():
-            self.enable_end_control(True)
-            self.enable_exit(False)
-            self.joystick.stop() # 终止joystick线程
-            self.joystick.wait() # 等待退出
-            self.joystick = JoystickThread() # 必须重新创建线程！！！
-        '''
-            绑定signal和slot
-        '''
-        self.ui.bt_quick_stop.clicked.connect(quick_stop)
-        self.ui.bt_unlock.clicked.connect(release_break)
-        self.ui.bt_enable.clicked.connect(enable_servo)
-        self.ui.bt_joint_control.clicked.connect(joint_control)
-        self.ui.bt_quit.clicked.connect(quit_joint_control)
+        self.ui.bt_quick_stop.clicked.connect(self.quick_stop)
+        self.ui.bt_unlock.clicked.connect(self.release_break)
+        self.ui.bt_enable.clicked.connect(self.enable_servo)
+        self.ui.bt_joint_control.clicked.connect(self.joint_control)
+        self.ui.bt_quit.clicked.connect(self.quit_joint_control)
         for node_id in Motor.motor_dict:
-            getattr(self.ui, f"bt_positive_{node_id}").clicked.connect(Motor.motor_dict[node_id].action_forward)
-            getattr(self.ui, f"bt_positive_{node_id}").setAutoRepeat(True)
-            getattr(self.ui, f"bt_positive_{node_id}").setAutoRepeatInterval(50)
-            getattr(self.ui, f"bt_positive_{node_id}").setAutoRepeatDelay(100)
-            getattr(self.ui, f"bt_negative_{node_id}").clicked.connect(Motor.motor_dict[node_id].action_reverse)
-            getattr(self.ui, f"bt_negative_{node_id}").setAutoRepeat(True)
-            getattr(self.ui, f"bt_negative_{node_id}").setAutoRepeatInterval(50)
-            getattr(self.ui, f"bt_negative_{node_id}").setAutoRepeatDelay(100)
-        self.ui.bt_end_control.clicked.connect(end_control)
-        self.ui.bt_exit.clicked.connect(exit_end_control)
-    
+            getattr(self.ui, f"bt_positive_{node_id}").pressed.connect(getattr(self, f"joint_forward_{node_id}"))
+            getattr(self.ui, f"bt_positive_{node_id}").released.connect(getattr(self, f"joint_stop_{node_id}"))
+            getattr(self.ui, f"bt_negative_{node_id}").pressed.connect(getattr(self, f"joint_reverse_{node_id}"))
+            getattr(self.ui, f"bt_negative_{node_id}").released.connect(getattr(self, f"joint_stop_{node_id}"))
+        self.ui.bt_end_control.clicked.connect(self.end_control)
+        self.ui.bt_exit.clicked.connect(self.exit_end_control)
     ''' 状态更新 '''
     def set_update_jumping(self):
-        def update(node_id):
+        self.motor_update.update_signal.connect(self.update)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    '''
+        slot函数
+    '''
+    ''' 打开设备 '''
+    def open_usbcan(self):
+        if UsbCan.open_device():
+            self.enable_open_device(False, "设备已打开")
+            self.enable_close_device(True)
+            self.enable_channel0(True, False)
+            self.enable_channel1(True, False)
+    
+    ''' 通道 '''
+    def start_channel_0(self):
+        self.usbcan_0.set_timer(self.ui.bx_rate0.currentText()) # 记录波特率
+        if self.usbcan_0.init_can() and self.usbcan_0.start_can():
+            self.enable_channel0(False, True, "通道0已打开") # 打开失效 激活重置
+            # 电机检查全部激活
+            self.enable_check_all(True)
+            for i in range(1,15):
+                getattr(self, f"enable_check_{i}")(True)
+    def start_channel_1(self):
+        self.usbcan_1.set_timer(self.ui.bx_rate1.currentText()) # 记录波特率
+        if self.usbcan_1.init_can() and self.usbcan_1.start_can():
+            self.enable_channel1(False, True, "通道1已打开") # 打开失效 激活重置
+            # 传感器的配置 后续补齐
+            ...
+            ...
+            ...
+    def reset_cannel_0(self):
+        self.usbcan_0.reset_can() # 直接重置就行
+    def reset_cannel_1(self):
+        self.usbcan_1.reset_can() # 直接重置就行
+    
+    ''' 关闭设备 '''
+    def close_usbcan(self):
+        if UsbCan.close_device():
+            self.checked_num = 0
+            self.initial_status()
+    
+    ''' 检查状态 '''
+    def check_motor(self):
+        def change(status):
+            if status == True: self.enable_check_all(False, "进行中...")
+            else:
+                if self.checked_num == 9:
+                    if self.is_admin:
+                        self.enable_choose_mode(True) # 激活 模式选择
+                        self.enable_set_param(True) # 激活 设置参数
+                    self.enable_save_param(True) # 激活 保存参数
+                    self.enable_check_all(False, "完成")
+        self.check_motor_thread = CheckMotorThread(self)
+        self.check_motor_thread.running_signal.connect(change)
+        self.check_motor_thread.start()
+        # for node_id in Motor.motor_dict:
+        #     if not Motor.motor_dict[node_id].motor_is_checked:
+        #         Motor.motor_dict[node_id].check_bus_status()
+        #         Motor.motor_dict[node_id].check_motor_status()
+        #         if Motor.motor_dict[node_id].motor_is_checked:
+        #             self.checked_num += 1
+        #             getattr(self, f"enable_check_{node_id}")(False, "OK")
+        #             getattr(self, f"enable_status_{node_id}")(True)
+        #     getattr(self.ui, f"servo_{node_id}").setText(getattr(self, f"motor_{node_id}").motor_status)
+        #     getattr(self.ui, f"position_{node_id}").setText(str(getattr(self, f"motor_{node_id}").current_position))
+        #     getattr(self.ui, f"speed_{node_id}").setText(str(getattr(self, f"motor_{node_id}").current_speed))
+        # if self.checked_num == 9:
+        #     if self.is_admin:
+        #         self.enable_choose_mode(True) # 激活 模式选择
+        #         self.enable_set_param(True) # 激活 设置参数
+        #     self.enable_save_param(True) # 激活 保存参数
+        #     self.enable_check_all(False, "完成")
+    
+    ''' 参数 '''
+    def save_config(self):
+        if not self.is_admin: Motor.config() # 无权限 直接保存默认参数
+        else: # 管理员权限
+            mode = "position_control" if self.ui.r_pos.isChecked() else "speed_control" # 记录模式
+            acc = self.ui.le_acc.text() if self.ui.le_acc.text() != "" else "1000" # 记录加速度
+            dec = self.ui.le_dec.text() if self.ui.le_dec.text() != "" else "10000" # 记录减速度
+            vel = self.ui.le_vel.text() if self.ui.le_vel.text() != "" else "100" # 记录动作速度
+            position = self.ui.le_position.text() if self.ui.le_position.text() != "" else "50" # 记录动作幅度
+            inhibit = self.ui.le_inhibit.text() if self.ui.le_inhibit.text() != "" else "500" # 记录禁止时间
+            # 保存上述参数
+            Motor.config(mode, int(acc), int(dec), int(vel), int(position), int(inhibit))
+            # 
+            self.enable_set_param(True, "{}".format(Motor.acceleration), "{}".format(Motor.deceleration), "{}".format(Motor.velocity), "{}".format(Motor.position), "{}".format(Motor.inhibit_time))
+        self.enable_init_motor(True, "生效") # 激活 生效
+    def init_motor(self):
+        def change(status):
+            if status == True: self.enable_init_motor(False, "...")
+            else:
+                self.enable_init_motor(False, "完成")
+                self.enable_start_pdo(True) # 激活 开启TPDO
+        self.init_motor_thread = InitMotorThread()
+        self.init_motor_thread.running_signal.connect(change)
+        self.init_motor_thread.start()
+        # Motor.init_config() # 将所有参数生效给所有电机
+        # self.enable_init_motor(False, "完成")
+        # self.enable_start_pdo(True) # 激活 开启TPDO
+    
+    ''' PDO '''
+    def start_pdo(self):
+        Motor.start_feedback()
+        self.motor_update.start() # 开启线程
+        self.enable_close_device(False)
+        self.enable_start_pdo(False)
+        self.enable_stop_pdo(True)
+        self.enable_set_param(False) # 失效
+        self.enable_save_param(False) # 失效
+        self.enable_choose_mode(False, mode=None) # 失效
+        ''' 状态控制 '''
+        self.enable_quick_stop(True) # 生效
+        self.enable_release_break(True) # 生效
+        ''' 遥操作 '''
+        if Motor.control_mode == protocol.CONTROL_MODE["position_control"]:
+            self.enable_joint_control(True) # 生效
+        else:
+            self.enable_end_control(True) # 生效
+    def stop_pdo(self):
+        self.motor_update.stop()
+        self.motor_update.wait()
+        self.motor_update = MotorUpdateThread() # 重新创建线程
+        Motor.stop_feedback() # 停止读取线程之后 再进行操作
+        self.enable_close_device(True)
+        self.enable_start_pdo(True)
+        self.enable_stop_pdo(False)
+        if self.is_admin:
+            self.enable_set_param(True)
+            self.enable_choose_mode(True, mode=None)
+        self.enable_save_param(True)
+        ''' 状态控制 '''
+        self.enable_quick_stop(False) # 失效
+        self.enable_release_break(False) # 失效
+        self.enable_enable_servo(False) # 失效
+        ''' 遥操作 '''
+        self.enable_joint_control(False) # 失效
+        for i in range(1, 15):
+            getattr(self, f"enable_motor_group_{i}")(False) # 失效
+        self.enable_end_control(False) # 失效
+        self.enable_exit(False) # 失效
+    
+    ''' 状态控制 '''
+    def quick_stop(self):
+        Motor.quick_stop()
+        self.enable_quick_stop(False)
+        self.enable_release_break(False)
+        self.enable_enable_servo(True)
+        self.enable_joint_control(False)
+        self.enable_end_control(False)
+        self.enable_exit(False)
+        self.joystick.stop() # 终止joystick线程
+        self.joystick.wait() # 等待退出
+        self.joystick = JoystickThread() # 必须重新创建线程！！！
+    def release_break(self):
+        Motor.release_brake()
+        self.enable_quick_stop(False)
+        self.enable_release_break(False)
+        self.enable_enable_servo(True)
+        self.enable_joint_control(False)
+        self.enable_end_control(False)
+        self.enable_exit(False)
+        self.joystick.stop() # 终止joystick线程
+        self.joystick.wait() # 等待退出
+        self.joystick = JoystickThread() # 必须重新创建线程！！！
+    def enable_servo(self):
+        self.enable_quick_stop(True)
+        self.enable_release_break(True)
+        self.enable_enable_servo(False)
+        if Motor.control_mode == protocol.CONTROL_MODE["position_control"]:
+            self.enable_joint_control(True) # 生效
+        self.enable_end_control(True)
+        Motor.enable_servo()
+    
+    ''' 关节控制 '''
+    def joint_control(self):
+        self.enable_joint_control(False)
+        self.enable_end_control(False)
+        self.enable_quit(True)
+        for node_id in Motor.motor_dict:
+            if Motor.motor_dict[node_id].motor_is_checked:
+                getattr(self, f"enable_motor_group_{node_id}")(True)
+    def joint_forward_factory(self, i):
+        setattr(self, f"joint_{i}", JointControlThread(getattr(self, f"motor_{i}"), True, Motor.position, Motor.velocity))
+        getattr(self, f"joint_{i}").start()
+        getattr(self.ui, f"bt_negative_{i}").setEnabled(False)
+    def joint_reverse_factory(self, i):
+        setattr(self, f"joint_{i}", JointControlThread(getattr(self, f"motor_{i}"), False, Motor.position, Motor.velocity))
+        getattr(self, f"joint_{i}").start()
+        getattr(self.ui, f"bt_positive_{i}").setEnabled(False)
+    def joint_stop_factory(self, i):
+        getattr(self, f"joint_{i}").stop()
+        getattr(self, f"joint_{i}").wait()
+        getattr(self.ui, f"bt_positive_{i}").setEnabled(True)
+        getattr(self.ui, f"bt_negative_{i}").setEnabled(True)
+    for i in range(1,15):
+        exec(f"def joint_forward_{i}(self): self.joint_forward_factory({i})")
+        exec(f"def joint_reverse_{i}(self): self.joint_reverse_factory({i})")
+        exec(f"def joint_stop_{i}(self): self.joint_stop_factory({i})")
+    def quit_joint_control(self):
+        self.enable_joint_control(True) # 生效
+        self.enable_quit(False)
+        for i in range(14):
+            getattr(self, f"enable_motor_group_{i+1}")(False)
+    
+    ''' 操纵杆控制 '''
+    def end_control(self):
+        self.enable_joint_control(False)
+        self.enable_end_control(False)
+        self.enable_exit(True)
+        ''' 操纵 '''
+        def start_manipulate(status):
+            if status == 0: self.motor_2.set_servo_status("servo_close") # 不操作
+            else: # 操作
+                if self.motor_2.is_in_range(): self.motor_2.set_servo_status("servo_enable/start") # 在范围内
+                else: # 超出范围
+                    if self.motor_2.current_position >= self.motor_2.max_position: # 大于max
+                        if self.motor_2.target_speed < 0: self.motor_2.set_servo_status("servo_enable/start") # 反方向速度 可动
+                        else: self.motor_2.set_servo_status("servo_close") # 继续超出范围 不可动
+                    elif self.motor_2.current_position <= self.motor_2.min_position: # 小于min
+                        if self.motor_2.target_speed > 0: self.motor_2.set_servo_status("servo_enable/start") # 反方向速度 可动
+                        else: self.motor_2.set_servo_status("servo_close") # 继续超出范围 不可动
+        def test_stop(status):
+            if status == 1: self.quick_stop()
+        def test_speed_1(value):
+            if abs(value) < 0.1:
+                self.motor_1.set_servo_status("quick_stop")
+                self.action = False
+            else:
+                if not self.action:
+                    self.motor_1.set_servo_status("servo_enable/start")
+                    self.action = True
+                self.motor_1.set_speed(int(value*100))
+        def test_speed_2(value):
+            if abs(value) < 0.1: value = 0
+            self.motor_2.set_speed(int(value*200))
+        ''' 绑定 '''
+        self.joystick.button_signal_0.connect(start_manipulate)
+        # self.joystick.button_signal_1.connect(test_stop)
+        self.joystick.axis_signal_2.connect(test_speed_2)
+        # self.joystick.axis_signal_1.connect(test_speed_1)
+        self.joystick.start() # 开启joystick线程
+    def exit_end_control(self):
+        self.enable_end_control(True)
+        self.enable_exit(False)
+        self.joystick.stop() # 终止joystick线程
+        self.joystick.wait() # 等待退出
+        self.joystick = JoystickThread() # 必须重新创建线程！！！
+    
+    ''' 状态更新 '''
+    def update(self, node_id):
             status = getattr(self, f"motor_{node_id}").motor_status
             position = getattr(self, f"motor_{node_id}").current_position
             speed = getattr(self, f"motor_{node_id}").current_speed
             getattr(self.ui, f"servo_{node_id}").setText(status)
             getattr(self.ui, f"position_{node_id}").setText(str(position))
             getattr(self.ui, f"speed_{node_id}").setText(str(speed))
-        self.motor_update.update_signal.connect(update)
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     '''
         以下是控制界面中 所有按钮的状态设置函数 包含是否激活和显示文字
