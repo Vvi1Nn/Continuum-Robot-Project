@@ -18,54 +18,14 @@ print("\033[7;35m紫红+反白\033[0m")
 print("\033[0;36m青蓝\033[0m")
 print("\033[8;37m白+不可见\033[0m")
 
-
-
-
-from PyQt5.QtCore import QThread, pyqtSignal, QMutex
-from PyQt5.QtWidgets import QApplication
-import time,sys
-cache = []
-abc = 10
-
-class Thread1(QThread):
-    def __init__(self, mutex: QMutex) -> None:
-        super().__init__()
-        self.__is_stop = False
-        self.__lock = mutex
-    
-    def run(self):
-        while not self.__is_stop:
-            # self.__lock.lock()
-            cache.append("abc")
-            print("change")
-            # self.__lock.unlock()
-            time.sleep(1)
-    
-    def stop(self):
-        self.__is_stop = True
-
-class Thread2(QThread):
-    def __init__(self, mutex: QMutex) -> None:
-        super().__init__()
-        self.__is_stop = False
-        self.__lock = mutex
-    
-    def run(self):
-        while not self.__is_stop:
-            # self.__lock.lock()
-            cache.pop(0)
-            print(cache)
-            # self.__lock.unlock()
-            time.sleep(5)
-    
-    def stop(self):
-        self.__is_stop = True
-
-app = QApplication(sys.argv)
-    
-mutex = QMutex()
-thread1 = Thread1(mutex)
-thread2 = Thread2(mutex)
-thread1.start()
-thread2.start()
-sys.exit(app.exec_())
+def joint_forward_factory(i, n):
+    print(n)
+def joint_reverse_factory(i, n):
+    print(n)
+def joint_stop_factory(i, n):
+    print(n)
+for i in range(1,15):
+    exec(f"def joint_forward_{i}(n): joint_forward_factory({i}, n)")
+    exec(f"def joint_reverse_{i}(n): joint_reverse_factory({i}, n)")
+    exec(f"def joint_stop_{i}(n): joint_stop_factory({i}, n)")
+joint_forward_1(3)
