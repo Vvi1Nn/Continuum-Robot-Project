@@ -25,6 +25,7 @@ def cube():
     glBegin(GL_LINES)
     for edge in edges:
         for vertex in edge:
+            glColor3f(1,0,0)
             glVertex3fv(verticies[vertex])
     glEnd()
 
@@ -59,11 +60,11 @@ pygame.init()
  
 # Set the width and height of the screen [width,height]
 size = [800, 800]
-screen = pygame.display.set_mode(size, DOUBLEBUF|OPENGL)
+screen = pygame.display.set_mode(size)
 
-gluPerspective(45, (size[0]/size[1]), 0.1, 50.0)
+# gluPerspective(45, (size[0]/size[1]), 0.1, 50.0)
 
-glTranslatef(0, 0, -5)
+# glTranslatef(0, 0, -5)
 
 pygame.display.set_caption("My Game")
  
@@ -125,18 +126,7 @@ while done==False:
         
         for i in range( axes ):
             axis = joystick.get_axis( i )
-            if i == 0:
-                glRotatef(axis,1,0,0)
-                glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
-                cube()
-            if i == 1:
-                glRotatef(axis,0,1,0)
-                glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
-                cube()
-            if i == 2:
-                glRotatef(axis,0,0,1)
-                glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
-                cube()
+            
             textPrint.print(screen, "Axis {} value: {:>6.3f}".format(i, axis) )
         textPrint.unindent()
             
