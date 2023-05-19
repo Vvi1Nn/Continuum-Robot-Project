@@ -40,6 +40,10 @@ QPushButton:disabled {
 	color: gray;
 	background-color: rgb(86, 88, 93);
 }
+QPushButton:pressed {
+	color: rgb(86, 88, 93);
+	background-color: rgb(138, 226, 52);
+}
 
 QStackedWidget &gt; QWidget {
 	background-color: rgb(86, 88, 93);

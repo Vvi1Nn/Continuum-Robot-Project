@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'design/control_new.ui'
+# Form implementation generated from reading ui file 'gui/design/control_new.ui'
 #
 # Created by: PyQt5 UI code generator 5.14.1
 #
@@ -37,6 +37,10 @@ class Ui_MainWindow(object):
 "QPushButton:disabled {\n"
 "    color: gray;\n"
 "    background-color: rgb(86, 88, 93);\n"
+"}\n"
+"QPushButton:pressed {\n"
+"    color: rgb(86, 88, 93);\n"
+"    background-color: rgb(138, 226, 52);\n"
 "}\n"
 "\n"
 "QStackedWidget > QWidget {\n"
