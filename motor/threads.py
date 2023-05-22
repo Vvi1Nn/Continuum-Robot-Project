@@ -11,9 +11,10 @@ from motor.function import Motor
 class MotorUpdateThread(QThread):
     update_signal = pyqtSignal(int)
     
-    def __init__(self) -> None:
+    def __init__(self, slot_function) -> None:
         super().__init__()
         self.__is_stop = False
+        self.update_signal.connect(slot_function)
     
     def run(self):
         while not self.__is_stop:
@@ -68,22 +69,6 @@ class CheckMotorThread(QThread):
     def __init__(self) -> None:
         super().__init__()
         self.__check_count = 0
-        # self.__window = window
-    
-    # def run(self):
-    #     self.running_signal.emit(True)
-    #     for node_id in Motor.motor_dict:
-    #         if not Motor.motor_dict[node_id].motor_is_checked:
-    #             Motor.motor_dict[node_id].check_bus_status()
-    #             Motor.motor_dict[node_id].check_motor_status()
-    #             if Motor.motor_dict[node_id].motor_is_checked:
-    #                 self.__window.checked_num += 1
-    #                 getattr(self.__window, f"enable_check_{node_id}")(False, "OK")
-    #                 getattr(self.__window, f"enable_status_{node_id}")(True)
-    #         getattr(self.__window.ui, f"servo_{node_id}").setText(getattr(self.__window, f"motor_{node_id}").motor_status)
-    #         getattr(self.__window.ui, f"position_{node_id}").setText(str(getattr(self.__window, f"motor_{node_id}").current_position))
-    #         getattr(self.__window.ui, f"speed_{node_id}").setText(str(getattr(self.__window, f"motor_{node_id}").current_speed))
-    #     self.running_signal.emit(False)
     
     def run(self):
         self.running_signal.emit(True)
@@ -91,9 +76,9 @@ class CheckMotorThread(QThread):
             if not Motor.motor_dict[node_id].motor_is_checked:
                 Motor.motor_dict[node_id].check_bus_status()
                 Motor.motor_dict[node_id].check_motor_status()
-                if Motor.motor_dict[node_id].motor_is_checked:
-                    self.check_signal.emit(node_id)
-                    self.__checked_count += 1
+            if Motor.motor_dict[node_id].motor_is_checked:
+                self.check_signal.emit(node_id)
+                self.__check_count += 1
         if self.__check_count == 9:
             self.finish_signal.emit()
             return
