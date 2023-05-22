@@ -20,8 +20,6 @@ class Motor(CanOpenBusProcessor):
     position     = 50 # 动作间隔
     inhibit_time = 500 # 禁止时间 微秒
 
-    # __motor_list = [None] * 255
-
     motor_dict = {}
     motor_count = 0
     check_count = 0
@@ -29,7 +27,6 @@ class Motor(CanOpenBusProcessor):
     def __init__(self, node_id, position_range=[-100000,100000], speed_range=[-100,100]) -> None:
         super().__init__(node_id)
 
-        # Motor.__motor_list[node_id-1] = self
         Motor.motor_dict[node_id] = self
         Motor.motor_count += 1
         
