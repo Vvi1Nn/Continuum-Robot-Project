@@ -91,4 +91,5 @@ EXTERN_FLAG = {"standard": 0, # 标准帧
 # 数据长度
 DATA_LEN = {"default": 8, # 默认长度
             "remote" : 2, # 用于控制远程节点的长度
+            "sensor" : 4, # 用于力传感器
             }
