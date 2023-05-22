@@ -305,7 +305,7 @@ QStackedWidget QTextBrowser {
                   </property>
                   <item>
                    <property name="text">
-                    <string>250K</string>
+                    <string>1000K</string>
                    </property>
                   </item>
                  </widget>
@@ -1176,6 +1176,49 @@ QStackedWidget QTextBrowser {
                    <property name="frameShadow">
                     <enum>QFrame::Raised</enum>
                    </property>
+                   <layout class="QVBoxLayout" name="verticalLayout_34">
+                    <property name="spacing">
+                     <number>10</number>
+                    </property>
+                    <property name="leftMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>0</number>
+                    </property>
+                    <item>
+                     <widget class="QPushButton" name="force_open">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="text">
+                       <string>启动拉力读取</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="force_stop">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="text">
+                       <string>停止拉力读取</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
                   </widget>
                  </item>
                  <item>
@@ -2285,6 +2328,16 @@ QStackedWidget QTextBrowser {
                      </property>
                     </widget>
                    </item>
+                   <item>
+                    <widget class="QLabel" name="force_1">
+                     <property name="text">
+                      <string>force</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
                   </layout>
                  </widget>
                 </item>
@@ -2336,6 +2389,16 @@ QStackedWidget QTextBrowser {
                     <widget class="QLabel" name="speed_2">
                      <property name="text">
                       <string>speed</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="force_2">
+                     <property name="text">
+                      <string>force</string>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignCenter</set>
@@ -2399,6 +2462,16 @@ QStackedWidget QTextBrowser {
                      </property>
                     </widget>
                    </item>
+                   <item>
+                    <widget class="QLabel" name="force_3">
+                     <property name="text">
+                      <string>force</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
                   </layout>
                  </widget>
                 </item>
@@ -2456,6 +2529,16 @@ QStackedWidget QTextBrowser {
                      </property>
                     </widget>
                    </item>
+                   <item>
+                    <widget class="QLabel" name="force_4">
+                     <property name="text">
+                      <string>force</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
                   </layout>
                  </widget>
                 </item>
@@ -2507,6 +2590,16 @@ QStackedWidget QTextBrowser {
                     <widget class="QLabel" name="speed_5">
                      <property name="text">
                       <string>speed</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="force_5">
+                     <property name="text">
+                      <string>force</string>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignCenter</set>
@@ -2577,6 +2670,16 @@ QStackedWidget QTextBrowser {
                      </property>
                     </widget>
                    </item>
+                   <item>
+                    <widget class="QLabel" name="force_6">
+                     <property name="text">
+                      <string>force</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
                   </layout>
                  </widget>
                 </item>
@@ -2634,6 +2737,16 @@ QStackedWidget QTextBrowser {
                      </property>
                     </widget>
                    </item>
+                   <item>
+                    <widget class="QLabel" name="force_7">
+                     <property name="text">
+                      <string>force</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
                   </layout>
                  </widget>
                 </item>
@@ -2685,6 +2798,16 @@ QStackedWidget QTextBrowser {
                     <widget class="QLabel" name="speed_8">
                      <property name="text">
                       <string>speed</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="force_8">
+                     <property name="text">
+                      <string>force</string>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignCenter</set>
