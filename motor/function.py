@@ -185,9 +185,8 @@ class Motor(CanOpenBusProcessor):
         print("=============================================================")
         for motor in cls.motor_dict.values():
             if motor.set_bus_status("start_remote_node"):
-                # if motor.bus_status == "operational":
-                    print("\033[0;32m[Motor {}] start pdo\033[0m".format(motor.node_id))
-                    continue
+                print("\033[0;32m[Motor {}] start pdo\033[0m".format(motor.node_id))
+                continue
             print("\033[0;31m[Motor {}] start pdo failed\033[0m".format(motor.node_id))
     
     ''' 关闭PDO通讯 '''
@@ -196,9 +195,8 @@ class Motor(CanOpenBusProcessor):
         print("=============================================================")
         for motor in cls.motor_dict.values():
             if motor.set_bus_status("enter_pre-operational_state"):
-                # if motor.bus_status == "pre-operational":
-                    print("\033[0;32m[Motor {}] stop pdo\033[0m".format(motor.node_id))
-                    continue
+                print("\033[0;32m[Motor {}] stop pdo\033[0m".format(motor.node_id))
+                continue
             print("\033[0;31m[Motor {}] stop pdo failed\033[0m".format(motor.node_id))
 
     ''' 解除抱闸 '''
