@@ -6,7 +6,7 @@ from math import *
 
 # Initialize pygame and OpenGL
 pygame.init()
-pygame.display.set_mode((640, 480), DOUBLEBUF | OPENGL)
+pygame.display.set_mode((320, 240), DOUBLEBUF | OPENGL)
 glMatrixMode(GL_PROJECTION)
 gluPerspective(45, 640 / 480, 0.1, 50.0)
 glMatrixMode(GL_MODELVIEW)
@@ -73,20 +73,20 @@ while True:
     glTranslatef(0                          , 0.01*joystick.get_hat(0)[1], 0)
     glTranslatef(0                          , 0                          , 0.01*joystick.get_button(2))
     glTranslatef(0                          , 0                          , -0.01*joystick.get_button(3))
-    glBegin(GL_LINES)
-    # X axis
-    glColor3f(1.0, 0.0, 0.0)
-    glVertex3f(0, 0.0, 0.0)
-    glVertex3f(1.0, 0.0, 0.0)
-    # Y axis
-    glColor3f(0.0, 1.0, 0.0)
-    glVertex3f(0.0, 0, 0.0)
-    glVertex3f(0.0, 1.0, 0.0)
-    # Z axis
-    glColor3f(0.0, 0.0, 1.0)
-    glVertex3f(0.0, 0.0, 0)
-    glVertex3f(0.0, 0.0, 1.0)
-    glEnd()
+    # glBegin(GL_LINES)
+    # # X axis
+    # glColor3f(1.0, 0.0, 0.0)
+    # glVertex3f(0, 0.0, 0.0)
+    # glVertex3f(1.0, 0.0, 0.0)
+    # # Y axis
+    # glColor3f(0.0, 1.0, 0.0)
+    # glVertex3f(0.0, 0, 0.0)
+    # glVertex3f(0.0, 1.0, 0.0)
+    # # Z axis
+    # glColor3f(0.0, 0.0, 1.0)
+    # glVertex3f(0.0, 0.0, 0)
+    # glVertex3f(0.0, 0.0, 1.0)
+    # glEnd()
     # glPopMatrix()
 
     # Rotate the coordinate system based on joystick values

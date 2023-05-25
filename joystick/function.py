@@ -1,11 +1,15 @@
 # -*- coding:utf-8 -*-
 
 
-''' function.py 操纵杆功能函数 v1.0 '''
+''' function.py 操纵杆功能函数 v2.0 添加OpenGL '''
 
 
 import pygame
 from PyQt5.QtCore import QThread, pyqtSignal
+
+from pygame.locals import *
+from OpenGL.GL import *
+from OpenGL.GLU import *
 
 
 class JoystickThread(QThread):
@@ -38,13 +42,20 @@ class JoystickThread(QThread):
         pygame.init() # 初始化模块
 
         # 界面
-        self.screen = pygame.display.set_mode([800, 500])
-        pygame.display.set_caption("连续体机器人遥操作界面")
+        # self.screen = pygame.display.set_mode([800, 500])
+        self.screen = pygame.display.set_mode((240, 180), DOUBLEBUF | OPENGL)
+        pygame.display.set_caption("遥操作界面")
         self.screen.fill((255, 255, 255))
 
         self.font = pygame.font.SysFont(None, 40) # 字体
 
         self.clock = pygame.time.Clock() # 时钟
+
+        glMatrixMode(GL_PROJECTION)
+        gluPerspective(45, 240 / 180, 0.1, 50.0)
+        glMatrixMode(GL_MODELVIEW)
+        glLoadIdentity()
+        glTranslatef(0, 0, -5.0)
 
         # 等待joystick插入
         while not self.__is_joystick:
@@ -95,6 +106,29 @@ class JoystickThread(QThread):
                 y_current += 40
                 self.__print("Hat {}:  {}".format(i, str(self.joystick.get_hat(i))), x=x_current, y=y_current)
             
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+            glBegin(GL_LINES)
+            # X axis
+            glColor3f(1, 0, 0)
+            glVertex3f(0, 0, 0)
+            glVertex3f(1, 0, 0)
+            # Y axis
+            glColor3f(0, 1, 0)
+            glVertex3f(0, 0, 0)
+            glVertex3f(0, 1, 0)
+            # Z axis
+            glColor3f(0, 0, 1)
+            glVertex3f(0, 0, 0)
+            glVertex3f(0, 0, 1)
+            glEnd()
+            if self.joystick.get_button(0) == 1:
+                glRotatef(0 if abs(self.joystick.get_axis(1))<0.01 else self.joystick.get_axis(1), 1, 0, 0)
+                glRotatef(0 if abs(self.joystick.get_axis(0))<0.01 else self.joystick.get_axis(0), 0, 1, 0)
+                glTranslatef(0.01*self.joystick.get_hat(0)[0], 0                               , 0)
+                glTranslatef(0                               , 0.01*self.joystick.get_hat(0)[1], 0)
+                glTranslatef(0                               , 0                               , 0.01*self.joystick.get_button(2))
+                glTranslatef(0                               , 0                               , -0.01*self.joystick.get_button(3))
+
             # 刷新
             pygame.display.flip()
             self.clock.tick(20)

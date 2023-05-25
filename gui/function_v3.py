@@ -485,6 +485,7 @@ class ControlPanel(QMainWindow):
     
     ''' 操纵杆控制 '''
     def end_control(self):
+        self.ui.stackedWidget.setCurrentIndex(2) # 显示第3页
         self.enable_joint_control(False)
         self.enable_end_control(False)
         self.enable_exit(True)
