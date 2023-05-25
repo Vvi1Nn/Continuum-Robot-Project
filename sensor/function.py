@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' function.py 力传感器数据读取 v1.0 '''
+''' function.py 力传感器数据读取 v1.1 新增检查 '''
 
 
 import time
@@ -37,6 +37,7 @@ class Sensor():
     def __init__(self, node_id) -> None:
         self.__node_id = node_id
         self.__sensor_dict[node_id] = self
+        self.__is_ready = False
         self.__init = 0
         self.force = 0
 
@@ -45,6 +46,25 @@ class Sensor():
         cls.__device = device
         return cls
     
+    def is_ready(self) -> bool:
+        if self.__device.send(self.__node_id, [self.__msg], data_len="sensor"):
+            time.sleep(0.01)
+            ret = self.__device.read_buffer(1)
+            if ret != None:
+                [num, msg] = ret
+                if num != 0: return True
+        return False
+    
+    @staticmethod
+    def check_status() -> bool:
+        for sensor in Sensor.__sensor_dict.values():
+            if sensor.is_ready(): sensor.__is_ready = True
+            else:
+                print("\033[0;31m[Sensor {}] unchecked\033[0m".format(sensor.__node_id))
+                return False
+        else: return True
+
+
     def get_init(self, count=50) -> None:
         value = 0
         times = count
@@ -72,7 +92,6 @@ class Sensor():
                 [num, msg] = ret
                 if num!= 0:
                     self.force = round(self.__hex_list_to_float([msg[0].Data[2], msg[0].Data[3], msg[0].Data[4], msg[0].Data[5]]) - self.__init, 2)
-                    print(self.force)
     
     @staticmethod
     def update_force() -> None:
