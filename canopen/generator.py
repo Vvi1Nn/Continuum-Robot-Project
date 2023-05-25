@@ -166,4 +166,7 @@ if __name__ == "__main__":
     generator_2.rpdo("1", 0b01111111, format=8)
 
     generator_3 = CanOpenMsgGenerator(5)
-    generator_3.rpdo("1", 0b01111111, format=8)
+    generator_3.rpdo("1", 0b01111111, format=4)
+
+    generator_4 = CanOpenMsgGenerator(11)
+    generator_4.rpdo("1", 0b00001111, format=8)
