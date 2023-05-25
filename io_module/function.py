@@ -1,64 +1,108 @@
 # -*- coding:utf-8 -*-
 
 
-import time
+''' function.py IO模块 v2.0 '''
+
+
 import sys, os
 
 # 添加模块路径
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from usbcan.function import UsbCan
+from PyQt5.QtCore import pyqtSignal, QObject
 from canopen.processor import CanOpenBusProcessor
 
 
-class IoModule(CanOpenBusProcessor):
-    def __init__(self, node_id=0xB) -> None:
-        super().__init__(node_id)
-    
-    def check_bus_status(self) -> None:
-        if super().check_bus_status():
-            print("\033[0;32m[IO module] bus ready\033[0m")
-    
-    def start_output(self) -> bool:
-        self.set_bus_status("start_remote_node")
-        if self.bus_status == "operational":
-            print("\033[0;32m[IO module] start output\033[0m")
-            return True
-    
-    def stop_output(self) -> bool:
-        self.set_bus_status("stop_remote_node")
-        if self.bus_status == "stopped":
-            print("\033[0;32m[IO module] stop output\033[0m")
-            return True
-    
-    def set_output(self, c1=0, c2=0, c3=0, c4=0, c5=0, c6=0, c7=0, c8=0):
-        if self.bus_status == "operational":
-            value_str = ""
-            for i in range(8):
-                value_str = str(locals()['c' + str(i+1)]) + value_str
-            value_low = int(value_str, 2)
-            value_high = 0
-            self.rpdo("1", value_low, value_high)
-            print("\033[0;32m[IO module] output status: {}\033[0m".format(value_str))
-        else: print("\033[0;31m[IO module] cannot set output, bus_status wrong\033[0m")
+class IoModule(CanOpenBusProcessor, QObject):
+    update_signal = pyqtSignal()
 
+    io_dict = {}
+    
+    def __init__(self, node_id, slot_function) -> None:
+        CanOpenBusProcessor.__init__(self, node_id)
+        QObject.__init__(self)
+
+        self.io_dict[node_id] = self
+
+        self.update_signal.connect(slot_function)
+
+        self.is_start = False
+
+        self.channel_1 = False
+        self.channel_2 = False
+        self.channel_3 = False
+        self.channel_4 = False
+        self.channel_5 = False
+        self.channel_6 = False
+        self.channel_7 = False
+        self.channel_8 = False
+    
+    def __check_bus_status(self) -> bool:
+        if self.check_bus_status():
+            print("\033[0;32m[IO {}] bus ready\033[0m".format(self.node_id))
+            return True
+        else:
+            if self.set_bus_status("enter_pre-operational_state"): return True
+        print("\033[0;31m[IO {}] bus not ready\033[0m".format(self.node_id))
+        return False
+    
+    @staticmethod
+    def start_output() -> None:
+        for io in IoModule.io_dict.values():
+            if io.__check_bus_status():
+                if io.set_bus_status("start_remote_node"):
+                    io.is_start = True
+                    io.set_channel_status(False, "1", "2", "3", "4", "5", "6", "7", "8")
+                    print("\033[0;32m[IO {}] start output\033[0m".format(io.node_id))
+            else: print("\033[0;31m[IO {}] start output failed\033[0m".format(io.node_id))
+        
+    @staticmethod
+    def stop_output() -> None:
+        for io in IoModule.io_dict.values():
+            if io.set_bus_status("enter_pre-operational_state"):
+                io.is_start = False
+                io.set_channel_status(False, "1", "2", "3", "4", "5", "6", "7", "8")
+                print("\033[0;32m[IO {}] stop output\033[0m".format(io.node_id))
+            else: print("\033[0;31m[IO {}] stop output failed\033[0m".format(io.node_id))
+    
+    def set_channel_status(self, status: bool, *args: str) -> bool:
+        if self.is_start:
+            for channel in args:
+                try:
+                    setattr(self, "channel_" + channel, status)
+                except Exception as e:
+                    print(e)
+                    return False
+            value_str = ""
+            for i in range(1, 9):
+                value_str = "1" + value_str if getattr(self, f"channel_{i}") else "0" + value_str
+            if self.rpdo("1", int(value_str, 2), format=8):
+                self.update_signal.emit()
+                print("\033[0;32m[IO {}] output status: {}\033[0m".format(self.node_id, value_str))
+                return True
+        return False
 
 if __name__ == "__main__":
-    UsbCan.open_device()
-    usbcan_0 = UsbCan("0")
-    CanOpenBusProcessor.link_device(usbcan_0)
+    # UsbCan.open_device()
+    # usbcan_0 = UsbCan("0")
+    # CanOpenBusProcessor.link_device(usbcan_0)
     
-    usbcan_0.init_can()
-    usbcan_0.start_can()
+    # usbcan_0.init_can()
+    # usbcan_0.start_can()
     
-    io_module = IoModule(11)
-    io_module.start_output()
-    while True:
-        io_module.set_output(1, 1, 1, 1, 1, 1, 1, 1)
-        time.sleep(0.5)
-        io_module.set_output(0, 0, 0, 0, 0, 0, 0, 0)
-        time.sleep(0.5)
-        io_module.set_output(0, 1, 0, 1, 0, 1, 0, 1)
-        time.sleep(0.5)
-        io_module.set_output(1, 0, 1, 0, 1, 0, 1, 0)
-        time.sleep(0.5)
+    # io_module = IoModule(11)
+    # io_module.start_output()
+    # while True:
+    #     io_module.set_output(1, 1, 1, 1, 1, 1, 1, 1)
+    #     time.sleep(0.5)
+    #     io_module.set_output(0, 0, 0, 0, 0, 0, 0, 0)
+    #     time.sleep(0.5)
+    #     io_module.set_output(0, 1, 0, 1, 0, 1, 0, 1)
+    #     time.sleep(0.5)
+    #     io_module.set_output(1, 0, 1, 0, 1, 0, 1, 0)
+    #     time.sleep(0.5)
+
+    io = IoModule(11)
+    io.set_channel_status(True, "1", "2", "4")
+
+    io.set_channel_status(False, "1")
