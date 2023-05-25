@@ -5,7 +5,7 @@ import sys
 
 from PyQt5.QtWidgets import QApplication
 
-from gui.function_new import LoginPanel
+from gui.function_v3 import LoginPanel
 
 
 def main():
