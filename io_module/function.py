@@ -26,6 +26,7 @@ class IoModule(CanOpenBusProcessor, QObject):
 
         self.update_signal.connect(slot_function)
 
+        self.__can_start = False
         self.is_start = False
 
         self.channel_1 = False
@@ -36,6 +37,23 @@ class IoModule(CanOpenBusProcessor, QObject):
         self.channel_6 = False
         self.channel_7 = False
         self.channel_8 = False
+
+        self.switch_1 = None
+        self.switch_2 = None
+        self.switch_3 = None
+        self.switch_4 = None
+        self.switch_5 = None
+        self.switch_6 = None
+        self.switch_7 = None
+        self.switch_8 = None
+        self.switch_9 = None
+        self.switch_10 = None
+        self.switch_11 = None
+        self.switch_12 = None
+        self.switch_13 = None
+        self.switch_14 = None
+        self.switch_15 = None
+        self.switch_16 = None
     
     def __check_bus_status(self) -> bool:
         if self.check_bus_status():
@@ -46,14 +64,22 @@ class IoModule(CanOpenBusProcessor, QObject):
         print("\033[0;31m[IO {}] bus not ready\033[0m".format(self.node_id))
         return False
     
+    ''' 把TPDO1的模式更改成定时器模式 '''
+    def __set_tpdo_mode(self) -> bool:
+        if self.sdo_write_8("tpdo_1_transtype", 0xFF):
+            self.__can_start = True
+            print("\033[0;32m[IO {}] mode change\033[0m".format(self.node_id))
+        return self.__can_start
+    
     @staticmethod
     def start_output() -> None:
         for io in IoModule.io_dict.values():
             if io.__check_bus_status():
-                if io.set_bus_status("start_remote_node"):
-                    io.is_start = True
-                    io.set_channel_status(False, "1", "2", "3", "4", "5", "6", "7", "8")
-                    print("\033[0;32m[IO {}] start output\033[0m".format(io.node_id))
+                if io.__set_tpdo_mode():
+                    if io.set_bus_status("start_remote_node"):
+                        io.is_start = True
+                        io.set_channel_status(False, "1", "2", "3", "4", "5", "6", "7", "8")
+                        print("\033[0;32m[IO {}] start output\033[0m".format(io.node_id))
             else: print("\033[0;31m[IO {}] start output failed\033[0m".format(io.node_id))
         
     @staticmethod
@@ -81,6 +107,7 @@ class IoModule(CanOpenBusProcessor, QObject):
                 print("\033[0;32m[IO {}] output status: {}\033[0m".format(self.node_id, value_str))
                 return True
         return False
+
 
 if __name__ == "__main__":
     # UsbCan.open_device()
