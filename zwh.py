@@ -18,15 +18,9 @@ print("\033[7;35m紫红+反白\033[0m")
 print("\033[0;36m青蓝\033[0m")
 print("\033[8;37m白+不可见\033[0m")
 
-def joint_forward_factory(i, n):
-    print(n)
-def joint_reverse_factory(i, n):
-    print(n)
-def joint_stop_factory(i, n):
-    print(n)
-for i in range(1,15):
-    exec(f"def joint_forward_{i}(n): joint_forward_factory({i}, n)")
-    exec(f"def joint_reverse_{i}(n): joint_reverse_factory({i}, n)")
-    exec(f"def joint_stop_{i}(n): joint_stop_factory({i}, n)")
-joint_forward_1(3)
-
+rate = 0.3
+a = int(0xff*(1-rate))
+print(a)
+a = hex(a)[2:]
+print(a)
+print("0"*len(2-hex(int(0xff*(1-rate)))[2:]))
