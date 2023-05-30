@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' function.py 力传感器数据读取 v1.1 新增检查 '''
+''' function.py 力传感器数据读取 v1.2 新增is_ready状态 提高了适应性 '''
 
 
 import time
@@ -39,7 +39,7 @@ class Sensor():
         self.__sensor_dict[node_id] = self
         self.__is_ready = False
         self.__init = 0
-        self.force = 0
+        self.force = None
 
     @classmethod
     def link_device(cls, device):
@@ -57,27 +57,32 @@ class Sensor():
     
     @staticmethod
     def check_status() -> bool:
+        check_num = 0
         for sensor in Sensor.__sensor_dict.values():
-            if sensor.is_ready(): sensor.__is_ready = True
-            else:
-                print("\033[0;31m[Sensor {}] unchecked\033[0m".format(sensor.__node_id))
-                return False
-        else: return True
+            if sensor.is_ready():
+                sensor.__is_ready = True
+                check_num += 1
+            else: print("\033[0;31m[Sensor {}] unchecked\033[0m".format(sensor.__node_id))
+        # if check_num == len(Sensor.__sensor_dict): return True
+        if check_num == 1: return True
+        else: return False
 
 
     def get_init(self, count=50) -> None:
-        value = 0
-        times = count
-        while times != 0:
-            if self.__device.send(self.__node_id, [self.__msg], data_len="sensor"):
-                time.sleep(0.01)
-                ret = self.__device.read_buffer(1)
-                if ret != None:
-                    [num, msg] = ret
-                    if num!= 0:
-                        value += self.__hex_list_to_float([msg[0].Data[2], msg[0].Data[3], msg[0].Data[4], msg[0].Data[5]])
-                        times -= 1
-        self.__init = value / count
+        if self.__is_ready:
+            value = 0
+            times = count
+            while times != 0:
+                if self.__device.send(self.__node_id, [self.__msg], data_len="sensor"):
+                    time.sleep(0.01)
+                    ret = self.__device.read_buffer(1)
+                    if ret != None:
+                        [num, msg] = ret
+                        if num!= 0:
+                            value += self.__hex_list_to_float([msg[0].Data[2], msg[0].Data[3], msg[0].Data[4], msg[0].Data[5]])
+                            times -= 1
+            self.__init = value / count
+        else: pass
 
     @staticmethod
     def update_init() -> None:
@@ -85,14 +90,16 @@ class Sensor():
             sensor.get_init()
 
     def get_force(self) -> None:
-        if self.__device.send(self.__node_id, [self.__msg], data_len="sensor"):
-            time.sleep(0.01)
-            ret = self.__device.read_buffer(1)
-            if ret != None:
-                [num, msg] = ret
-                if num!= 0:
-                    self.force = round(self.__hex_list_to_float([msg[0].Data[2], msg[0].Data[3], msg[0].Data[4], msg[0].Data[5]]) - self.__init, 2)
-    
+        if self.__is_ready:
+            if self.__device.send(self.__node_id, [self.__msg], data_len="sensor"):
+                time.sleep(0.01)
+                ret = self.__device.read_buffer(1)
+                if ret != None:
+                    [num, msg] = ret
+                    if num!= 0:
+                        self.force = round(self.__hex_list_to_float([msg[0].Data[2], msg[0].Data[3], msg[0].Data[4], msg[0].Data[5]]) - self.__init, 2)
+        else: pass
+
     @staticmethod
     def update_force() -> None:
         for sensor in Sensor.__sensor_dict.values():
