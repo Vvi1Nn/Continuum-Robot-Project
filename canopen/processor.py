@@ -175,6 +175,24 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
         if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] write {} ...\033[0m".format(self.node_id, label))
         return self.sdo_write_32(label, value, repeat=repeat-1)
     
+    ''' SDO 8bit '''
+    def sdo_write_8(self, label: str, value: int, /, *, check=True, repeat=0) -> bool:
+        [cob_id, data] = super().sdo_write_8(label, value) # 生成消息
+        ret = self.__send_msg(cob_id, data, check=check) # 先接收返回值
+        if ret != False: # 发送成功
+            if check: # 需要校对
+                [num, msg] = ret # 接收应答消息
+                if num != 0: # 有消息
+                    if msg[0].ID == self.node_id + protocol.CAN_ID["SDO_T"] and msg[0].Data[0] == protocol.CMD_R["write"] and self.__match_index(msg[0].Data[1], msg[0].Data[2], msg[0].Data[3]) == protocol.OD[label]:
+                        return True # 应答消息的CMD和地址正确
+            else: return True # 无需校对
+        # 上述所有操作有失败
+        if repeat == 0:
+            if CanOpenBusProcessor.__is_log: print("\033[0;31m[Node-ID {}] write {} failed\033[0m".format(self.node_id, label))
+            return False
+        if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] write {} ...\033[0m".format(self.node_id, label))
+        return self.sdo_write_32(label, value, repeat=repeat-1)
+
     ''' RPD写操作 分别写低字和高字 '''
     def rpdo(self, channel: str, *args: int, format=None, repeat=0) -> bool:
         [cob_id, data] = super().rpdo(channel, *args, format=format) # 生成消息
