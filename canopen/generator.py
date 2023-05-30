@@ -81,6 +81,29 @@ class CanOpenMsgGenerator():
                 print("{} ".format(hex_data[i]), end = "")
             print("\n")
         return [cob_id, data]
+    
+    ''' SDO写指定标签 8bit数据 '''
+    def sdo_write_8(self, label: str, value: int) -> list:
+        index = protocol.OD[label][0] # 获取地址
+        subindex = protocol.OD[label][1] # 获取索引
+        cob_id = protocol.CAN_ID["SDO_R"] + self.node_id # 计算COB-ID
+        data = [0x00] * 8
+        data[0] = protocol.CMD_T["write_8"] # CMD
+        data[1] = self.__split_index(index)[0] # 地址低位
+        data[2] = self.__split_index(index)[1] # 地址高位
+        data[3] = subindex # 索引
+        data[4] = value
+        # 打印结果
+        if CanOpenMsgGenerator.__is_print:
+            hex_data = ["00"] * 8
+            print("[sdo_write_8] {}".format(label))
+            print("COB-ID: {}".format(hex(cob_id)[2:].upper()))
+            print("Data-List: ", end = "")
+            for i in range(len(data)):
+                hex_data[i] = hex(data[i])[2:].upper()
+                print("{} ".format(hex_data[i]), end = "")
+            print("\n")
+        return [cob_id, data]
 
     ''' 写RPDO 指定通道 传入数值可为1个 2个 4个 或利用format自动补齐参数'''
     def rpdo(self, num: str, *args: int, format=None) -> dict:
@@ -157,16 +180,17 @@ if __name__ == "__main__":
     # nmt_get_status(2, True)
 
     CanOpenMsgGenerator.is_print_msg(True)
-    generator_1 = CanOpenMsgGenerator(11)
-    generator_1.nmt_change_status("start_remote_node")
+    # generator_1 = CanOpenMsgGenerator(11)
+    # generator_1.nmt_change_status("start_remote_node")
     
-    generator_2 = CanOpenMsgGenerator(2)
-    generator_2.sdo_write_32("tpdo_2_timer", 100)
-    generator_2.sdo_write_32("tpdo_2_inhibit", 500)
-    generator_2.rpdo("1", 0b01111111, format=8)
+    # generator_2 = CanOpenMsgGenerator(2)
+    # generator_2.sdo_write_32("tpdo_2_timer", 100)
+    # generator_2.sdo_write_32("tpdo_2_inhibit", 500)
+    # generator_2.rpdo("1", 0b01111111, format=8)
 
-    generator_3 = CanOpenMsgGenerator(5)
-    generator_3.rpdo("1", 0b01111111, format=4)
+    # generator_3 = CanOpenMsgGenerator(5)
+    # generator_3.rpdo("1", 0b01111111, format=4)
 
     generator_4 = CanOpenMsgGenerator(11)
     generator_4.rpdo("1", 0b00001111, format=8)
+    generator_4.sdo_write_8("tpdo_1_transtype", 255)
