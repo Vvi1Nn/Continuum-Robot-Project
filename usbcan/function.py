@@ -54,6 +54,13 @@ class UsbCan:
         self.__is_init = False # 标志符 通道是否初始化
         self.__is_start = False # 标志符 通道是否启动
 
+    ''' 设置设备型号 '''
+    @classmethod
+    def set_device_type(cls, type: str, index: str):
+        cls.__device_type  = usbcan_param.DEVICE_TYPE[type]
+        cls.__device_index = usbcan_param.DEVICE_INDEX[index]
+        return cls
+    
     ''' 初始化前 设置日志是否打印 '''
     @classmethod
     def is_show_log(cls, is_log: bool):
@@ -61,16 +68,13 @@ class UsbCan:
         return cls # 返回类 可供直接初始化
 
     ''' 打开设备 指定设备的型号和索引 可设置重复次数 '''
-    @classmethod
-    def open_device(cls, device_type="USBCAN2", device_index="0", /, *, repeat=0) -> bool:
-        # 将设备型号和索引更新至类属性
-        cls.__device_type = usbcan_param.DEVICE_TYPE[device_type]
-        cls.__device_index = usbcan_param.DEVICE_INDEX[device_index]
+    @staticmethod
+    def open_device(repeat=0) -> bool:
         # 设备未开启
-        if not cls.__is_open:
+        if not UsbCan.__is_open:
             # 调用API
             if USBCAN_Lib.VCI_OpenDevice(UsbCan.__device_type, UsbCan.__device_index, UsbCan.__reserved):
-                cls.__is_open = True # 成功 标志符开启
+                UsbCan.__is_open = True # 成功 标志符开启
                 if UsbCan.__is_log: print("\033[0;32m[UsbCan] opened! type:{} index:{}\033[0m".format(UsbCan.__device_type, UsbCan.__device_index))
                 return True
             # 执行API失败 判断是否重复
@@ -78,21 +82,21 @@ class UsbCan:
                 if UsbCan.__is_log: print("\033[0;31m[UsbCan] open failed\033[0m")
                 return False # 不重复
             if UsbCan.__is_log: print("\033[0;33m[UsbCan] open ...\033[0m")
-            return cls.open_device(cls.__device_type, cls.__device_index, repeat=repeat-1) # 重复 再次尝试API 剩余次数减1
+            return UsbCan.open_device(UsbCan.__device_type, UsbCan.__device_index, repeat=repeat-1) # 重复 再次尝试API 剩余次数减1
         # 设备已开启
         else:
             if UsbCan.__is_log: print("\033[0;32m[UsbCan] already opened\033[0m")
             return False
 
     ''' 关闭设备 可设置重复次数 '''
-    @classmethod
-    def close_device(cls, repeat=0) -> bool:
+    @staticmethod
+    def close_device(repeat=0) -> bool:
         # 设备已开启
-        if cls.__is_open:
+        if UsbCan.__is_open:
             # 调用API
             if USBCAN_Lib.VCI_CloseDevice(UsbCan.__device_type, UsbCan.__device_index):
-                cls.__is_open = False # 成功 标识符关闭
-                for channel in cls.__channel_list:
+                UsbCan.__is_open = False # 成功 标识符关闭
+                for channel in UsbCan.__channel_list:
                     channel.__is_init = False # 通道需重新初始化
                     channel.__is_start = False # 通道需重新打开
                 if UsbCan.__is_log: print("\033[0;32m[UsbCan] closed\033[0m")
@@ -102,17 +106,11 @@ class UsbCan:
                 if UsbCan.__is_log: print("\033[0;31m[UsbCan] close failed\n\033[0m")
                 return False
             if UsbCan.__is_log: print("\033[0;33m[UsbCan] close ...\033[0m")
-            return cls.close_device(repeat=repeat-1) # 重复 再次尝试API 剩余次数减1
+            return UsbCan.close_device(repeat=repeat-1) # 重复 再次尝试API 剩余次数减1
         # 设备未开启
         else:
             if UsbCan.__is_log: print("\033[0;32m[UsbCan] already closed\n\033[0m")
             return False
-
-    ''' 设置设备型号 不常用 功能补齐 '''
-    @classmethod
-    def set_device_type(cls, type: str, index: str):
-        cls.__device_type  = usbcan_param.DEVICE_TYPE[type]
-        cls.__device_index = usbcan_param.DEVICE_INDEX[index]
 
     ''' 设置波特率 '''
     def set_timer(self, timer: str) -> None:
@@ -217,7 +215,7 @@ class UsbCan:
 
     ''' 直接打印读取的数据的原始值 可供核对 '''
     @staticmethod
-    def print_msgs(num, msgs):
+    def print_msgs(num, msgs) -> None:
         for i in range(num):
             print("No:%d  ID: %s  Data: %s" % (i+1, hex(msgs[i].ID), ''.join(hex(msgs[i].Data[j])+ ' 'for j in range(msgs[i].DataLen))))
 
