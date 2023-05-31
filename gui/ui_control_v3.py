@@ -43,6 +43,7 @@ class Ui_MainWindow(object):
 "    background-color: rgb(138, 226, 52);\n"
 "}\n"
 "\n"
+"\n"
 "QStackedWidget > QWidget {\n"
 "    background-color: rgb(86, 88, 93);\n"
 "    border-radius: 10px;\n"

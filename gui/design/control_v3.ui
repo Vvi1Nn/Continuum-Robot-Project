@@ -45,6 +45,7 @@ QPushButton:pressed {
 	background-color: rgb(138, 226, 52);
 }
 
+
 QStackedWidget &gt; QWidget {
 	background-color: rgb(86, 88, 93);
 	border-radius: 10px;
