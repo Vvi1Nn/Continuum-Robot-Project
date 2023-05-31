@@ -68,8 +68,8 @@ class ControlPanel(QMainWindow):
         self.is_admin = False if account == "测试人员" else True
         
         # CAN卡实例化
-        self.usbcan_0 = UsbCan.is_show_log(False)("0") # 通道0
-        self.usbcan_1 = UsbCan.is_show_log(False)("1") # 通道1
+        self.usbcan_0 = UsbCan.set_device_type("USBCAN2", "0").is_show_log(False)("0") # 通道0
+        self.usbcan_1 = UsbCan.set_device_type("USBCAN2", "0").is_show_log(False)("1") # 通道1
         
         CanOpenBusProcessor.link_device(self.usbcan_0) # 将CANopen总线绑定至CAN卡的通道0
         CanOpenBusProcessor.is_show_log(False)
@@ -84,8 +84,7 @@ class ControlPanel(QMainWindow):
         self.motor_7 = Motor(7)
         self.motor_8 = Motor(8)
         self.motor_9 = Motor(9)
-        self.motor_10 = Motor(10)
-        self.checked_num = 0
+        # self.motor_10 = Motor(10)
 
         Sensor.link_device(self.usbcan_1)
         # 力传感器
@@ -100,8 +99,7 @@ class ControlPanel(QMainWindow):
         self.sensor_9 = Sensor(9)
         self.sensor_10 = Sensor(10)
 
-        self.io = IoModule(11, self.update_io) # IO
-        self.io.update_signal.connect(self.update_io)
+        self.io = IoModule(11, self.update_valve) # IO
 
         self.check_motor_thread = CheckMotorThread() # 检查电机
         self.init_motor_thread = InitMotorThread() # 初始化电机
@@ -110,7 +108,7 @@ class ControlPanel(QMainWindow):
         self.start_pdo_thread = StartPDO() # 开启PDO
         self.stop_pdo_thread = StopPDO() # 关闭PDO
         self.joystick = JoystickThread() # 操纵杆
-        self.motor_update = CANopenUpdateThread(self.update_motor) # 电机状态更新
+        self.motor_update = CANopenUpdateThread(self.update_canopen) # 电机状态更新
 
         self.initial_status() # 根据权限 显示初始页面
         
@@ -149,14 +147,14 @@ class ControlPanel(QMainWindow):
         self.enable_set_param(False, "{}".format(Motor.acceleration), "{}".format(Motor.deceleration), "{}".format(Motor.velocity), "{}".format(Motor.position), "{}".format(Motor.inhibit_time))
         self.enable_save_param(False, "保存") # 失效
         self.enable_init_motor(False, "生效") # 失效
-        self.enable_start_pdo(False, "启动PDO") # 失效
-        self.enable_stop_pdo(False, "停止PDO") # 失效
+        self.enable_start_pdo(False, "启动状态读取") # 失效
+        self.enable_stop_pdo(False, "停止状态读取") # 失效
         ''' 传感器 '''
         self.enable_start_force(False, "启动拉力读取") # 失效
         self.enable_stop_force(False, "停止拉力读取") # 失效
         ''' IO '''
-        self.enable_open_io(False, "启动IO模块") # 失效
-        self.enable_close_io(False, "关闭IO模块") # 失效
+        self.enable_open_io(False, "启动IO输出") # 失效
+        self.enable_close_io(False, "关闭IO输出") # 失效
         ''' 状态控制 '''
         self.enable_quick_stop(False, "急停") # 失效
         self.enable_release_break(False, "解除抱闸") # 失效
@@ -223,6 +221,7 @@ class ControlPanel(QMainWindow):
     ''' 控制 '''
     def set_control_jumping(self):
         self.ui.bt_quick_stop.clicked.connect(self.quick_stop)
+        self.ui.bt_quick_stop.setShortcut("space")
         self.ui.bt_unlock.clicked.connect(self.release_break)
         self.ui.bt_enable.clicked.connect(self.enable_servo)
         self.ui.bt_joint_control.clicked.connect(self.joint_control)
@@ -263,6 +262,7 @@ class ControlPanel(QMainWindow):
             self.enable_close_device(True)
             self.enable_channel0(True, False)
             self.enable_channel1(True, False)
+        else: pass
     
     ''' 通道 '''
     def start_channel_0(self):
@@ -275,12 +275,14 @@ class ControlPanel(QMainWindow):
                 getattr(self, f"enable_check_{i}")(True)
             # 激活IO
             self.enable_open_io(True)
+        else: pass
     def start_channel_1(self):
         self.usbcan_1.set_timer(self.ui.bx_rate1.currentText()) # 记录波特率
         if self.usbcan_1.init_can() and self.usbcan_1.start_can():
             self.enable_channel1(False, True, "通道1已打开") # 打开失效 激活重置
             # 传感器的配置
             self.enable_start_force(True)
+        else: pass
     def reset_cannel_0(self):
         self.usbcan_0.reset_can() # 直接重置就行
     def reset_cannel_1(self):
@@ -289,8 +291,8 @@ class ControlPanel(QMainWindow):
     ''' 关闭设备 '''
     def close_usbcan(self):
         if UsbCan.close_device():
-            self.checked_num = 0
             self.initial_status()
+        else: pass
     
     ''' 检查状态 '''
     def check_motor(self):
@@ -302,6 +304,7 @@ class ControlPanel(QMainWindow):
         def update(node_id):
             getattr(self, f"enable_check_{node_id}")(False, "OK")
             getattr(self, f"enable_status_{node_id}")(True)
+        def status(node_id):
             getattr(self.ui, f"servo_{node_id}").setText(getattr(self, f"motor_{node_id}").motor_status)
             getattr(self.ui, f"position_{node_id}").setText(str(getattr(self, f"motor_{node_id}").current_position))
             getattr(self.ui, f"speed_{node_id}").setText(str(getattr(self, f"motor_{node_id}").current_speed))
@@ -309,10 +312,12 @@ class ControlPanel(QMainWindow):
             if self.is_admin:
                 self.enable_choose_mode(True) # 激活 模式选择
                 self.enable_set_param(True) # 激活 设置参数
+            else: pass
             self.enable_save_param(True) # 激活 保存参数
             self.enable_check_all(False, "完成")
         self.check_motor_thread.running_signal.connect(change)
         self.check_motor_thread.check_signal.connect(update)
+        self.check_motor_thread.status_signal.connect(status)
         self.check_motor_thread.finish_signal.connect(next)
         self.check_motor_thread.start()
     
@@ -328,7 +333,7 @@ class ControlPanel(QMainWindow):
             inhibit = self.ui.le_inhibit.text() if self.ui.le_inhibit.text() != "" else "500" # 记录禁止时间
             # 保存上述参数
             Motor.config(mode, int(acc), int(dec), int(vel), int(position), int(inhibit))
-            # 
+            # 生效
             self.enable_set_param(True, "{}".format(Motor.acceleration), "{}".format(Motor.deceleration), "{}".format(Motor.velocity), "{}".format(Motor.position), "{}".format(Motor.inhibit_time))
         self.enable_init_motor(True, "生效") # 激活 生效
     def init_motor(self):
@@ -347,6 +352,7 @@ class ControlPanel(QMainWindow):
             self.sensor_update.start()
             self.enable_start_force(False, "已启动")
             self.enable_stop_force(True)
+        else: pass
     def stop_force(self):
         self.sensor_update.stop()
         self.sensor_update.wait()
@@ -359,17 +365,19 @@ class ControlPanel(QMainWindow):
         self.io.start_output()
         if self.io.is_start:
             self.enable_open_io(False, "已打开")
-            self.enable_close_io(True, "关闭IO模块")
+            self.enable_close_io(True, "关闭IO输出")
             self.enable_io(True)
             self.enable_status_io(True)
             for i in range (1,5):
                 getattr(self, f"enable_io_{i}")(False)
+        else: pass
     def close_module(self):
         self.io.stop_output()
         if not self.io.is_start:
-            self.enable_open_io(True, "启动IO模块")
+            self.enable_open_io(True, "启动IO输出")
             self.enable_close_io(False, "IO已关闭")
             self.enable_io(False)
+        else: pass
 
     ''' PDO '''
     def start_pdo(self):
@@ -379,7 +387,7 @@ class ControlPanel(QMainWindow):
                 self.motor_update.start() # 开启线程
                 self.enable_close_device(False)
                 self.enable_start_pdo(False, "已启动")
-                self.enable_stop_pdo(True, "关闭PDO")
+                self.enable_stop_pdo(True, "关闭状态读取")
                 self.enable_set_param(False) # 失效
                 self.enable_save_param(False) # 失效
                 self.enable_choose_mode(False, mode=None) # 失效
@@ -401,7 +409,7 @@ class ControlPanel(QMainWindow):
             if status == True: self.enable_stop_pdo(False, "关闭中")
             else:
                 self.enable_close_device(True)
-                self.enable_start_pdo(True, "启动PDO")
+                self.enable_start_pdo(True, "启动状态读取")
                 self.enable_stop_pdo(False, "已关闭")
                 if self.is_admin:
                     self.enable_set_param(True)
@@ -419,45 +427,54 @@ class ControlPanel(QMainWindow):
                 self.enable_exit(False) # 失效
         self.motor_update.stop()
         self.motor_update.wait()
-        self.motor_update = CANopenUpdateThread(self.update_motor) # 重新创建线程
+        self.motor_update = CANopenUpdateThread(self.update_canopen) # 重新创建线程
         self.stop_pdo_thread.running_signal.connect(change)
         self.stop_pdo_thread.start()
         self.start_pdo_thread = StartPDO()
     
-    ''' 状态控制 '''
+    ''' 急停 '''
     def quick_stop(self):
+        # 功能
         Motor.quick_stop()
+        # 开关状态
         self.enable_quick_stop(False)
         self.enable_release_break(False)
         self.enable_enable_servo(True)
+        # 停止控制
         self.quit_joint_control()
         self.exit_end_control()
+        # 开关状态
         self.enable_joint_control(False)
         self.enable_end_control(False)
-        # self.enable_exit(False)
-        # self.joystick.stop() # 终止joystick线程
-        # self.joystick.wait() # 等待退出
-        # self.joystick = JoystickThread() # 必须重新创建线程！！！
+    
+    ''' 解除抱闸 '''
     def release_break(self):
+        # 功能
         Motor.release_brake()
+        # 开关状态
         self.enable_quick_stop(False)
         self.enable_release_break(False)
         self.enable_enable_servo(True)
+        # 停止控制
         self.quit_joint_control()
         self.exit_end_control()
+        # 开关状态
         self.enable_joint_control(False)
         self.enable_end_control(False)
-        # self.enable_exit(False)
-        # self.joystick.stop() # 终止joystick线程
-        # self.joystick.wait() # 等待退出
-        # self.joystick = JoystickThread() # 必须重新创建线程！！！
+    
+    ''' 使能 '''
     def enable_servo(self):
+        # 开关状态
         self.enable_quick_stop(True)
         self.enable_release_break(True)
         self.enable_enable_servo(False)
+        # 控制 生效
         if Motor.control_mode == protocol.CONTROL_MODE["position_control"]:
             self.enable_joint_control(True) # 生效
-        self.enable_end_control(True)
+        elif Motor.control_mode == protocol.CONTROL_MODE["speed_control"]:
+            self.enable_end_control(True) # 生效
+        else: pass
+        # 功能
         Motor.enable_servo()
     
     ''' 关节控制 '''
@@ -468,6 +485,7 @@ class ControlPanel(QMainWindow):
         for node_id in Motor.motor_dict:
             if Motor.motor_dict[node_id].motor_is_checked:
                 getattr(self, f"enable_motor_group_{node_id}")(True)
+            else: pass
     def joint_forward_factory(self, i):
         setattr(self, f"joint_{i}", JointControlThread(getattr(self, f"motor_{i}"), True, Motor.position, Motor.velocity))
         getattr(self, f"joint_{i}").start()
@@ -506,16 +524,16 @@ class ControlPanel(QMainWindow):
         self.enable_exit(True)
         ''' 操纵 '''
         def start_manipulate(status):
-            if status == 0: self.motor_2.set_servo_status("servo_close") # 不操作
+            if status == 0: self.motor_2.set_servo_status("quick_stop") # 不操作
             else: # 操作
                 if self.motor_2.is_in_range(): self.motor_2.set_servo_status("servo_enable/start") # 在范围内
                 else: # 超出范围
                     if self.motor_2.current_position >= self.motor_2.max_position: # 大于max
                         if self.motor_2.target_speed < 0: self.motor_2.set_servo_status("servo_enable/start") # 反方向速度 可动
-                        else: self.motor_2.set_servo_status("servo_close") # 继续超出范围 不可动
+                        else: self.motor_2.set_servo_status("quick_stop") # 继续超出范围 不可动
                     elif self.motor_2.current_position <= self.motor_2.min_position: # 小于min
                         if self.motor_2.target_speed > 0: self.motor_2.set_servo_status("servo_enable/start") # 反方向速度 可动
-                        else: self.motor_2.set_servo_status("servo_close") # 继续超出范围 不可动
+                        else: self.motor_2.set_servo_status("quick_stop") # 继续超出范围 不可动
         # def test_stop(status):
         #     if status == 1: self.quick_stop()
         # def test_speed_1(value):
@@ -543,16 +561,29 @@ class ControlPanel(QMainWindow):
         self.joystick.wait() # 等待退出
         self.joystick = JoystickThread() # 必须重新创建线程！！！
     
-    ''' 状态更新 '''
-    def update_motor(self, node_id):
+    '''
+        状态更新
+    '''
+    def update_canopen(self, node_id):
         # 电机
-        if node_id != 0xB:
+        if node_id in Motor.motor_dict.keys():
             # 状态
             status = getattr(self, f"motor_{node_id}").motor_status
-            if status == "ready_to_switch_on" or status == "switch_on_disabled": color = "#ff0000"
-            elif status == "switched_on": color = "#ffff00"
-            elif status == "operation_enabled": color = "#00ff00"
-            else: color = "#0000ff"
+            if status == "ready_to_switch_on":
+                color = "#ff0000"
+                status = "RELEASE"
+            elif status == "switch_on_disabled":
+                color = "#ff0000"
+                status = "STOP"
+            elif status == "switched_on":
+                color = "#ffff00"
+                status = "READY"
+            elif status == "operation_enabled":
+                color = "#00ff00"
+                status = "RUNNING"
+            else:
+                color = "#0000ff"
+                status = "UNKNOWN"
             status_str = "<span style=\"color:{};\">{}</span>".format(color, status)
             getattr(self.ui, f"servo_{node_id}").setText(status_str)
             
@@ -562,8 +593,8 @@ class ControlPanel(QMainWindow):
             min_position = getattr(self, f"motor_{node_id}").min_position
             range = max_position - min_position
             if position < max_position and position > min_position:
-                if position <= min_position+range*0.2 or position >= max_position-range*0.2: color = "#ff0000"
-                elif position > min_position+range*0.2 and position <= min_position+range*0.4 or position < max_position-range*0.2 and position >= max_position-range*0.4: color = "#ffff00"
+                if position <= min_position+range*0.1 or position >= max_position-range*0.1: color = "#ff0000"
+                elif position > min_position+range*0.1 and position <= min_position+range*0.3 or position < max_position-range*0.1 and position >= max_position-range*0.3: color = "#ffff00"
                 else: color = "#00ff00"
             else: color = "#0000ff"
             position_str = "<span style=\"color:{};\">{}</span>".format(color, position)
@@ -575,18 +606,23 @@ class ControlPanel(QMainWindow):
             min_speed = getattr(self, f"motor_{node_id}").min_speed
             range = max_speed - min_speed
             if speed <= max_speed and speed >= min_speed:
-                if speed <= min_speed+range*0.2 or speed >= max_speed-range*0.2: color = "#ff0000"
-                elif speed > min_speed+range*0.2 and speed <= min_speed+range*0.4 or speed < max_speed-range*0.2 and speed >= max_speed-range*0.4: color = "#ffff00"
+                if speed <= min_speed+range*0.1 or speed >= max_speed-range*0.1: color = "#ff0000"
+                elif speed > min_speed+range*0.1 and speed <= min_speed+range*0.3 or speed < max_speed-range*0.1 and speed >= max_speed-range*0.3: color = "#ffff00"
                 else: color = "#00ff00"
             else: color = "#0000ff"
             speed_str = "<span style=\"color:{};\">{}</span>".format(color, speed)
             getattr(self.ui, f"speed_{node_id}").setText(speed_str)
         
-        # IO模块
-        else:
-            warning = "<span style=\"color:#ff0000;\">{}</span>".format("warning")
-            clear = "<span style=\"color:#00ff00;\">{}</span>".format("clear")
+        # IO模块下的接近开关
+        elif node_id in IoModule.io_dict.keys():
+            if self.io.switch_2:
+                self.quick_stop()
+            warning = "<span style=\"color:#ff0000;\">{}</span>".format("WARNING")
+            clear = "<span style=\"color:#00ff00;\">{}</span>".format("CLEAR")
             self.ui.isopen.setText(warning if self.io.switch_2 else clear)
+        
+        else: pass
+    
     def update_sensor(self):
         for i in range(1, 11):
             force = getattr(self, f"sensor_{i}").force
@@ -598,9 +634,10 @@ class ControlPanel(QMainWindow):
                     else: color = "#ffff00"
                 force_str = "<span style=\"color:{};\">{}</span>".format(color, abs(force))
             getattr(self.ui, f"force_{i}").setText(force_str)
-    def update_io(self):
-        open = "<span style=\"color:#ff0000;\">{}</span>".format("open")
-        close = "<span style=\"color:#00ff00;\">{}</span>".format("close")
+    
+    def update_valve(self):
+        open = "<span style=\"color:#ff0000;\">{}</span>".format("OPEN")
+        close = "<span style=\"color:#00ff00;\">{}</span>".format("CLOSE")
         self.ui.isopen_1.setText(open if self.io.channel_1 else close)
         self.ui.isopen_2.setText(open if self.io.channel_2 else close)
         self.ui.isopen_3.setText(open if self.io.channel_3 else close)
