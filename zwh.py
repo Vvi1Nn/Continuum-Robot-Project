@@ -18,9 +18,9 @@ print("\033[7;35m紫红+反白\033[0m")
 print("\033[0;36m青蓝\033[0m")
 print("\033[8;37m白+不可见\033[0m")
 
-rate = 0.3
-a = int(0xff*(1-rate))
-print(a)
-a = hex(a)[2:]
-print(a)
-print("0"*len(2-hex(int(0xff*(1-rate)))[2:]))
+a = {1: "1",
+     2: "2",
+     3: "3",}
+t = 2
+if t in a.keys():
+    print("111")
