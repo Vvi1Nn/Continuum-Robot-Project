@@ -23,6 +23,8 @@ class Motor(CanOpenBusProcessor):
     motor_dict = {}
     motor_count = 0
     check_count = 0
+
+    debug = True
     
     def __init__(self, node_id, position_range=[-100000,100000], speed_range=[-100,100]) -> None:
         super().__init__(node_id)
@@ -46,9 +48,13 @@ class Motor(CanOpenBusProcessor):
         self.max_speed = speed_range[1] # 最小位置
 
     ''' 检查电机的总线状态 '''
-    def check_bus_status(self) -> None:
-        if super().check_bus_status(): print("\033[0;32m[Motor {}] bus ready\033[0m".format(self.node_id))
-        else: print("\033[0;31m[Motor {}] bus unchecked, try again\033[0m".format(self.node_id))
+    def check_bus_status(self) -> bool:
+        if super().check_bus_status():
+            print("\033[0;32m[Motor {}] bus ready\033[0m".format(self.node_id))
+            return True
+        else:
+            print("\033[0;31m[Motor {}] bus unchecked, try again\033[0m".format(self.node_id))
+            return False
     
     ''' 获取电机的伺服状态 '''
     def get_motor_status(self, repeat=0, log=True) -> str:
@@ -81,21 +87,21 @@ class Motor(CanOpenBusProcessor):
         else: print("\033[0;31m[Motor {}] check bus first\033[0m".format(self.node_id)) # 需检查总线
     
     ''' 设置所有电机的基本参数 存入类属性 '''
-    @classmethod
-    def config(cls, mode="position_control", acc=1000, dec=10000, vel=100, pos=50, time=500) -> None:
+    @staticmethod
+    def config(mode="position_control", acc=1000, dec=10000, vel=100, pos=50, time=500) -> None:
         print("=============================================================")
-        cls.control_mode = protocol.CONTROL_MODE[mode]
-        print("\033[0;32m[Motor] control_mode: {}\033[0m".format(cls.control_mode))
-        cls.acceleration = acc if (acc >= 0 and acc <= 50000) else 1000 # 加速度限幅
-        print("\033[0;32m[Motor] acceleration: {}\033[0m".format(cls.acceleration))
-        cls.deceleration = dec if (dec >= 0 and dec <= 100000) else 10000 # 减速度限幅
-        print("\033[0;32m[Motor] deceleration: {}\033[0m".format(cls.deceleration))
-        cls.velocity = vel if (vel >= 0 and vel <= 200) else 100 # 动作速度限幅
-        print("\033[0;32m[Motor] run velocity: {}\033[0m".format(cls.velocity))
-        cls.position = pos if (pos >= 0 and pos <= 100) else 50 # 动作间隔限幅
-        print("\033[0;32m[Motor] position: {}\033[0m".format(cls.position))
-        cls.inhibit_time = time if (time >= 0 and time <= 500) else 500 # TPDO禁止时间限幅
-        print("\033[0;32m[Motor] inhibit time: {}\033[0m".format(cls.inhibit_time))
+        Motor.control_mode = protocol.CONTROL_MODE[mode]
+        print("\033[0;32m[Motor] control_mode: {}\033[0m".format(Motor.control_mode))
+        Motor.acceleration = acc if (acc >= 0 and acc <= 50000) else 1000 # 加速度限幅
+        print("\033[0;32m[Motor] acceleration: {}\033[0m".format(Motor.acceleration))
+        Motor.deceleration = dec if (dec >= 0 and dec <= 100000) else 10000 # 减速度限幅
+        print("\033[0;32m[Motor] deceleration: {}\033[0m".format(Motor.deceleration))
+        Motor.velocity = vel if (vel >= 0 and vel <= 200) else 100 # 动作速度限幅
+        print("\033[0;32m[Motor] run velocity: {}\033[0m".format(Motor.velocity))
+        Motor.position = pos if (pos >= 0 and pos <= 100) else 50 # 动作间隔限幅
+        print("\033[0;32m[Motor] position: {}\033[0m".format(Motor.position))
+        Motor.inhibit_time = time if (time >= 0 and time <= 500) else 500 # TPDO禁止时间限幅
+        print("\033[0;32m[Motor] inhibit time: {}\033[0m".format(Motor.inhibit_time))
 
     ''' 类属性存放的参数 生效至电机 '''
     def __set_mode(self) -> None:
@@ -168,9 +174,9 @@ class Motor(CanOpenBusProcessor):
         return False
 
     ''' 电机初始化 '''
-    @classmethod
-    def init_config(cls) -> None:
-        for motor in cls.motor_dict.values():
+    @staticmethod
+    def init_config() -> None:
+        for motor in Motor.motor_dict.values():
             print("=============================================================")
             motor.__set_mode()
             motor.__set_acceleration()
@@ -180,136 +186,73 @@ class Motor(CanOpenBusProcessor):
             motor.__set_inhibit_time()
 
     ''' 启动PDO通讯 '''
-    @classmethod
-    def start_feedback(cls) -> None:
+    @staticmethod
+    def start_feedback() -> None:
         print("=============================================================")
-        for motor in cls.motor_dict.values():
+        for motor in Motor.motor_dict.values():
             if motor.set_bus_status("start_remote_node"):
                 print("\033[0;32m[Motor {}] start pdo\033[0m".format(motor.node_id))
-                continue
-            print("\033[0;31m[Motor {}] start pdo failed\033[0m".format(motor.node_id))
+            else: print("\033[0;31m[Motor {}] start pdo failed\033[0m".format(motor.node_id))
     
     ''' 关闭PDO通讯 '''
-    @classmethod
-    def stop_feedback(cls) -> None:
+    @staticmethod
+    def stop_feedback() -> None:
         print("=============================================================")
-        for motor in cls.motor_dict.values():
+        for motor in Motor.motor_dict.values():
             if motor.set_bus_status("enter_pre-operational_state"):
                 print("\033[0;32m[Motor {}] stop pdo\033[0m".format(motor.node_id))
-                continue
-            print("\033[0;31m[Motor {}] stop pdo failed\033[0m".format(motor.node_id))
+            else: print("\033[0;31m[Motor {}] stop pdo failed\033[0m".format(motor.node_id))
 
     ''' 解除抱闸 '''
-    @classmethod
-    def release_brake(cls):
+    @staticmethod
+    def release_brake():
         print("=============================================================")
-        for motor in cls.motor_dict.values():
+        for motor in Motor.motor_dict.values():
             if motor.set_servo_status("servo_close"):
                 print("\033[0;32m[Motor {}] release brake\033[0m".format(motor.node_id))
                 time.sleep(0.001)
-                continue
-            print("\033[0;31m[Motor {}] release brake failed\033[0m".format(motor.node_id))
+            else: print("\033[0;31m[Motor {}] release brake failed\033[0m".format(motor.node_id))
 
     ''' 锁住抱闸 '''
-    @classmethod
-    def enable_servo(cls):
+    @staticmethod
+    def enable_servo():
         print("=============================================================")
-        for motor in cls.motor_dict.values():
+        for motor in Motor.motor_dict.values():
             if motor.set_servo_status("servo_ready/stop"):
                 print("\033[0;32m[Motor {}] lock brake\033[0m".format(motor.node_id))
                 time.sleep(0.001)
-                continue
-            print("\033[0;31m[Motor {}] lock brake failed\033[0m".format(motor.node_id))
+            else: print("\033[0;31m[Motor {}] lock brake failed\033[0m".format(motor.node_id))
 
     ''' 急停 '''
-    @classmethod
-    def quick_stop(cls):
+    @staticmethod
+    def quick_stop():
         print("=============================================================")
-        for motor in cls.motor_dict.values():
+        for motor in Motor.motor_dict.values():
             if motor.set_servo_status("quick_stop"):
                 print("\033[0;32m[Motor {}] quick stop\033[0m".format(motor.node_id))
                 time.sleep(0.001)
-                continue
-            print("\033[0;31m[Motor {}] quick stop failed\033[0m".format(motor.node_id))
+            else: print("\033[0;31m[Motor {}] quick stop failed\033[0m".format(motor.node_id))
 
     ''' 错误 重置 '''
-    @classmethod
-    def reset(cls):
+    @staticmethod
+    def reset():
         print("=============================================================")
-        for motor in cls.motor_dict.values():
-            if motor.set_servo_status("reset"):
-                print("\033[0;32m[Motor {}] reset\033[0m".format(motor.node_id))
-                continue
-            print("\033[0;31m[Motor {}] reset failed\033[0m".format(motor.node_id))
+        for motor in Motor.motor_dict.values():
+            if motor.set_servo_status("reset"): print("\033[0;32m[Motor {}] reset\033[0m".format(motor.node_id))
+            else: print("\033[0;31m[Motor {}] reset failed\033[0m".format(motor.node_id))
 
-    # ''' hex列表转换为int '''
-    # @staticmethod
-    # def __hex_list_to_int(data_list) -> int:
-    #     data_str = ""
-    #     for i in range(len(data_list)):
-    #         data_bin = bin(data_list[i])[2:] # 首先转换为bin 去除0b
-    #         data_bin = '0' * (8 - len(data_bin)) + data_bin # 头部补齐
-    #         data_str = data_bin + data_str # 拼接
-    #     # 首位是0 正数
-    #     if int(data_str[0]) == 0: return int(data_str, 2)
-    #     # 首位是1 负数
-    #     else: return - ((int(data_str, 2) ^ 0xFFFFFFFF) + 1)
-    
-    # ''' 更新状态 '''
-    # @classmethod
-    # def update_motor_status(cls) -> int:
-    #     ret = cls.device.read_buffer(1, wait_time=0)
-    #     if ret != None:
-    #         [num, msg] = ret
-    #         for i in range(num):
-    #             if msg[i].ID > 0x180 and msg[i].ID < 0x200:
-    #                 node_id = msg[i].ID-0x180
-    #                 status = cls.__hex_list_to_int([msg[i].Data[0]]) # 状态字
-    #                 for key in protocol.STATUS_WORD: # 遍历字典关键字
-    #                     for r in protocol.STATUS_WORD[key]: # 在每一个关键字对应的列表中 核对数值
-    #                         if status == r:
-    #                             cls.motor_dict[node_id].motor_status = key # 更新电机的伺服状态
-    #                             return node_id
-    #             elif msg[i].ID > 0x280 and msg[i].ID < 0x300:
-    #                 node_id = msg[i].ID-0x280
-    #                 position = cls.__hex_list_to_int([msg[i].Data[j] for j in range(0,4)]) # 当前位置
-    #                 speed = cls.__hex_list_to_int([msg[i].Data[j] for j in range(4,8)]) # 当前速度
-    #                 cls.motor_dict[node_id].current_position = position
-    #                 cls.motor_dict[node_id].current_speed = speed
-    #                 return node_id
-    #             else: pass
-    #     return 0
-    
-    # ''' 单电机运动测试 位置控制模式 相对运行 立即模式 可实现点击按钮动作 '''
-    # def start_joint_forward(self):
-    #     # print("=============================================================")
-    #     self.joint_control_thread = JointControlThread(self, True, Motor.position, Motor.velocity)
-    #     self.joint_control_thread.start()
-    # def start_joint_reverse(self):
-    #     # print("=============================================================")
-    #     self.joint_control_thread = JointControlThread(self, False, Motor.position, Motor.velocity)
-    #     self.joint_control_thread.start()
-    # def stop_joint(self):
-    #     # print("=============================================================")
-    #     self.joint_control_thread.stop()
-    #     self.joint_control_thread.wait()
-
-
-    # ''' 单电机运动测试 位置控制模式 相对运行 立即模式 可实现点击一次按钮动作一次 '''
-    # def action_forward(self):
-    #     print("=============================================================")
-    #     if self.is_in_range():
-    #         self.set_servo_status("position_mode_ready")
-    #         self.set_position_and_velocity(Motor.position, Motor.velocity)
-    #         self.set_servo_status("position_mode_action")
-    
-    # ''' 单电机运动测试 位置控制模式 相对运行 立即模式 可实现点击一次按钮动作一次 '''
-    # def action_reverse(self):
-    #     print("=============================================================")
-    #     if self.is_in_range():
-    #         self.set_servo_status("position_mode_ready")
-    #         self.set_position_and_velocity(-Motor.position, Motor.velocity)
-    #         self.set_servo_status("position_mode_action")
+    '''  '''
+    @staticmethod
+    def homing():
+        count = 0
+        for motor in Motor.motor_dict.values():
+            if motor.sdo_write_32("control_word", protocol.CONTROL_WORD["servo_close"]):
+                print("\033[0;32m[Motor {}] homed\033[0m".format(motor.node_id))
+                count += 1
+            else: print("\033[0;31m[Motor {}] homing failed\033[0m".format(motor.node_id))
+        if count == len(Motor.motor_dict): return True
+        else: return False
+        
     
     '''  '''
     def follow(self, p, v, reverse=False):
