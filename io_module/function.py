@@ -104,7 +104,7 @@ class IoModule(CanOpenBusProcessor, QObject):
                 value_str = "1" + value_str if getattr(self, f"channel_{i}") else "0" + value_str
             if self.rpdo("1", int(value_str, 2), format=8):
                 self.update_signal.emit()
-                print("\033[0;32m[IO {}] output status: {}\033[0m".format(self.node_id, value_str))
+                # print("\033[0;32m[IO {}] output status: {}\033[0m".format(self.node_id, value_str))
                 return True
         return False
 
