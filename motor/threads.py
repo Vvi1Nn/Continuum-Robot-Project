@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' threads.py 在GUI中使用的线程 v1.0 更改canopen通道状态更新 修改关节控制超出范围无法操作的bug'''
+''' threads.py 在GUI中使用的线程 v1.0 修改停止运动后速度显示不为0的bug '''
 
 
 from PyQt5.QtCore import QThread, pyqtSignal
@@ -39,17 +39,19 @@ class CANopenUpdateThread(QThread):
             if ret != None:
                 [num, msg] = ret
                 for i in range(num):
+                    # TPDO1
                     if msg[i].ID > 0x180 and msg[i].ID < 0x200:
                         node_id = msg[i].ID - 0x180
                         # 电机的ID
-                        if node_id != 0xB:
+                        if node_id in Motor.motor_dict.keys():
                             status = self.__hex_list_to_int([msg[i].Data[0]]) # 状态字
                             for key in protocol.STATUS_WORD: # 遍历字典关键字
                                 for r in protocol.STATUS_WORD[key]: # 在每一个关键字对应的列表中 核对数值
                                     if status == r:
                                         Motor.motor_dict[node_id].motor_status = key # 更新电机的伺服状态
+                                    else: pass
                         # IO模块的ID
-                        else:
+                        elif node_id in IoModule.io_dict.keys():
                             data_low = bin(msg[i].Data[0])[2:] # 首先转换为bin 去除0b
                             data_low = '0' * (8 - len(data_low)) + data_low # 头部补齐
                             data_high = bin(msg[i].Data[1])[2:]
@@ -57,15 +59,24 @@ class CANopenUpdateThread(QThread):
                             data = data_high + data_low # 拼接
                             for i, c in enumerate(data):
                                 setattr(IoModule.io_dict[node_id], f"switch_{16-i}", False if c == "0" else True)
+                        else: pass
+                    # TPDO2
                     elif msg[i].ID > 0x280 and msg[i].ID < 0x300:
                         node_id = msg[i].ID - 0x280
-                        position = self.__hex_list_to_int([msg[i].Data[j] for j in range(0,4)]) # 当前位置
-                        speed = self.__hex_list_to_int([msg[i].Data[j] for j in range(4,8)]) # 当前速度
-                        Motor.motor_dict[node_id].current_position = position
-                        Motor.motor_dict[node_id].current_speed = speed
+                        if node_id in Motor.motor_dict.keys():
+                            position = self.__hex_list_to_int([msg[i].Data[j] for j in range(0,4)]) # 当前位置
+                            speed = self.__hex_list_to_int([msg[i].Data[j] for j in range(4,8)]) # 当前速度
+                            if Motor.motor_dict[node_id].motor_status == "ready_to_switch_on" or Motor.motor_dict[node_id].motor_status == "switch_on_disabled":
+                                speed = 0 # 已经停止运动了 速度完全是0
+                            else: pass
+                            Motor.motor_dict[node_id].current_position = position
+                            Motor.motor_dict[node_id].current_speed = speed
+                        else: pass
                     else: pass
+            else: pass
             # 发送ID
             if node_id != 0: self.update_signal.emit(node_id)
+            else: pass
     
     def stop(self):
         self.__is_stop = True
@@ -95,11 +106,13 @@ class JointControlThread(QThread):
                         self.__motor.set_servo_status("position_mode_ready")
                         self.__motor.set_position_and_velocity(-self.__position, self.__velocity)
                         self.__motor.set_servo_status("position_mode_action")
+                    else: pass
                 else:
                     if self.__is_forward:
                         self.__motor.set_servo_status("position_mode_ready")
                         self.__motor.set_position_and_velocity(self.__position, self.__velocity)
                         self.__motor.set_servo_status("position_mode_action")
+                    else: pass
     
     def stop(self):
         self.__is_stop = True
@@ -119,6 +132,7 @@ class InitMotorThread(QThread):
 
 class CheckMotorThread(QThread):
     running_signal = pyqtSignal(bool)
+    status_signal = pyqtSignal(int)
     check_signal = pyqtSignal(int)
     finish_signal = pyqtSignal()
     
@@ -129,17 +143,21 @@ class CheckMotorThread(QThread):
     def run(self):
         self.running_signal.emit(True)
         for node_id in Motor.motor_dict:
-            if not Motor.motor_dict[node_id].motor_is_checked:
-                Motor.motor_dict[node_id].check_bus_status()
-                Motor.motor_dict[node_id].check_motor_status()
-            if Motor.motor_dict[node_id].motor_is_checked:
-                self.check_signal.emit(node_id)
-                self.__check_count += 1
-        if self.__check_count == 9:
-            self.finish_signal.emit()
-            return
-        self.running_signal.emit(False)
-
+            times = 3
+            while times != 0:
+                if Motor.motor_dict[node_id].check_bus_status():
+                    Motor.motor_dict[node_id].check_motor_status()
+                    self.status_signal.emit(node_id)
+                    if Motor.motor_dict[node_id].motor_is_checked:
+                        self.check_signal.emit(node_id)
+                        self.__check_count += 1
+                        break
+                    else: pass
+                else: pass
+                times -= 1
+        if self.__check_count == len(Motor.motor_dict): self.finish_signal.emit()
+        else: self.running_signal.emit(False)
+        
 
 
 class StartPDO(QThread):
