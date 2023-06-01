@@ -238,7 +238,9 @@ class Motor(CanOpenBusProcessor):
     def reset():
         print("=============================================================")
         for motor in Motor.motor_dict.values():
-            if motor.set_servo_status("reset"): print("\033[0;32m[Motor {}] reset\033[0m".format(motor.node_id))
+            if motor.set_servo_status("reset"):
+                print("\033[0;32m[Motor {}] reset\033[0m".format(motor.node_id))
+                time.sleep(0.001)
             else: print("\033[0;31m[Motor {}] reset failed\033[0m".format(motor.node_id))
 
     '''  '''
