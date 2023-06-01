@@ -41,10 +41,9 @@ class Sensor():
         self.__init = 0
         self.force = None
 
-    @classmethod
-    def link_device(cls, device):
-        cls.__device = device
-        return cls
+    @staticmethod
+    def link_device(device) -> None:
+        Sensor.__device = device
     
     def is_ready(self) -> bool:
         if self.__device.send(self.__node_id, [self.__msg], data_len="sensor"):
