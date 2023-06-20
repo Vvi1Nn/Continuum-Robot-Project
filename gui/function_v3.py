@@ -9,7 +9,7 @@ from PyQt5.QtCore import QMutex
 
 
 # 添加模块路径
-import sys, os
+import sys, os, time
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from gui.ui_login import Ui_MainWindow as Ui_LoginPanel
 from gui.ui_control_v3 import Ui_MainWindow as Ui_ControlPanel
@@ -84,7 +84,7 @@ class ControlPanel(QMainWindow):
         self.motor_7 = Motor(7)
         self.motor_8 = Motor(8)
         self.motor_9 = Motor(9)
-        # self.motor_10 = Motor(10)
+        self.motor_10 = Motor(10, [-100000,100000], [-200,200])
 
         Sensor.link_device(self.usbcan_1)
         # 力传感器
@@ -114,6 +114,7 @@ class ControlPanel(QMainWindow):
         
         # 按钮跳转的设置 也就是把按钮的signal和slot绑定
         self.set_menu_jumping() # 菜单
+        self.set_auto_jumping()
         self.set_usbcan_jumping() # USBCAN
         self.set_motor_jumping() # 电机
         self.set_sensor_jumping() # 传感器
@@ -134,7 +135,7 @@ class ControlPanel(QMainWindow):
         ''' 页面 '''
         self.ui.stackedWidget.setCurrentIndex(0) # 显示第1页
         ''' USBCAN '''
-        self.enable_open_device(True, "打开设备") # 激活
+        self.enable_open_device(True, "打开") # 激活
         self.enable_channel0(False, False, "打开通道0", "重置0") # 失效
         self.enable_channel1(False, False, "打开通道1", "重置1") # 失效
         self.enable_close_device(False, "关闭") # 失效
@@ -195,6 +196,9 @@ class ControlPanel(QMainWindow):
         self.ui.bt_init.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(0))
         self.ui.bt_control.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(1))
         self.ui.bt_log.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(2))
+    ''' 自动 '''
+    def set_auto_jumping(self) -> None:
+        self.ui.bt_auto.clicked.connect(self.auto)
     ''' CAN卡 '''
     def set_usbcan_jumping(self) -> None:
         self.ui.bt_open.clicked.connect(self.open_usbcan)
@@ -255,6 +259,22 @@ class ControlPanel(QMainWindow):
     '''
         slot函数
     '''
+    ''' 一键操作 '''
+    def auto(self):
+        self.open_usbcan()
+        time.sleep(0.1)
+        self.start_channel_0()
+        time.sleep(0.1)
+        self.start_channel_1()
+        time.sleep(0.1)
+        self.check_motor()
+        time.sleep(4)
+        self.start_force()
+        time.sleep(1)
+        self.open_module()
+
+        self.enable_auto(False)
+    
     ''' 打开设备 '''
     def open_usbcan(self):
         if UsbCan.open_device():
@@ -524,16 +544,16 @@ class ControlPanel(QMainWindow):
         self.enable_exit(True)
         ''' 操纵 '''
         def start_manipulate(status):
-            if status == 0: self.motor_2.set_servo_status("quick_stop") # 不操作
+            if status == 0: self.motor_10.set_servo_status("quick_stop") # 不操作
             else: # 操作
-                if self.motor_2.is_in_range(): self.motor_2.set_servo_status("servo_enable/start") # 在范围内
+                if self.motor_10.is_in_range(): self.motor_10.set_servo_status("servo_enable/start") # 在范围内
                 else: # 超出范围
-                    if self.motor_2.current_position >= self.motor_2.max_position: # 大于max
-                        if self.motor_2.target_speed < 0: self.motor_2.set_servo_status("servo_enable/start") # 反方向速度 可动
-                        else: self.motor_2.set_servo_status("quick_stop") # 继续超出范围 不可动
-                    elif self.motor_2.current_position <= self.motor_2.min_position: # 小于min
-                        if self.motor_2.target_speed > 0: self.motor_2.set_servo_status("servo_enable/start") # 反方向速度 可动
-                        else: self.motor_2.set_servo_status("quick_stop") # 继续超出范围 不可动
+                    if self.motor_10.current_position >= self.motor_10.max_position: # 大于max
+                        if self.motor_10.target_speed < 0: self.motor_10.set_servo_status("servo_enable/start") # 反方向速度 可动
+                        else: self.motor_10.set_servo_status("quick_stop") # 继续超出范围 不可动
+                    elif self.motor_10.current_position <= self.motor_10.min_position: # 小于min
+                        if self.motor_10.target_speed > 0: self.motor_10.set_servo_status("servo_enable/start") # 反方向速度 可动
+                        else: self.motor_10.set_servo_status("quick_stop") # 继续超出范围 不可动
         # def test_stop(status):
         #     if status == 1: self.quick_stop()
         # def test_speed_1(value):
@@ -545,13 +565,13 @@ class ControlPanel(QMainWindow):
         #             self.motor_1.set_servo_status("servo_enable/start")
         #             self.action = True
         #         self.motor_1.set_speed(int(value*100))
-        def test_speed_2(value):
+        def test_speed(value):
             if abs(value) < 0.1: value = 0
-            self.motor_2.set_speed(int(value*200))
+            self.motor_10.set_speed(int(value*200))
         ''' 绑定 '''
         self.joystick.button_signal_0.connect(start_manipulate)
         # self.joystick.button_signal_1.connect(test_stop)
-        self.joystick.axis_signal_2.connect(test_speed_2)
+        self.joystick.axis_signal_2.connect(test_speed)
         # self.joystick.axis_signal_1.connect(test_speed_1)
         self.joystick.start() # 开启joystick线程
     def exit_end_control(self):
@@ -600,7 +620,7 @@ class ControlPanel(QMainWindow):
             position_str = "<span style=\"color:{};\">{}</span>".format(color, position)
             getattr(self.ui, f"position_{node_id}").setText(position_str)
             
-            #速度
+            # 速度
             speed = getattr(self, f"motor_{node_id}").current_speed
             max_speed = getattr(self, f"motor_{node_id}").max_speed
             min_speed = getattr(self, f"motor_{node_id}").min_speed
@@ -615,11 +635,16 @@ class ControlPanel(QMainWindow):
         
         # IO模块下的接近开关
         elif node_id in IoModule.io_dict.keys():
+            if self.io.switch_1:
+                self.quick_stop()
+            else: pass
             if self.io.switch_2:
                 self.quick_stop()
+            else: pass
             warning = "<span style=\"color:#ff0000;\">{}</span>".format("WARNING")
             clear = "<span style=\"color:#00ff00;\">{}</span>".format("CLEAR")
-            self.ui.isopen.setText(warning if self.io.switch_2 else clear)
+            self.ui.isclose_1.setText(warning if self.io.switch_2 else clear)
+            self.ui.isclose_2.setText(warning if self.io.switch_1 else clear)
         
         else: pass
     
@@ -671,6 +696,9 @@ class ControlPanel(QMainWindow):
     '''
         第一页
     '''
+    def enable_auto(self, flag, text=None):
+        self.ui.bt_auto.setEnabled(flag)
+        if text != None: self.ui.bt_auto.setText(text)
     ''' USBCAN '''
     def enable_open_device(self, flag, text=None):
         self.ui.bt_open.setEnabled(flag)
@@ -869,4 +897,5 @@ class ControlPanel(QMainWindow):
         self.ui.fa_status_2.setEnabled(flag)
         self.ui.fa_status_3.setEnabled(flag)
         self.ui.fa_status_4.setEnabled(flag)
-        self.ui.switch_status.setEnabled(flag)
+        self.ui.switch_status_1.setEnabled(flag)
+        self.ui.switch_status_2.setEnabled(flag)
