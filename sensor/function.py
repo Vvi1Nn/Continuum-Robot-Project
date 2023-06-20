@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' function.py 力传感器数据读取 v1.2 新增is_ready状态 提高了适应性 '''
+''' function.py 力传感器数据读取 v1.3 优化is_ready状态 避免单次检测不成功 '''
 
 
 import time
@@ -45,13 +45,17 @@ class Sensor():
     def link_device(device) -> None:
         Sensor.__device = device
     
-    def is_ready(self) -> bool:
-        if self.__device.send(self.__node_id, [self.__msg], data_len="sensor"):
-            time.sleep(0.01)
-            ret = self.__device.read_buffer(1)
-            if ret != None:
-                [num, msg] = ret
-                if num != 0: return True
+    def is_ready(self, times=2) -> bool:
+        while times != 0:
+            if self.__device.send(self.__node_id, [self.__msg], data_len="sensor"):
+                time.sleep(0.01)
+                ret = self.__device.read_buffer(1)
+                if ret != None:
+                    [num, msg] = ret
+                    if num != 0: return True
+                    else: times -= 1
+                else: times -= 1
+            else: times -= 1
         return False
     
     @staticmethod
@@ -62,10 +66,8 @@ class Sensor():
                 sensor.__is_ready = True
                 check_num += 1
             else: print("\033[0;31m[Sensor {}] unchecked\033[0m".format(sensor.__node_id))
-        # if check_num == len(Sensor.__sensor_dict): return True
-        if check_num == 1: return True
+        if check_num == len(Sensor.__sensor_dict): return True
         else: return False
-
 
     def get_init(self, count=50) -> None:
         if self.__is_ready:
