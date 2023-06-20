@@ -26,7 +26,7 @@ class Motor(CanOpenBusProcessor):
 
     debug = True
     
-    def __init__(self, node_id, position_range=[-100000,100000], speed_range=[-100,100]) -> None:
+    def __init__(self, node_id, position_range=[-100000,100], speed_range=[-100,100]) -> None:
         super().__init__(node_id)
 
         Motor.motor_dict[node_id] = self
@@ -252,6 +252,7 @@ class Motor(CanOpenBusProcessor):
                 print("\033[0;32m[Motor {}] homed\033[0m".format(motor.node_id))
                 count += 1
             else: print("\033[0;31m[Motor {}] homing failed\033[0m".format(motor.node_id))
+            time.sleep(0.001)
         if count == len(Motor.motor_dict): return True
         else: return False
         
