@@ -128,7 +128,6 @@ class InitMotorThread(QThread):
         self.running_signal.emit(True)
         Motor.init_config() # 将所有参数生效给所有电机
         self.running_signal.emit(False)
-    
 
 class CheckMotorThread(QThread):
     running_signal = pyqtSignal(bool)
