@@ -238,7 +238,7 @@ QStackedWidget QTextBrowser {
              <property name="title">
               <string>【USBCAN卡】</string>
              </property>
-             <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="2,1,2,1,1">
+             <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="2,1,1,2,1,1">
               <property name="spacing">
                <number>10</number>
               </property>
@@ -255,6 +255,22 @@ QStackedWidget QTextBrowser {
                <number>0</number>
               </property>
               <item>
+               <widget class="QPushButton" name="bt_auto">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>一键操作</string>
+                </property>
+               </widget>
+              </item>
+              <item>
                <widget class="QPushButton" name="bt_open">
                 <property name="enabled">
                  <bool>true</bool>
@@ -266,7 +282,7 @@ QStackedWidget QTextBrowser {
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>打开设备</string>
+                 <string>打开</string>
                 </property>
                </widget>
               </item>
@@ -3094,9 +3110,9 @@ QStackedWidget QTextBrowser {
                  </widget>
                 </item>
                 <item>
-                 <widget class="QGroupBox" name="switch_status">
+                 <widget class="QGroupBox" name="switch_status_1">
                   <property name="title">
-                   <string>switch</string>
+                   <string>near</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignCenter</set>
@@ -3118,7 +3134,44 @@ QStackedWidget QTextBrowser {
                     <number>0</number>
                    </property>
                    <item>
-                    <widget class="QLabel" name="isopen">
+                    <widget class="QLabel" name="isclose_1">
+                     <property name="text">
+                      <string>status</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QGroupBox" name="switch_status_2">
+                  <property name="title">
+                   <string>far</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                  <layout class="QVBoxLayout" name="verticalLayout_37">
+                   <property name="spacing">
+                    <number>0</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="isclose_2">
                      <property name="text">
                       <string>status</string>
                      </property>
