@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' function.py 力传感器数据读取 v1.3 优化is_ready状态 避免单次检测不成功 '''
+''' function.py 力传感器数据读取 v1.4 添加debug '''
 
 
 import time
