@@ -249,9 +249,9 @@ class Motor(CanOpenBusProcessor):
         count = 0
         for motor in Motor.motor_dict.values():
             if motor.sdo_write_32("control_word", protocol.CONTROL_WORD["servo_close"]):
-                print("\033[0;32m[Motor {}] homed\033[0m".format(motor.node_id))
+                print("\033[0;32m[Motor {}] servo close\033[0m".format(motor.node_id))
                 count += 1
-            else: print("\033[0;31m[Motor {}] homing failed\033[0m".format(motor.node_id))
+            else: print("\033[0;31m[Motor {}] close servo failed\033[0m".format(motor.node_id))
             time.sleep(0.001)
         if count == len(Motor.motor_dict): return True
         else: return False
