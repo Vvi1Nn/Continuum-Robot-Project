@@ -142,6 +142,7 @@ class CheckMotorThread(QThread):
     def run(self):
         self.running_signal.emit(True)
         for node_id in Motor.motor_dict:
+            print("=============================================================")
             times = 3
             while times != 0:
                 if Motor.motor_dict[node_id].check_bus_status():
