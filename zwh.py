@@ -18,9 +18,7 @@ print("\033[7;35m紫红+反白\033[0m")
 print("\033[0;36m青蓝\033[0m")
 print("\033[8;37m白+不可见\033[0m")
 
-a = {1: "1",
-     2: "2",
-     3: "3",}
-t = 2
-if t in a.keys():
-    print("111")
+a = True
+b = False
+if a or b:
+    print(b)
