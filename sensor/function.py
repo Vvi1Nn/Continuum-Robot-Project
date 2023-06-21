@@ -45,6 +45,7 @@ class Sensor():
     def link_device(device) -> None:
         Sensor.__device = device
     
+    ''' 发送数据 检查是否可以读取到回复 确保传感器处于准备状态 '''
     def is_ready(self, times=2) -> bool:
         while times != 0:
             if self.__device.send(self.__node_id, [self.__msg], data_len="sensor"):
@@ -53,22 +54,31 @@ class Sensor():
                 if ret != None:
                     [num, msg] = ret
                     if num != 0: return True
-                    else: times -= 1
-                else: times -= 1
-            else: times -= 1
+                    else:
+                        print("\033[0;31m[Sensor {}] In function [is_ready], no data in buffer\033[0m".format(self.__node_id))
+                        times -= 1
+                else:
+                    print("\033[0;31m[Sensor {}] In function [is_ready], return is none\033[0m".format(self.__node_id))
+                    times -= 1
+            else:
+                print("\033[0;31m[Sensor {}] In function [is_ready], usbcan send message failed\033[0m".format(self.__node_id))
+                times -= 1
         return False
     
     @staticmethod
     def check_status() -> bool:
+        print("=============================================================")
         check_num = 0
         for sensor in Sensor.__sensor_dict.values():
             if sensor.is_ready():
                 sensor.__is_ready = True
                 check_num += 1
-            else: print("\033[0;31m[Sensor {}] unchecked\033[0m".format(sensor.__node_id))
+                print("\033[0;32m[Sensor {}] READY\033[0m".format(sensor.__node_id))
+            else: print("\033[0;31m[Sensor {}] NOT READY\033[0m".format(sensor.__node_id))
         if check_num == len(Sensor.__sensor_dict): return True
         else: return False
 
+    ''' 读取一系列数据 校准传感器零位 '''
     def get_init(self, count=50) -> None:
         if self.__is_ready:
             value = 0
@@ -82,14 +92,20 @@ class Sensor():
                         if num!= 0:
                             value += self.__hex_list_to_float([msg[0].Data[2], msg[0].Data[3], msg[0].Data[4], msg[0].Data[5]])
                             times -= 1
+                        else: print("\033[0;31m[Sensor {}] In function [get_init], no data in buffer\033[0m".format(self.__node_id))
+                    else: print("\033[0;31m[Sensor {}] In function [get_init], read buffer is none\033[0m".format(self.__node_id))
+                else: print("\033[0;31m[Sensor {}] In function [get_init], usbcan send message failed\033[0m".format(self.__node_id))
             self.__init = value / count
-        else: pass
+            print("\033[0;32m[Sensor {}] INIT\033[0m".format(self.__node_id))
+        else: print("\033[0;31m[Sensor {}] In function [get_init], sensor is not ready\033[0m".format(self.__node_id))
 
     @staticmethod
     def update_init() -> None:
+        print("=============================================================")
         for sensor in Sensor.__sensor_dict.values():
             sensor.get_init()
 
+    ''' 获取数据 '''
     def get_force(self) -> None:
         if self.__is_ready:
             if self.__device.send(self.__node_id, [self.__msg], data_len="sensor"):
@@ -99,7 +115,7 @@ class Sensor():
                     [num, msg] = ret
                     if num!= 0:
                         self.force = round(self.__hex_list_to_float([msg[0].Data[2], msg[0].Data[3], msg[0].Data[4], msg[0].Data[5]]) - self.__init, 2)
-        else: pass
+        else: print("\033[0;31m[Sensor {}] In function [get_init], sensor is not ready\033[0m".format(self.__node_id))
 
     @staticmethod
     def update_force() -> None:
