@@ -57,6 +57,9 @@ class LoginPanel(QMainWindow):
         else: pass
  
 
+
+
+
 ''' 控制界面 '''
 class ControlPanel(QMainWindow):
     def __init__(self, account) -> None:
@@ -85,6 +88,7 @@ class ControlPanel(QMainWindow):
         self.motor_8 = Motor(8)
         self.motor_9 = Motor(9)
         self.motor_10 = Motor(10, [-100000,100000], [-200,200])
+        self.motor_is_running = False
 
         Sensor.link_device(self.usbcan_1)
         # 力传感器
@@ -98,8 +102,11 @@ class ControlPanel(QMainWindow):
         self.sensor_8 = Sensor(8)
         self.sensor_9 = Sensor(9)
         self.sensor_10 = Sensor(10)
+        self.sensor_is_running = False
 
+        # IO模块
         self.io = IoModule(11, self.update_valve) # IO
+        self.io_is_running = False
 
         self.check_motor_thread = CheckMotorThread() # 检查电机
         self.init_motor_thread = InitMotorThread() # 初始化电机
@@ -119,7 +126,7 @@ class ControlPanel(QMainWindow):
         self.set_motor_jumping() # 电机
         self.set_sensor_jumping() # 传感器
         self.set_io_jumping() # IO
-        self.set_control_jumping() # 控制面板
+        self.set_control_jumping() # 控制
 
         self.show() # 显示界面
 
@@ -188,18 +195,96 @@ class ControlPanel(QMainWindow):
 
 
 
+
     '''
-        signal绑定
+        菜单
     '''
-    ''' 菜单 '''
+    # 跳转
     def set_menu_jumping(self) -> None:
         self.ui.bt_init.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(0))
         self.ui.bt_control.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(1))
         self.ui.bt_log.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(2))
-    ''' 自动 '''
+    # 界面 状态设置
+    def enable_menu(self, init, control, log):
+        self.ui.bt_init.setEnabled(init)
+        self.ui.bt_control.setEnabled(control)
+        self.ui.bt_log.setEnabled(log)
+    
+    
+    
+    '''
+        自动
+    '''
+    def enable_auto(self, flag, text=None):
+        self.ui.bt_auto.setEnabled(flag)
+        if text != None: self.ui.bt_auto.setText(text)
+    
     def set_auto_jumping(self) -> None:
         self.ui.bt_auto.clicked.connect(self.auto)
-    ''' CAN卡 '''
+    
+    def auto(self):
+        self.open_usbcan()
+        time.sleep(0.1)
+        self.start_channel_0()
+        time.sleep(0.1)
+        self.check_motor()
+        time.sleep(5)
+        self.open_module()
+        time.sleep(1)
+
+        self.start_channel_1()
+        time.sleep(0.1)
+        self.start_force()
+        time.sleep(8)
+
+        self.enable_auto(False)
+    
+
+
+
+    
+    
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+    '''
+        CAN卡
+    '''
+    # 界面 状态设置
+    def enable_open_device(self, flag, text=None):
+        self.ui.bt_open.setEnabled(flag)
+        if text != None: self.ui.bt_open.setText(text)
+    
+    def enable_channel0(self, flag_open, flag_reset, text_open=None, text_reset=None):
+        self.ui.bx_rate0.setEnabled(flag_open)
+        self.ui.bt_channel0.setEnabled(flag_open)
+        if text_open != None: self.ui.bt_channel0.setText(text_open)
+        self.ui.bt_reset0.setEnabled(flag_reset)
+        if text_reset != None: self.ui.bt_reset0.setText(text_reset)
+    
+    def enable_channel1(self, flag_open, flag_reset, text_open=None, text_reset=None):
+        self.ui.bx_rate1.setEnabled(flag_open)
+        self.ui.bt_channel1.setEnabled(flag_open)
+        if text_open != None: self.ui.bt_channel1.setText(text_open)
+        self.ui.bt_reset1.setEnabled(flag_reset)
+        if text_reset != None: self.ui.bt_reset1.setText(text_reset)
+    
+    def enable_close_device(self, flag, text=None):
+        self.ui.bt_close.setEnabled(flag)
+        if text != None: self.ui.bt_close.setText(text)
+    
+    # 按钮clicked信号绑定slot函数
     def set_usbcan_jumping(self) -> None:
         self.ui.bt_open.clicked.connect(self.open_usbcan)
         self.ui.bt_channel0.clicked.connect(self.start_channel_0)
@@ -207,75 +292,8 @@ class ControlPanel(QMainWindow):
         # self.ui.bt_reset0.clicked.connect(self.reset_cannel_0)
         # self.ui.bt_reset1.clicked.connect(self.reset_cannel_1)
         # self.ui.bt_close.clicked.connect(self.close_usbcan)
-    ''' 电机 '''
-    def set_motor_jumping(self) -> None:
-        self.ui.check_all.clicked.connect(self.check_motor)
-        self.ui.bt_save.clicked.connect(self.save_config)
-        self.ui.bt_launch.clicked.connect(self.init_motor)
-        self.ui.start.clicked.connect(self.start_pdo)
-        self.ui.stop.clicked.connect(self.stop_pdo)
-    ''' 传感器 '''
-    def set_sensor_jumping(self):
-        self.ui.force_open.clicked.connect(self.start_force)
-        self.ui.force_stop.clicked.connect(self.stop_force)
-    ''' IO '''
-    def set_io_jumping(self):
-        self.ui.io_open.clicked.connect(self.open_module)
-        self.ui.io_stop.clicked.connect(self.close_module)
-    ''' 控制 '''
-    def set_control_jumping(self):
-        self.ui.bt_quick_stop.clicked.connect(self.quick_stop)
-        self.ui.bt_quick_stop.setShortcut("space")
-        self.ui.bt_unlock.clicked.connect(self.release_break)
-        self.ui.bt_enable.clicked.connect(self.enable_servo)
-        self.ui.bt_joint_control.clicked.connect(self.joint_control)
-        self.ui.bt_quit.clicked.connect(self.quit_joint_control)
-        for node_id in Motor.motor_dict:
-            getattr(self.ui, f"bt_positive_{node_id}").pressed.connect(getattr(self, f"joint_forward_{node_id}"))
-            getattr(self.ui, f"bt_positive_{node_id}").released.connect(getattr(self, f"joint_stop_{node_id}"))
-            getattr(self.ui, f"bt_negative_{node_id}").pressed.connect(getattr(self, f"joint_reverse_{node_id}"))
-            getattr(self.ui, f"bt_negative_{node_id}").released.connect(getattr(self, f"joint_stop_{node_id}"))
-        for i in range(1,5):
-            getattr(self.ui, f"bt_open_{i}").clicked.connect(getattr(self, f"io_open_{i}"))
-            getattr(self.ui, f"bt_close_{i}").clicked.connect(getattr(self, f"io_close_{i}"))
-        self.ui.bt_end_control.clicked.connect(self.end_control)
-        self.ui.bt_exit.clicked.connect(self.exit_end_control)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    '''
-        slot函数
-    '''
-    ''' 一键操作 '''
-    def auto(self):
-        self.open_usbcan()
-        time.sleep(0.1)
-        self.start_channel_0()
-        time.sleep(0.1)
-        self.start_channel_1()
-        time.sleep(0.1)
-        self.check_motor()
-        time.sleep(4)
-        self.start_force()
-        time.sleep(1)
-        self.open_module()
-
-        self.enable_auto(False)
     
-    ''' 打开设备 '''
+    # 打开设备
     def open_usbcan(self):
         if UsbCan.open_device():
             self.enable_open_device(False, "设备已打开")
@@ -284,7 +302,7 @@ class ControlPanel(QMainWindow):
             self.enable_channel1(True, False)
         else: pass
     
-    ''' 通道 '''
+    # 打开通道0
     def start_channel_0(self):
         self.usbcan_0.set_timer(self.ui.bx_rate0.currentText()) # 记录波特率
         if self.usbcan_0.init_can() and self.usbcan_0.start_can():
@@ -296,6 +314,8 @@ class ControlPanel(QMainWindow):
             # 激活IO
             self.enable_open_io(True)
         else: pass
+    
+    # 打开通道1
     def start_channel_1(self):
         self.usbcan_1.set_timer(self.ui.bx_rate1.currentText()) # 记录波特率
         if self.usbcan_1.init_can() and self.usbcan_1.start_can():
@@ -303,18 +323,198 @@ class ControlPanel(QMainWindow):
             # 传感器的配置
             self.enable_start_force(True)
         else: pass
+    
+    # 重置通道0
     def reset_cannel_0(self):
         self.usbcan_0.reset_can() # 直接重置就行
+    
+    # 重置通道1
     def reset_cannel_1(self):
         self.usbcan_1.reset_can() # 直接重置就行
     
-    ''' 关闭设备 '''
+    # 关闭设备
     def close_usbcan(self):
         if UsbCan.close_device():
             self.initial_status()
         else: pass
     
-    ''' 检查状态 '''
+
+
+
+    
+    
+    
+    
+    
+
+
+
+
+
+
+
+
+
+
+    
+    
+    '''
+        电机
+    '''
+    # 界面 状态设置
+    def enable_check_all(self, flag, text=None):
+        self.ui.check_all.setEnabled(flag)
+        if text != None: self.ui.check_all.setText(text)
+    
+    def enable_check_1(self, flag, text=None):
+        self.ui.check_1.setEnabled(flag)
+        if text != None: self.ui.check_1.setText(text)
+    def enable_check_2(self, flag, text=None):
+        self.ui.check_2.setEnabled(flag)
+        if text != None: self.ui.check_2.setText(text)
+    def enable_check_3(self, flag, text=None):
+        self.ui.check_3.setEnabled(flag)
+        if text != None: self.ui.check_3.setText(text)
+    def enable_check_4(self, flag, text=None):
+        self.ui.check_4.setEnabled(flag)
+        if text != None: self.ui.check_4.setText(text)
+    def enable_check_5(self, flag, text=None):
+        self.ui.check_5.setEnabled(flag)
+        if text != None: self.ui.check_5.setText(text)
+    def enable_check_6(self, flag, text=None):
+        self.ui.check_6.setEnabled(flag)
+        if text != None: self.ui.check_6.setText(text)
+    def enable_check_7(self, flag, text=None):
+        self.ui.check_7.setEnabled(flag)
+        if text != None: self.ui.check_7.setText(text)
+    def enable_check_8(self, flag, text=None):
+        self.ui.check_8.setEnabled(flag)
+        if text != None: self.ui.check_8.setText(text)
+    def enable_check_9(self, flag, text=None):
+        self.ui.check_9.setEnabled(flag)
+        if text != None: self.ui.check_9.setText(text)
+    def enable_check_10(self, flag, text=None):
+        self.ui.check_10.setEnabled(flag)
+        if text != None: self.ui.check_10.setText(text)
+    
+    def enable_choose_mode(self, flag, mode="position_control"):
+        if mode == "position_control": self.ui.r_pos.setChecked(True) # 选择位置模式
+        elif mode == "speed_control": self.ui.r_vel.setChecked(True) # 选择速度模式
+        else: pass
+        self.ui.r_pos.setEnabled(flag)
+        self.ui.r_vel.setEnabled(flag)
+    
+    def enable_set_param(self, flag, text0=None, text1=None, text2=None, text3=None, text4=None):
+        self.ui.le_acc.clear()
+        self.ui.tx_acc.setEnabled(flag)
+        self.ui.le_acc.setEnabled(flag)
+        if text0 != None: self.ui.le_acc.setPlaceholderText(text0) # 加速度
+        self.ui.le_dec.clear()
+        self.ui.tx_dec.setEnabled(flag)
+        self.ui.le_dec.setEnabled(flag)
+        if text1 != None: self.ui.le_dec.setPlaceholderText(text1) # 减速度
+        self.ui.le_vel.clear()
+        self.ui.tx_vel.setEnabled(flag)
+        self.ui.le_vel.setEnabled(flag)
+        if text2 != None: self.ui.le_vel.setPlaceholderText(text2) # 动作速度
+        self.ui.le_position.clear()
+        self.ui.tx_position.setEnabled(flag)
+        self.ui.le_position.setEnabled(flag)
+        if text2 != None: self.ui.le_position.setPlaceholderText(text3) # 目标位置 也就是运动间隔
+        self.ui.le_inhibit.clear()
+        self.ui.tx_inhibit.setEnabled(flag)
+        self.ui.le_inhibit.setEnabled(flag)
+        if text3 != None: self.ui.le_inhibit.setPlaceholderText(text4) # TPDO禁止时间
+    
+    def enable_save_param(self, flag, text=None):
+        self.ui.bt_save.setEnabled(flag)
+        if text != None: self.ui.bt_save.setText(text)
+    
+    def enable_init_motor(self, flag, text=None):
+        self.ui.bt_launch.setEnabled(flag)
+        if text != None: self.ui.bt_launch.setText(text)
+    
+    def enable_start_pdo(self, flag, text=None):
+        self.ui.start.setEnabled(flag)
+        if text != None: self.ui.start.setText(text)
+    
+    def enable_stop_pdo(self, flag, text=None):
+        self.ui.stop.setEnabled(flag)
+        if text != None: self.ui.stop.setText(text)
+    
+    def enable_quick_stop(self, flag, text=None):
+        self.ui.bt_quick_stop.setEnabled(flag)
+        if text != None: self.ui.bt_quick_stop.setText(text)
+    
+    def enable_release_break(self, flag, text=None):
+        self.ui.bt_unlock.setEnabled(flag)
+        if text != None: self.ui.bt_unlock.setText(text)
+    
+    def enable_enable_servo(self, flag, text=None):
+        self.ui.bt_enable.setEnabled(flag)
+        if text != None: self.ui.bt_enable.setText(text)
+    
+    def enable_joint_control(self, flag, text=None):
+        self.ui.bt_joint_control.setEnabled(flag)
+        if text != None: self.ui.bt_joint_control.setText(text)
+    
+    def enable_quit(self, flag, text=None):
+        self.ui.bt_quit.setEnabled(flag)
+        if text != None: self.ui.bt_quit.setText(text)
+    
+    def enable_motor_group_1(self, flag):
+        self.ui.group_1.setEnabled(flag)
+    
+    def enable_motor_group_2(self, flag):
+        self.ui.group_2.setEnabled(flag)
+    
+    def enable_motor_group_3(self, flag):
+        self.ui.group_3.setEnabled(flag)
+    
+    def enable_motor_group_4(self, flag):
+        self.ui.group_4.setEnabled(flag)
+    
+    def enable_motor_group_5(self, flag):
+        self.ui.group_5.setEnabled(flag)
+    
+    def enable_motor_group_6(self, flag):
+        self.ui.group_6.setEnabled(flag)
+    
+    def enable_motor_group_7(self, flag):
+        self.ui.group_7.setEnabled(flag)
+    
+    def enable_motor_group_8(self, flag):
+        self.ui.group_8.setEnabled(flag)
+    
+    def enable_motor_group_9(self, flag):
+        self.ui.group_9.setEnabled(flag)
+    
+    def enable_motor_group_10(self, flag):
+        self.ui.group_10.setEnabled(flag)
+    
+    # 按钮信号绑定slot函数
+    def set_motor_jumping(self) -> None:
+        self.ui.check_all.clicked.connect(self.check_motor) # 检查
+        self.ui.bt_save.clicked.connect(self.save_config) # 保存
+        self.ui.bt_launch.clicked.connect(self.init_motor) # 生效
+        self.ui.start.clicked.connect(self.start_pdo) # 开启PDO
+        self.ui.stop.clicked.connect(self.stop_pdo) # 关闭PDO
+
+        self.ui.bt_quick_stop.clicked.connect(self.quick_stop) # 急停
+        self.ui.bt_quick_stop.setShortcut("space")
+        self.ui.bt_unlock.clicked.connect(self.release_break) # 掉电
+        self.ui.bt_enable.clicked.connect(self.enable_servo) # 使能
+
+        self.ui.bt_joint_control.clicked.connect(self.joint_control) # 进入单电机控制
+        self.ui.bt_quit.clicked.connect(self.quit_joint_control) # 退出单电机控制
+        
+        for node_id in Motor.motor_dict: # 10组电机控制按钮
+            getattr(self.ui, f"bt_positive_{node_id}").pressed.connect(getattr(self, f"joint_forward_{node_id}"))
+            getattr(self.ui, f"bt_positive_{node_id}").released.connect(getattr(self, f"joint_stop_{node_id}"))
+            getattr(self.ui, f"bt_negative_{node_id}").pressed.connect(getattr(self, f"joint_reverse_{node_id}"))
+            getattr(self.ui, f"bt_negative_{node_id}").released.connect(getattr(self, f"joint_stop_{node_id}"))
+    
+    # 检查状态
     def check_motor(self):
         def change(status):
             if status == True: self.enable_check_all(False, "进行中...")
@@ -341,7 +541,7 @@ class ControlPanel(QMainWindow):
         self.check_motor_thread.finish_signal.connect(next)
         self.check_motor_thread.start()
     
-    ''' 参数 '''
+    # 保存参数
     def save_config(self):
         if not self.is_admin: Motor.config() # 无权限 直接保存默认参数
         else: # 管理员权限
@@ -356,6 +556,8 @@ class ControlPanel(QMainWindow):
             # 生效
             self.enable_set_param(True, "{}".format(Motor.acceleration), "{}".format(Motor.deceleration), "{}".format(Motor.velocity), "{}".format(Motor.position), "{}".format(Motor.inhibit_time))
         self.enable_init_motor(True, "生效") # 激活 生效
+    
+    # 初始化电机参数
     def init_motor(self):
         def change(status):
             if status == True: self.enable_init_motor(False, "等待")
@@ -366,40 +568,7 @@ class ControlPanel(QMainWindow):
         self.init_motor_thread.running_signal.connect(change)
         self.init_motor_thread.start()
     
-    ''' 力 '''
-    def start_force(self):
-        if Sensor.check_status():
-            self.sensor_update.start()
-            self.enable_start_force(False, "已启动")
-            self.enable_stop_force(True)
-        else: pass
-    def stop_force(self):
-        self.sensor_update.stop()
-        self.sensor_update.wait()
-        self.sensor_update = SensorUpdateThread(self.sensor_mutex, self.update_sensor)
-        self.enable_start_force(True, "启动拉力读取")
-        self.enable_stop_force(False)
-
-    ''' IO '''
-    def open_module(self):
-        self.io.start_output()
-        if self.io.is_start:
-            self.enable_open_io(False, "已打开")
-            self.enable_close_io(True, "关闭IO输出")
-            self.enable_io(True)
-            self.enable_status_io(True)
-            for i in range (1,5):
-                getattr(self, f"enable_io_{i}")(False)
-        else: pass
-    def close_module(self):
-        self.io.stop_output()
-        if not self.io.is_start:
-            self.enable_open_io(True, "启动IO输出")
-            self.enable_close_io(False, "IO已关闭")
-            self.enable_io(False)
-        else: pass
-
-    ''' PDO '''
+    # 开启PDO通讯
     def start_pdo(self):
         def change(status):
             if status == True: self.enable_start_pdo(False, "启动中")
@@ -421,9 +590,13 @@ class ControlPanel(QMainWindow):
                     self.enable_end_control(True) # 生效
                 # 调用一下解除 安全起见
                 self.release_break()
+                # 设置状态flag
+                self.motor_is_running = True
         self.start_pdo_thread.running_signal.connect(change)
         self.start_pdo_thread.start()
         self.stop_pdo_thread = StopPDO()
+    
+    # 关闭PDO通讯
     def stop_pdo(self):
         def change(status):
             if status == True: self.enable_stop_pdo(False, "关闭中")
@@ -445,6 +618,8 @@ class ControlPanel(QMainWindow):
                     getattr(self, f"enable_motor_group_{i}")(False) # 失效
                 self.enable_end_control(False) # 失效
                 self.enable_exit(False) # 失效
+                # 设置状态flag
+                self.motor_is_running = False
         self.motor_update.stop()
         self.motor_update.wait()
         self.motor_update = CANopenUpdateThread(self.update_canopen) # 重新创建线程
@@ -452,7 +627,7 @@ class ControlPanel(QMainWindow):
         self.stop_pdo_thread.start()
         self.start_pdo_thread = StartPDO()
     
-    ''' 急停 '''
+    # 急停所有电机
     def quick_stop(self):
         # 功能
         Motor.quick_stop()
@@ -467,7 +642,7 @@ class ControlPanel(QMainWindow):
         self.enable_joint_control(False)
         self.enable_end_control(False)
     
-    ''' 解除抱闸 '''
+    # 解除抱闸 所有电机
     def release_break(self):
         # 功能
         Motor.release_brake()
@@ -482,7 +657,7 @@ class ControlPanel(QMainWindow):
         self.enable_joint_control(False)
         self.enable_end_control(False)
     
-    ''' 使能 '''
+    # 使能所有电机
     def enable_servo(self):
         # 开关状态
         self.enable_quick_stop(True)
@@ -497,7 +672,7 @@ class ControlPanel(QMainWindow):
         # 功能
         Motor.enable_servo()
     
-    ''' 关节控制 '''
+    # 进入单电机控制
     def joint_control(self):
         self.enable_joint_control(False)
         self.enable_end_control(False)
@@ -506,6 +681,8 @@ class ControlPanel(QMainWindow):
             if Motor.motor_dict[node_id].motor_is_checked:
                 getattr(self, f"enable_motor_group_{node_id}")(True)
             else: pass
+    
+    # 函数工厂 电机的正反转功能
     def joint_forward_factory(self, i):
         setattr(self, f"joint_{i}", JointControlThread(getattr(self, f"motor_{i}"), True, Motor.position, Motor.velocity))
         getattr(self, f"joint_{i}").start()
@@ -523,11 +700,180 @@ class ControlPanel(QMainWindow):
         exec(f"def joint_forward_{i}(self): self.joint_forward_factory({i})")
         exec(f"def joint_reverse_{i}(self): self.joint_reverse_factory({i})")
         exec(f"def joint_stop_{i}(self): self.joint_stop_factory({i})")
+    
+    # 退出单电机控制
     def quit_joint_control(self):
         self.enable_joint_control(True) # 生效
         self.enable_quit(False)
         for i in range(1,11):
             getattr(self, f"enable_motor_group_{i}")(False)
+    
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    '''
+        力传感器
+    '''
+    # 界面 状态设置
+    def enable_start_force(self, flag, text=None):
+        self.ui.force_open.setEnabled(flag)
+        if text != None: self.ui.force_open.setText(text)
+    
+    def enable_stop_force(self, flag, text=None):
+        self.ui.force_stop.setEnabled(flag)
+        if text != None: self.ui.force_stop.setText(text)
+    
+    # 按钮clicked信号绑定slot函数
+    def set_sensor_jumping(self):
+        self.ui.force_open.clicked.connect(self.start_force) # 开始读取
+        self.ui.force_stop.clicked.connect(self.stop_force) # 停止读取
+    
+    # 开启数值读取
+    def start_force(self):
+        if Sensor.check_status():
+            self.sensor_update.start()
+            self.enable_start_force(False, "已启动")
+            self.enable_stop_force(True)
+            # 状态flag
+            self.sensor_is_running = True
+        else: pass
+    
+    # 停止数值读取
+    def stop_force(self):
+        self.sensor_update.stop()
+        self.sensor_update.wait()
+        self.sensor_update = SensorUpdateThread(self.sensor_mutex, self.update_sensor)
+        self.enable_start_force(True, "启动拉力读取")
+        self.enable_stop_force(False)
+        # 状态flag
+        self.sensor_is_running = False
+    
+    # 在界面上显示数值
+    def update_sensor(self):
+        for i in range(1, 11):
+            force = getattr(self, f"sensor_{i}").force
+            if force == None: force_str = "<span style=\"color:#ffffff;\">{}</span>".format("No Data")
+            else: 
+                if force > 0: color = "#ff0000"
+                else:
+                    if abs(force) <= 10: color = "#00ff00"
+                    else: color = "#ffff00"
+                force_str = "<span style=\"color:{};\">{}</span>".format(color, abs(force))
+            getattr(self.ui, f"force_{i}").setText(force_str)
+
+
+    
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+    '''
+        IO模块
+    '''
+    # 界面 状态设置
+    def enable_open_io(self, flag, text=None):
+        self.ui.io_open.setEnabled(flag)
+        if text != None: self.ui.io_open.setText(text)
+    
+    def enable_close_io(self, flag, text=None):
+        self.ui.io_stop.setEnabled(flag)
+        if text != None: self.ui.io_stop.setText(text)
+    
+    def enable_io(self, flag):
+        self.ui.fa_1.setEnabled(flag)
+        self.ui.fa_2.setEnabled(flag)
+        self.ui.fa_3.setEnabled(flag)
+        self.ui.fa_4.setEnabled(flag)
+    
+    def enable_io_1(self, flag):
+        self.ui.bt_close_1.setEnabled(flag)
+        self.ui.bt_open_1.setEnabled(not flag)
+    
+    def enable_io_2(self, flag):
+        self.ui.bt_close_2.setEnabled(flag)
+        self.ui.bt_open_2.setEnabled(not flag)
+    
+    def enable_io_3(self, flag):
+        self.ui.bt_close_3.setEnabled(flag)
+        self.ui.bt_open_3.setEnabled(not flag)
+    
+    def enable_io_4(self, flag):
+        self.ui.bt_close_4.setEnabled(flag)
+        self.ui.bt_open_4.setEnabled(not flag)
+    
+    def enable_status_io(self, flag):
+        self.ui.fa_status_1.setEnabled(flag)
+        self.ui.fa_status_2.setEnabled(flag)
+        self.ui.fa_status_3.setEnabled(flag)
+        self.ui.fa_status_4.setEnabled(flag)
+        self.ui.switch_status_1.setEnabled(flag)
+        self.ui.switch_status_2.setEnabled(flag)
+    
+    # 按钮clicked信号绑定slot函数
+    def set_io_jumping(self):
+        self.ui.io_open.clicked.connect(self.open_module) # 开启
+        self.ui.io_stop.clicked.connect(self.close_module) # 关闭
+        # 电磁阀的4组开关
+        for i in range(1,5):
+            getattr(self.ui, f"bt_open_{i}").clicked.connect(getattr(self, f"io_open_{i}"))
+            getattr(self.ui, f"bt_close_{i}").clicked.connect(getattr(self, f"io_close_{i}"))
+    
+    # 启动模块PDO
+    def open_module(self):
+        self.io.start_output()
+        if self.io.is_start:
+            self.enable_open_io(False, "已打开")
+            self.enable_close_io(True, "关闭IO输出")
+            self.enable_io(True)
+            self.enable_status_io(True)
+            for i in range (1,5):
+                getattr(self, f"enable_io_{i}")(False)
+            # 状态flag
+            self.io_is_running = True
+        else: pass
+    
+    # 关闭模块PDO
+    def close_module(self):
+        self.io.stop_output()
+        if not self.io.is_start:
+            self.enable_open_io(True, "启动IO输出")
+            self.enable_close_io(False, "IO已关闭")
+            self.enable_io(False)
+            # 状态flag
+            self.io_is_running = False
+        else: pass
+
+    # 函数工厂 四组电磁阀开关按钮的slot函数
     def io_open_factory(self, i):
         if self.io.set_channel_status(True, f"{i}"): getattr(self, f"enable_io_{i}")(True)
     def io_close_factory(self, i):
@@ -535,8 +881,69 @@ class ControlPanel(QMainWindow):
     for i in range(1,5):
         exec(f"def io_open_{i}(self): self.io_open_factory({i})")
         exec(f"def io_close_{i}(self): self.io_close_factory({i})")
+
+    # 显示电磁阀的状态
+    def update_valve(self):
+        open = "<span style=\"color:#ff0000;\">{}</span>".format("OPEN")
+        close = "<span style=\"color:#00ff00;\">{}</span>".format("CLOSE")
+        self.ui.isopen_1.setText(open if self.io.channel_1 else close)
+        self.ui.isopen_2.setText(open if self.io.channel_2 else close)
+        self.ui.isopen_3.setText(open if self.io.channel_3 else close)
+        self.ui.isopen_4.setText(open if self.io.channel_4 else close)
+
     
-    ''' 操纵杆控制 '''
+    
+    
+
+
+
+
+
+
+
+
+
+
+    
+    
+    
+    
+
+    
+    '''
+        操纵杆
+    '''
+    # 界面 状态设置
+    def enable_end_control(self, flag, text=None):
+        self.ui.bt_end_control.setEnabled(flag)
+        if text != None: self.ui.bt_end_control.setText(text)
+    
+    def enable_exit(self, flag, text=None):
+        self.ui.bt_exit.setEnabled(flag)
+        if text != None: self.ui.bt_exit.setText(text)
+    
+    # 按钮clicked信号绑定slot函数
+    def set_control_jumping(self):
+        # self.ui.bt_quick_stop.clicked.connect(self.quick_stop)
+        # self.ui.bt_quick_stop.setShortcut("space")
+        # self.ui.bt_unlock.clicked.connect(self.release_break)
+        # self.ui.bt_enable.clicked.connect(self.enable_servo)
+        # self.ui.bt_joint_control.clicked.connect(self.joint_control)
+        # self.ui.bt_quit.clicked.connect(self.quit_joint_control)
+        # for node_id in Motor.motor_dict:
+        #     getattr(self.ui, f"bt_positive_{node_id}").pressed.connect(getattr(self, f"joint_forward_{node_id}"))
+        #     getattr(self.ui, f"bt_positive_{node_id}").released.connect(getattr(self, f"joint_stop_{node_id}"))
+        #     getattr(self.ui, f"bt_negative_{node_id}").pressed.connect(getattr(self, f"joint_reverse_{node_id}"))
+        #     getattr(self.ui, f"bt_negative_{node_id}").released.connect(getattr(self, f"joint_stop_{node_id}"))
+        
+        # for i in range(1,5):
+        #     getattr(self.ui, f"bt_open_{i}").clicked.connect(getattr(self, f"io_open_{i}"))
+        #     getattr(self.ui, f"bt_close_{i}").clicked.connect(getattr(self, f"io_close_{i}"))
+        
+        self.ui.bt_end_control.clicked.connect(self.end_control)
+        self.ui.bt_exit.clicked.connect(self.exit_end_control)
+    
+    # 进入末端操作
     def end_control(self):
         self.ui.stackedWidget.setCurrentIndex(2) # 显示第3页
         self.enable_joint_control(False)
@@ -574,6 +981,8 @@ class ControlPanel(QMainWindow):
         self.joystick.axis_signal_2.connect(test_speed)
         # self.joystick.axis_signal_1.connect(test_speed_1)
         self.joystick.start() # 开启joystick线程
+    
+    # 退出末端操作
     def exit_end_control(self):
         self.enable_end_control(True)
         self.enable_exit(False)
@@ -581,9 +990,60 @@ class ControlPanel(QMainWindow):
         self.joystick.wait() # 等待退出
         self.joystick = JoystickThread() # 必须重新创建线程！！！
     
+      
+    
+    
+    
+    
+
+
+
+
+
+
+
+
+
+
+    
+    
+    
+    
     '''
-        状态更新
+        CANOPEN总线下的状态更新
     '''
+    # 界面 状态设置
+    def enable_status_1(self, flag):
+        self.ui.status_1.setEnabled(flag)
+    
+    def enable_status_2(self, flag):
+        self.ui.status_2.setEnabled(flag)
+    
+    def enable_status_3(self, flag):
+        self.ui.status_3.setEnabled(flag)
+    
+    def enable_status_4(self, flag):
+        self.ui.status_4.setEnabled(flag)
+    
+    def enable_status_5(self, flag):
+        self.ui.status_5.setEnabled(flag)
+    
+    def enable_status_6(self, flag):
+        self.ui.status_6.setEnabled(flag)
+    
+    def enable_status_7(self, flag):
+        self.ui.status_7.setEnabled(flag)
+    
+    def enable_status_8(self, flag):
+        self.ui.status_8.setEnabled(flag)
+    
+    def enable_status_9(self, flag):
+        self.ui.status_9.setEnabled(flag)
+    
+    def enable_status_10(self, flag):
+        self.ui.status_10.setEnabled(flag)
+    
+    # 将总线上的TPDO的信息显示到界面上
     def update_canopen(self, node_id):
         # 电机
         if node_id in Motor.motor_dict.keys():
@@ -635,12 +1095,25 @@ class ControlPanel(QMainWindow):
         
         # IO模块下的接近开关
         elif node_id in IoModule.io_dict.keys():
-            if self.io.switch_1:
+            # 当检测到接近开关 做出动作
+            if self.io.switch_1 or self.io.switch_2:
+                # 电机10关键动作
+                # 电机10关键动作
+                
+                
+                
+
+
                 self.quick_stop()
+                
+                
+
+
+                
+                # 电机10关键动作 
+                # 电机10关键动作
             else: pass
-            if self.io.switch_2:
-                self.quick_stop()
-            else: pass
+            # 更新接近开关状态
             warning = "<span style=\"color:#ff0000;\">{}</span>".format("WARNING")
             clear = "<span style=\"color:#00ff00;\">{}</span>".format("CLEAR")
             self.ui.isclose_1.setText(warning if self.io.switch_2 else clear)
@@ -648,254 +1121,3 @@ class ControlPanel(QMainWindow):
         
         else: pass
     
-    def update_sensor(self):
-        for i in range(1, 11):
-            force = getattr(self, f"sensor_{i}").force
-            if force == None: force_str = "<span style=\"color:#ffffff;\">{}</span>".format("No Data")
-            else: 
-                if force > 0: color = "#ff0000"
-                else:
-                    if abs(force) <= 10: color = "#00ff00"
-                    else: color = "#ffff00"
-                force_str = "<span style=\"color:{};\">{}</span>".format(color, abs(force))
-            getattr(self.ui, f"force_{i}").setText(force_str)
-    
-    def update_valve(self):
-        open = "<span style=\"color:#ff0000;\">{}</span>".format("OPEN")
-        close = "<span style=\"color:#00ff00;\">{}</span>".format("CLOSE")
-        self.ui.isopen_1.setText(open if self.io.channel_1 else close)
-        self.ui.isopen_2.setText(open if self.io.channel_2 else close)
-        self.ui.isopen_3.setText(open if self.io.channel_3 else close)
-        self.ui.isopen_4.setText(open if self.io.channel_4 else close)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    '''
-        以下是控制界面中 所有按钮的状态设置函数 包含是否激活和显示文字
-    '''
-    ''' 
-        菜单 
-    '''
-    def enable_menu(self, init, control, log):
-        self.ui.bt_init.setEnabled(init)
-        self.ui.bt_control.setEnabled(control)
-        self.ui.bt_log.setEnabled(log)
-    
-    '''
-        第一页
-    '''
-    def enable_auto(self, flag, text=None):
-        self.ui.bt_auto.setEnabled(flag)
-        if text != None: self.ui.bt_auto.setText(text)
-    ''' USBCAN '''
-    def enable_open_device(self, flag, text=None):
-        self.ui.bt_open.setEnabled(flag)
-        if text != None: self.ui.bt_open.setText(text)
-    def enable_channel0(self, flag_open, flag_reset, text_open=None, text_reset=None):
-        self.ui.bx_rate0.setEnabled(flag_open)
-        self.ui.bt_channel0.setEnabled(flag_open)
-        if text_open != None: self.ui.bt_channel0.setText(text_open)
-        self.ui.bt_reset0.setEnabled(flag_reset)
-        if text_reset != None: self.ui.bt_reset0.setText(text_reset)
-    def enable_channel1(self, flag_open, flag_reset, text_open=None, text_reset=None):
-        self.ui.bx_rate1.setEnabled(flag_open)
-        self.ui.bt_channel1.setEnabled(flag_open)
-        if text_open != None: self.ui.bt_channel1.setText(text_open)
-        self.ui.bt_reset1.setEnabled(flag_reset)
-        if text_reset != None: self.ui.bt_reset1.setText(text_reset)
-    def enable_close_device(self, flag, text=None):
-        self.ui.bt_close.setEnabled(flag)
-        if text != None: self.ui.bt_close.setText(text)
-    ''' 电机 '''
-    def enable_check_all(self, flag, text=None):
-        self.ui.check_all.setEnabled(flag)
-        if text != None: self.ui.check_all.setText(text)
-    def enable_check_1(self, flag, text=None):
-        self.ui.check_1.setEnabled(flag)
-        if text != None: self.ui.check_1.setText(text)
-    def enable_check_2(self, flag, text=None):
-        self.ui.check_2.setEnabled(flag)
-        if text != None: self.ui.check_2.setText(text)
-    def enable_check_3(self, flag, text=None):
-        self.ui.check_3.setEnabled(flag)
-        if text != None: self.ui.check_3.setText(text)
-    def enable_check_4(self, flag, text=None):
-        self.ui.check_4.setEnabled(flag)
-        if text != None: self.ui.check_4.setText(text)
-    def enable_check_5(self, flag, text=None):
-        self.ui.check_5.setEnabled(flag)
-        if text != None: self.ui.check_5.setText(text)
-    def enable_check_6(self, flag, text=None):
-        self.ui.check_6.setEnabled(flag)
-        if text != None: self.ui.check_6.setText(text)
-    def enable_check_7(self, flag, text=None):
-        self.ui.check_7.setEnabled(flag)
-        if text != None: self.ui.check_7.setText(text)
-    def enable_check_8(self, flag, text=None):
-        self.ui.check_8.setEnabled(flag)
-        if text != None: self.ui.check_8.setText(text)
-    def enable_check_9(self, flag, text=None):
-        self.ui.check_9.setEnabled(flag)
-        if text != None: self.ui.check_9.setText(text)
-    def enable_check_10(self, flag, text=None):
-        self.ui.check_10.setEnabled(flag)
-        if text != None: self.ui.check_10.setText(text)
-    def enable_choose_mode(self, flag, mode="position_control"):
-        if mode == "position_control": self.ui.r_pos.setChecked(True) # 选择位置模式
-        elif mode == "speed_control": self.ui.r_vel.setChecked(True) # 选择速度模式
-        else: pass
-        self.ui.r_pos.setEnabled(flag)
-        self.ui.r_vel.setEnabled(flag)
-    def enable_set_param(self, flag, text0=None, text1=None, text2=None, text3=None, text4=None):
-        self.ui.le_acc.clear()
-        self.ui.tx_acc.setEnabled(flag)
-        self.ui.le_acc.setEnabled(flag)
-        if text0 != None: self.ui.le_acc.setPlaceholderText(text0) # 加速度
-        self.ui.le_dec.clear()
-        self.ui.tx_dec.setEnabled(flag)
-        self.ui.le_dec.setEnabled(flag)
-        if text1 != None: self.ui.le_dec.setPlaceholderText(text1) # 减速度
-        self.ui.le_vel.clear()
-        self.ui.tx_vel.setEnabled(flag)
-        self.ui.le_vel.setEnabled(flag)
-        if text2 != None: self.ui.le_vel.setPlaceholderText(text2) # 动作速度
-        self.ui.le_position.clear()
-        self.ui.tx_position.setEnabled(flag)
-        self.ui.le_position.setEnabled(flag)
-        if text2 != None: self.ui.le_position.setPlaceholderText(text3) # 目标位置 也就是运动间隔
-        self.ui.le_inhibit.clear()
-        self.ui.tx_inhibit.setEnabled(flag)
-        self.ui.le_inhibit.setEnabled(flag)
-        if text3 != None: self.ui.le_inhibit.setPlaceholderText(text4) # TPDO禁止时间
-    def enable_save_param(self, flag, text=None):
-        self.ui.bt_save.setEnabled(flag)
-        if text != None: self.ui.bt_save.setText(text)
-    def enable_init_motor(self, flag, text=None):
-        self.ui.bt_launch.setEnabled(flag)
-        if text != None: self.ui.bt_launch.setText(text)
-    def enable_start_force(self, flag, text=None):
-        self.ui.force_open.setEnabled(flag)
-        if text != None: self.ui.force_open.setText(text)
-    def enable_stop_force(self, flag, text=None):
-        self.ui.force_stop.setEnabled(flag)
-        if text != None: self.ui.force_stop.setText(text)
-    def enable_open_io(self, flag, text=None):
-        self.ui.io_open.setEnabled(flag)
-        if text != None: self.ui.io_open.setText(text)
-    def enable_close_io(self, flag, text=None):
-        self.ui.io_stop.setEnabled(flag)
-        if text != None: self.ui.io_stop.setText(text)
-    def enable_start_pdo(self, flag, text=None):
-        self.ui.start.setEnabled(flag)
-        if text != None: self.ui.start.setText(text)
-    def enable_stop_pdo(self, flag, text=None):
-        self.ui.stop.setEnabled(flag)
-        if text != None: self.ui.stop.setText(text)
-    
-    '''
-        第二页
-    '''
-    ''' 状态控制 '''
-    def enable_quick_stop(self, flag, text=None):
-        self.ui.bt_quick_stop.setEnabled(flag)
-        if text != None: self.ui.bt_quick_stop.setText(text)
-    def enable_release_break(self, flag, text=None):
-        self.ui.bt_unlock.setEnabled(flag)
-        if text != None: self.ui.bt_unlock.setText(text)
-    def enable_enable_servo(self, flag, text=None):
-        self.ui.bt_enable.setEnabled(flag)
-        if text != None: self.ui.bt_enable.setText(text)
-    ''' 关节操作 '''
-    def enable_joint_control(self, flag, text=None):
-        self.ui.bt_joint_control.setEnabled(flag)
-        if text != None: self.ui.bt_joint_control.setText(text)
-    def enable_quit(self, flag, text=None):
-        self.ui.bt_quit.setEnabled(flag)
-        if text != None: self.ui.bt_quit.setText(text)
-    def enable_motor_group_1(self, flag):
-        self.ui.group_1.setEnabled(flag)
-    def enable_motor_group_2(self, flag):
-        self.ui.group_2.setEnabled(flag)
-    def enable_motor_group_3(self, flag):
-        self.ui.group_3.setEnabled(flag)
-    def enable_motor_group_4(self, flag):
-        self.ui.group_4.setEnabled(flag)
-    def enable_motor_group_5(self, flag):
-        self.ui.group_5.setEnabled(flag)
-    def enable_motor_group_6(self, flag):
-        self.ui.group_6.setEnabled(flag)
-    def enable_motor_group_7(self, flag):
-        self.ui.group_7.setEnabled(flag)
-    def enable_motor_group_8(self, flag):
-        self.ui.group_8.setEnabled(flag)
-    def enable_motor_group_9(self, flag):
-        self.ui.group_9.setEnabled(flag)
-    def enable_motor_group_10(self, flag):
-        self.ui.group_10.setEnabled(flag)
-    def enable_io(self, flag):
-        self.ui.fa_1.setEnabled(flag)
-        self.ui.fa_2.setEnabled(flag)
-        self.ui.fa_3.setEnabled(flag)
-        self.ui.fa_4.setEnabled(flag)
-    def enable_io_1(self, flag):
-        self.ui.bt_close_1.setEnabled(flag)
-        self.ui.bt_open_1.setEnabled(not flag)
-    def enable_io_2(self, flag):
-        self.ui.bt_close_2.setEnabled(flag)
-        self.ui.bt_open_2.setEnabled(not flag)
-    def enable_io_3(self, flag):
-        self.ui.bt_close_3.setEnabled(flag)
-        self.ui.bt_open_3.setEnabled(not flag)
-    def enable_io_4(self, flag):
-        self.ui.bt_close_4.setEnabled(flag)
-        self.ui.bt_open_4.setEnabled(not flag)
-    ''' 遥操作 '''
-    def enable_end_control(self, flag, text=None):
-        self.ui.bt_end_control.setEnabled(flag)
-        if text != None: self.ui.bt_end_control.setText(text)
-    def enable_exit(self, flag, text=None):
-        self.ui.bt_exit.setEnabled(flag)
-        if text != None: self.ui.bt_exit.setText(text)
-
-    '''
-        第三页
-    '''
-    def enable_status_1(self, flag):
-        self.ui.status_1.setEnabled(flag)
-    def enable_status_2(self, flag):
-        self.ui.status_2.setEnabled(flag)
-    def enable_status_3(self, flag):
-        self.ui.status_3.setEnabled(flag)
-    def enable_status_4(self, flag):
-        self.ui.status_4.setEnabled(flag)
-    def enable_status_5(self, flag):
-        self.ui.status_5.setEnabled(flag)
-    def enable_status_6(self, flag):
-        self.ui.status_6.setEnabled(flag)
-    def enable_status_7(self, flag):
-        self.ui.status_7.setEnabled(flag)
-    def enable_status_8(self, flag):
-        self.ui.status_8.setEnabled(flag)
-    def enable_status_9(self, flag):
-        self.ui.status_9.setEnabled(flag)
-    def enable_status_10(self, flag):
-        self.ui.status_10.setEnabled(flag)
-    def enable_status_io(self, flag):
-        self.ui.fa_status_1.setEnabled(flag)
-        self.ui.fa_status_2.setEnabled(flag)
-        self.ui.fa_status_3.setEnabled(flag)
-        self.ui.fa_status_4.setEnabled(flag)
-        self.ui.switch_status_1.setEnabled(flag)
-        self.ui.switch_status_2.setEnabled(flag)
