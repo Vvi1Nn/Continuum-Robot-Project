@@ -9,24 +9,28 @@ from PyQt5.QtCore import QThread, pyqtSignal, QMutex
 
 
 class SensorUpdateThread(QThread):
+    start_signal = pyqtSignal()
+    init_signal = pyqtSignal()
     update_signal = pyqtSignal()
     
     def __init__(self, mutex: QMutex, slot_function) -> None:
         super().__init__()
-        self.__is_stop = False
+        self.is_stop = False
         self.__mutex = mutex
         self.update_signal.connect(slot_function)
     
     def run(self):
+        self.start_signal.emit()
         Sensor.update_init()
-        while not self.__is_stop:
+        self.init_signal.emit()
+        while not self.is_stop:
             self.__mutex.lock()
             Sensor.update_force()
             self.__mutex.unlock()
             self.update_signal.emit()
 
     def stop(self):
-        self.__is_stop = True
+        self.is_stop = True
 
 
 class Sensor():
@@ -114,7 +118,9 @@ class Sensor():
                 if ret != None:
                     [num, msg] = ret
                     if num!= 0:
-                        self.force = round(self.__hex_list_to_float([msg[0].Data[2], msg[0].Data[3], msg[0].Data[4], msg[0].Data[5]]) - self.__init, 2)
+                        # if self.__node_id == 5:
+                        #     print(self.__hex_list_to_float([msg[0].Data[2], msg[0].Data[3], msg[0].Data[4], msg[0].Data[5]]))
+                        self.force = round((self.__hex_list_to_float([msg[0].Data[2], msg[0].Data[3], msg[0].Data[4], msg[0].Data[5]]) - self.__init) / 2, 2)
         else: print("\033[0;31m[Sensor {}] In function [get_init], sensor is not ready\033[0m".format(self.__node_id))
 
     @staticmethod
