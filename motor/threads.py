@@ -82,6 +82,7 @@ class CANopenUpdateThread(QThread):
         self.__is_stop = True
 
 
+
 class JointControlThread(QThread):
     def __init__(self, motor, is_forward: bool, position: int, velocity: int) -> None:
         super().__init__()
@@ -118,6 +119,36 @@ class JointControlThread(QThread):
         self.__is_stop = True
 
 
+
+class JointControlSpeedModeThread(QThread):
+    def __init__(self, motor, is_forward: bool, speed=50) -> None:
+        super().__init__()
+        self.__is_stop = False
+        self.__motor = motor
+        self.__is_forward = is_forward
+        if self.__is_forward: self.__speed = speed
+        else: self.__speed = - speed
+    
+    def run(self):
+        self.__motor.set_speed(self.__speed)
+        
+        while not self.__is_stop:
+            if self.__motor.is_in_range(): self.__motor.set_servo_status("servo_enable/start")
+            else:
+                if self.__motor.current_position > self.__motor.max_position:
+                    if self.__is_forward: self.__motor.set_servo_status("quick_stop")
+                    else: self.__motor.set_servo_status("servo_enable/start")
+                else:
+                    if not self.__is_forward:self.__motor.set_servo_status("quick_stop")
+                    else: self.__motor.set_servo_status("servo_enable/start")
+    
+    def stop(self):
+        self.__is_stop = True
+        self.__motor.set_speed(0)
+        self.__motor.set_servo_status("quick_stop")
+
+
+
 class InitMotorThread(QThread):
     running_signal = pyqtSignal(bool)
     
@@ -128,6 +159,8 @@ class InitMotorThread(QThread):
         self.running_signal.emit(True)
         Motor.init_config() # 将所有参数生效给所有电机
         self.running_signal.emit(False)
+
+
 
 class CheckMotorThread(QThread):
     running_signal = pyqtSignal(bool)
