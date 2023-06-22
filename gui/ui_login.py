@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'design/login.ui'
+# Form implementation generated from reading ui file 'gui/design/login.ui'
 #
 # Created by: PyQt5 UI code generator 5.14.1
 #
@@ -135,8 +135,8 @@ class Ui_MainWindow(object):
         self.version.setText(_translate("MainWindow", "Version 1.0"))
         self.title.setText(_translate("MainWindow", "欢迎使用"))
         self.button_login.setText(_translate("MainWindow", "登录"))
-        self.box_user.setItemText(0, _translate("MainWindow", "测试人员"))
-        self.box_user.setItemText(1, _translate("MainWindow", "管理员"))
+        self.box_user.setItemText(0, _translate("MainWindow", "管理员"))
+        self.box_user.setItemText(1, _translate("MainWindow", "测试人员"))
         self.tx_1.setText(_translate("MainWindow", "测试人员：默认操控模式"))
         self.tx_2.setText(_translate("MainWindow", "管理员：可更改底层信息"))
         self.password.setPlaceholderText(_translate("MainWindow", "请输入密码："))

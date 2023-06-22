@@ -190,12 +190,12 @@
     </property>
     <item>
      <property name="text">
-      <string>测试人员</string>
+      <string>管理员</string>
      </property>
     </item>
     <item>
      <property name="text">
-      <string>管理员</string>
+      <string>测试人员</string>
      </property>
     </item>
    </widget>
