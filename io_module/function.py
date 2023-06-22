@@ -75,7 +75,7 @@ class IoModule(CanOpenBusProcessor, QObject):
         else: print("\033[0;31m[IO {}] In function [__set_tpdo_mode], sdo write failed\033[0m".format(self.node_id))
         return self.__is_ready
     
-    ''' 配置参数 启动PDO '''
+    ''' 配置TPDO参数 启动PDO通讯 控制电磁阀的初始状态 '''
     @staticmethod
     def start_output() -> None:
         for io in IoModule.io_dict.values():
@@ -84,7 +84,8 @@ class IoModule(CanOpenBusProcessor, QObject):
                 if io.__set_tpdo_mode():
                     if io.set_bus_status("start_remote_node"):
                         io.is_start = True
-                        io.set_channel_status(False, "1", "2", "3", "4", "5", "6", "7", "8")
+                        # io.set_channel_status(False, "1", "2", "3") # 3个小爪
+                        # io.set_channel_status(True, "4") # 大爪
                         print("\033[0;32m[IO {}] START OUTPUT\033[0m".format(io.node_id))
                     else: print("\033[0;31m[IO {}] In function [start_output], set bus status failed\033[0m".format(io.node_id))
                 else: print("\033[0;31m[IO {}] In function [start_output], set tpdo mode failed\033[0m".format(io.node_id))
@@ -96,7 +97,7 @@ class IoModule(CanOpenBusProcessor, QObject):
         for io in IoModule.io_dict.values():
             if io.set_bus_status("enter_pre-operational_state"):
                 io.is_start = False
-                io.set_channel_status(False, "1", "2", "3", "4", "5", "6", "7", "8")
+                # io.set_channel_status(False, "1", "2", "3", "4", "5", "6", "7", "8")
                 print("\033[0;32m[IO {}] STOP OUTPUT\033[0m".format(io.node_id))
             else: print("\033[0;31m[IO {}] In function [stop_output], set bus status failed\033[0m".format(io.node_id))
     
@@ -113,14 +114,14 @@ class IoModule(CanOpenBusProcessor, QObject):
             for i in range(1, 9):
                 value_str = "1" + value_str if getattr(self, f"channel_{i}") else "0" + value_str
             if self.rpdo("1", int(value_str, 2), format=8):
-                self.update_signal.emit()
-                print("\033[0;32m[IO {}] OUTPUT STATUS: {}\033[0m".format(self.node_id, value_str))
+                self.update_signal.emit() # 向外发送信号 提示更新状态显示
+                # print("\033[0;32m[IO {}] OUTPUT STATUS: {}\033[0m".format(self.node_id, value_str))
                 return True
             else:
-                print("\033[0;31m[IO {}] In function [set_channel_status], send rpdo message failed\033[0m".format(io.node_id))
+                print("\033[0;31m[IO {}] In function [set_channel_status], send rpdo message failed\033[0m".format(self.node_id))
                 return False
         else:
-            print("\033[0;31m[IO {}] In function [set_channel_status], pdo communication is not start\033[0m".format(io.node_id))
+            print("\033[0;31m[IO {}] In function [set_channel_status], pdo communication is not start\033[0m".format(self.node_id))
             return False
 
 
