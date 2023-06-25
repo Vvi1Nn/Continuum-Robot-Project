@@ -80,15 +80,15 @@ class ControlPanel(QMainWindow):
         
         # 电机实例化
         self.motor_1 = Motor(1, [-10000000,10000000], [-200,200])
-        self.motor_2 = Motor(2, [-10000000,10000000], [-200,200])
-        self.motor_3 = Motor(3, [-10000000,10000000], [-200,200])
-        self.motor_4 = Motor(4, [-10000000,10000000], [-200,200])
-        self.motor_5 = Motor(5, [-10000000,10000000], [-200,200])
-        self.motor_6 = Motor(6, [-10000000,10000000], [-200,200])
-        self.motor_7 = Motor(7, [-10000000,10000000], [-200,200])
-        self.motor_8 = Motor(8, [-10000000,10000000], [-200,200])
-        self.motor_9 = Motor(9, [-10000000,10000000], [-200,200])
-        self.motor_10 = Motor(10, [-500000,1], [-200,200])
+        # self.motor_2 = Motor(2, [-10000000,10000000], [-200,200])
+        # self.motor_3 = Motor(3, [-10000000,10000000], [-200,200])
+        # self.motor_4 = Motor(4, [-10000000,10000000], [-200,200])
+        # self.motor_5 = Motor(5, [-10000000,10000000], [-200,200])
+        # self.motor_6 = Motor(6, [-10000000,10000000], [-200,200])
+        # self.motor_7 = Motor(7, [-10000000,10000000], [-200,200])
+        # self.motor_8 = Motor(8, [-10000000,10000000], [-200,200])
+        # self.motor_9 = Motor(9, [-10000000,10000000], [-200,200])
+        # self.motor_10 = Motor(10, [-500000,1], [-200,200])
         self.motor_is_running = False
 
         Sensor.link_device(self.usbcan_1)
