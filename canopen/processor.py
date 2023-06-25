@@ -191,7 +191,7 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
             if CanOpenBusProcessor.__is_log: print("\033[0;31m[Node-ID {}] write {} failed\033[0m".format(self.node_id, label))
             return False
         if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] write {} ...\033[0m".format(self.node_id, label))
-        return self.sdo_write_32(label, value, repeat=repeat-1)
+        return self.sdo_write_8(label, value, repeat=repeat-1)
 
     ''' RPD写操作 分别写低字和高字 '''
     def rpdo(self, channel: str, *args: int, format=None, repeat=0) -> bool:
