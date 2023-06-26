@@ -14,17 +14,20 @@ from maxon_motor_epos2.processor import CanOpenBusProcessor
 from maxon_motor_epos2.motor import Motor
 
 
+''' CANopen 总线数据处理 '''
 class CANopenUpdateThread(QThread):
-    pdo_update_signal = pyqtSignal(int)
-    sdo_update_signal = pyqtSignal(int, bool, str, int)
+    pdo_1_update_signal = pyqtSignal(int)
+    pdo_2_update_signal = pyqtSignal(int)
+    # sdo_update_signal = pyqtSignal(int, bool, str, int)
     # nmt_update_signal = pyqtSignal(int, str)
     
-    def __init__(self, pdo_slot_function, sdo_slot_function) -> None:
+    def __init__(self, pdo_1_slot_function, pdo_2_slot_function) -> None:
         super().__init__()
         self.__is_stop = False
 
-        self.pdo_update_signal.connect(pdo_slot_function)
-        self.sdo_update_signal.connect(sdo_slot_function)
+        self.pdo_1_update_signal.connect(pdo_1_slot_function)
+        self.pdo_2_update_signal.connect(pdo_2_slot_function)
+        # self.sdo_update_signal.connect(sdo_slot_function)
         # self.nmt_update_signal.connect(nmt_slot_function)
     
     def run(self):
@@ -43,17 +46,17 @@ class CANopenUpdateThread(QThread):
                         if node_id in Motor.motor_dict.keys():
                             status = self.__hex_list_to_int([msg[i].Data[0]]) # 状态字
                             
-                            for key in protocol.STATUS_WORD: # 遍历字典关键字
-                                for r in protocol.STATUS_WORD[key]: # 在每一个关键字对应的列表中 核对数值
+                            for key in Motor.STATUS_WORD: # 遍历字典关键字
+                                for r in Motor.STATUS_WORD[key]: # 在每一个关键字对应的列表中 核对数值
                                     if status == r:
-                                        Motor.motor_dict[node_id].motor_status = key # 更新电机的伺服状态
+                                        Motor.motor_dict[node_id].servo_status = key # 更新电机的伺服状态
                                         break
                                     else: pass
                         
                         # 其他的ID
                         else: pass
 
-                        self.pdo_update_signal.emit(node_id)
+                        self.pdo_1_update_signal.emit(node_id)
                     
                     # TPDO2
                     elif msg[i].ID > 0x280 and msg[i].ID < 0x300:
@@ -63,22 +66,20 @@ class CANopenUpdateThread(QThread):
                         if node_id in Motor.motor_dict.keys():
                             position = self.__hex_list_to_int([msg[i].Data[j] for j in range(0,4)]) # 当前位置
                             speed = self.__hex_list_to_int([msg[i].Data[j] for j in range(4,8)]) # 当前速度
-                            if Motor.motor_dict[node_id].motor_status == "ready_to_switch_on" or Motor.motor_dict[node_id].motor_status == "switch_on_disabled":
-                                speed = 0 # 已经停止运动了 速度完全是0
-                            else: pass
                             Motor.motor_dict[node_id].current_position = position
                             Motor.motor_dict[node_id].current_speed = speed
                         
                         # 其他的ID
                         else: pass
 
-                        self.pdo_update_signal.emit(node_id)
+                        self.pdo_2_update_signal.emit(node_id)
                     
                     # SDO
                     elif msg[i].ID > 0x580 and msg[i].ID < 0x600:
+                        # print("====== GET SDO ======")
                         node_id = msg[i].ID - 0x580
                         
-                        command =  self.__hex_list_to_int([msg[i].Data[0]])
+                        command =  msg[i].Data[0]
                         if command == protocol.CMD_R["read_16"] or protocol.CMD_R["read_32"] or protocol.CMD_R["read_8"]: status = True
                         elif command == protocol.CMD_R["write"]: status = True
                         elif command == protocol.CMD_R["error"]: status = False
@@ -92,9 +93,16 @@ class CANopenUpdateThread(QThread):
                             else: pass
                         else: label = ""
                         
-                        value = self.__hex_list_to_int([msg[i].Data[j] for j in range(4,8)])
+                        value_list = [msg[i].Data[j] for j in range(4,8)]
                         
-                        CanOpenBusProcessor.node_dict[node_id].sdo_feedback = (True, status, label, value)
+                        # print("OLD", CanOpenBusProcessor.node_dict[node_id].sdo_feedback)
+
+                        wait_time = 1
+                        time_stamp = time.time()
+                        while CanOpenBusProcessor.node_dict[node_id].sdo_feedback[0] and time.time() - time_stamp < wait_time: time.sleep(0.1)
+                        
+                        CanOpenBusProcessor.node_dict[node_id].sdo_feedback = (True, status, label, value_list)
+                        # print("NEW", CanOpenBusProcessor.node_dict[node_id].sdo_feedback)
                     
                     # NMT
                     elif msg[i].ID > 0x700 and msg[i].ID < 0x780:
@@ -144,6 +152,115 @@ class CANopenUpdateThread(QThread):
         return [index, subindex]
 
 
+''' 电机初始化 '''
+class MotorInitThread(QThread):
+    running_signal = pyqtSignal(bool)
+    check_signal = pyqtSignal(int)
+    finish_signal = pyqtSignal()
+    
+    def __init__(self) -> None:
+        super().__init__()
+        self.__check_count = 0
+    
+    def run(self):
+        self.running_signal.emit(True)
+
+        for node_id in Motor.motor_dict:
+            print("=============================================================")
+            times = 3
+            while times != 0:
+                if Motor.motor_dict[node_id].check_bus_status():
+                    if Motor.motor_dict[node_id].start_pdo(log=True):
+                        if Motor.motor_dict[node_id].check_servo_status():
+                            success_1 = Motor.motor_dict[node_id].set_control_mode()
+                            success_2 = Motor.motor_dict[node_id].set_inhibit_time("2")
+                            success_3 = Motor.motor_dict[node_id].set_profile_acceleration()
+                            success_4 = Motor.motor_dict[node_id].set_profile_deceleration()
+                            success_5 = Motor.motor_dict[node_id].set_quick_stop_deceleration()
+                            success_6 = Motor.motor_dict[node_id].set_motion_profile_type()
+                            if success_1 and success_2 and success_3 and success_4 and success_5 and success_6:
+                                self.check_signal.emit(node_id)
+                                self.__check_count += 1
+                                break
+                            else: pass
+                        else: pass
+                    else: pass
+                else: pass
+
+                times -= 1
+        if self.__check_count == len(Motor.motor_dict): self.finish_signal.emit()
+        else: self.running_signal.emit(False)
+        
+
+''' 参数生效 '''
+class ParamLaunchThread(QThread):
+    running_signal = pyqtSignal(bool)
+    
+    def __init__(self) -> None:
+        super().__init__()
+    
+    def run(self):
+        self.running_signal.emit(True)
+
+        for node_id in Motor.motor_dict:
+            print("=============================================================")
+            times = 3
+            while times != 0:
+                success_1 = Motor.motor_dict[node_id].set_inhibit_time("2")
+                success_2 = Motor.motor_dict[node_id].set_profile_acceleration()
+                success_3 = Motor.motor_dict[node_id].set_profile_deceleration()
+                success_4 = Motor.motor_dict[node_id].set_quick_stop_deceleration()
+                success_5 = Motor.motor_dict[node_id].set_motion_profile_type()
+                if success_1 and success_2 and success_3 and success_4 and success_5: break
+                else: times -= 1
+        
+        self.running_signal.emit(False)
+
+
+''' 速度更新 '''
+class SpeedSettingThread(QThread):
+    def __init__(self, motor, is_forward: bool, speed: int) -> None:
+        ...
+
+
+''' 锁定模式 '''
+class JointControlLockModeThread(QThread):
+    def __init__(self, motor, speed: int, /, *, is_forward: bool) -> None:
+        super().__init__()
+
+        self.__is_stop = False
+
+        self.__motor = motor
+
+        self.__is_forward = is_forward
+
+        if self.__is_forward: self.__speed = speed
+        else: self.__speed = - speed
+    
+    def run(self):
+        self.__motor.set_speed(self.__speed)
+
+        self.__motor.halt(is_pdo=True)
+        
+        while not self.__is_stop:
+            if self.__motor.is_in_range():
+                self.__motor.enable_operation(is_pdo=True)
+            else:
+                if self.__motor.current_position > self.__motor.max_position:
+                    if self.__is_forward: self.__motor.halt(is_pdo=True)
+                    else: self.__motor.enable_operation(is_pdo=True)
+                else:
+                    if not self.__is_forward: self.__motor.halt(is_pdo=True)
+                    else: self.__motor.enable_operation(is_pdo=True)
+    
+    def stop(self):
+        self.__is_stop = True
+        self.__motor.set_speed(0)
+        self.__motor.disable_operation(is_pdo=True)
+
+
+
+
 
 class JointControlThread(QThread):
     def __init__(self, motor, is_forward: bool, position: int, velocity: int) -> None:
@@ -182,98 +299,11 @@ class JointControlThread(QThread):
 
 
 
-class JointControlSpeedModeThread(QThread):
-    def __init__(self, motor, is_forward: bool, speed=50) -> None:
-        super().__init__()
-        self.__is_stop = False
-        self.__motor = motor
-        self.__is_forward = is_forward
-        if self.__is_forward: self.__speed = speed
-        else: self.__speed = - speed
-    
-    def run(self):
-        self.__motor.set_speed(self.__speed)
-        
-        while not self.__is_stop:
-            if self.__motor.is_in_range(): self.__motor.set_servo_status("servo_enable/start")
-            else:
-                if self.__motor.current_position > self.__motor.max_position:
-                    if self.__is_forward: self.__motor.set_servo_status("quick_stop")
-                    else: self.__motor.set_servo_status("servo_enable/start")
-                else:
-                    if not self.__is_forward:self.__motor.set_servo_status("quick_stop")
-                    else: self.__motor.set_servo_status("servo_enable/start")
-    
-    def stop(self):
-        self.__is_stop = True
-        self.__motor.set_speed(0)
-        self.__motor.set_servo_status("quick_stop")
 
 
 
-class InitMotorThread(QThread):
-    running_signal = pyqtSignal(bool)
-    
-    def __init__(self) -> None:
-        super().__init__()
-    
-    def run(self):
-        self.running_signal.emit(True)
-        Motor.init_config() # 将所有参数生效给所有电机
-        self.running_signal.emit(False)
 
 
 
-class CheckMotorThread(QThread):
-    running_signal = pyqtSignal(bool)
-    status_signal = pyqtSignal(int)
-    check_signal = pyqtSignal(int)
-    finish_signal = pyqtSignal()
-    
-    def __init__(self) -> None:
-        super().__init__()
-        self.__check_count = 0
-    
-    def run(self):
-        self.running_signal.emit(True)
-        for node_id in Motor.motor_dict:
-            print("=============================================================")
-            times = 3
-            while times != 0:
-                if Motor.motor_dict[node_id].check_bus_status():
-                    Motor.motor_dict[node_id].check_motor_status()
-                    self.status_signal.emit(node_id)
-                    if Motor.motor_dict[node_id].motor_is_checked:
-                        self.check_signal.emit(node_id)
-                        self.__check_count += 1
-                        break
-                    else: pass
-                else: pass
-                times -= 1
-        if self.__check_count == len(Motor.motor_dict): self.finish_signal.emit()
-        else: self.running_signal.emit(False)
-        
 
 
-class StartPDO(QThread):
-    running_signal = pyqtSignal(bool)
-    
-    def __init__(self) -> None:
-        super().__init__()
-    
-    def run(self):
-        self.running_signal.emit(True)
-        Motor.start_feedback()
-        self.running_signal.emit(False)
-
-
-class StopPDO(QThread):
-    running_signal = pyqtSignal(bool)
-    
-    def __init__(self) -> None:
-        super().__init__()
-    
-    def run(self):
-        self.running_signal.emit(True)
-        Motor.stop_feedback()
-        self.running_signal.emit(False)
