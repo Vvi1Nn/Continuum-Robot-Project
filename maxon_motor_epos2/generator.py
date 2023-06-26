@@ -81,6 +81,34 @@ class CanOpenMsgGenerator():
                 print("{} ".format(hex_data[i]), end = "")
             print("\n")
         return [cob_id, data]
+
+    ''' SDO写指定标签 16bit数据 '''
+    def sdo_write_16(self, label: str, value: int) -> list:
+        index = protocol.OD[label][0] # 获取地址
+        subindex = protocol.OD[label][1] # 获取索引
+        cob_id = protocol.CAN_ID["SDO_R"] + self.node_id # 计算COB-ID
+        data = [0x00] * 8
+        data[0] = protocol.CMD_T["write_16"] # CMD
+        data[1] = self.__split_index(index)[0] # 地址低位
+        data[2] = self.__split_index(index)[1] # 地址高位
+        data[3] = subindex # 索引
+        # 正数 int转换str 去除0x 大写字母 前面补0
+        if value >= 0: value_str = '0'*(4-len(hex(value)[2:].upper())) + hex(value)[2:].upper()
+        # 负数 取反加1 
+        else: value_str = hex(int(bin(- value ^ 0xFFFF), 2) + 1)[2:].upper()
+        for i in range(2):
+            data[5-i] = int(value_str[2*i:2*(i+1)], 16)
+        # 打印结果
+        if CanOpenMsgGenerator.__is_print:
+            hex_data = ["00"] * 8
+            print("[sdo_write_16] {}".format(label))
+            print("COB-ID: {}".format(hex(cob_id)[2:].upper()))
+            print("Data-List: ", end = "")
+            for i in range(len(data)):
+                hex_data[i] = hex(data[i])[2:].upper()
+                print("{} ".format(hex_data[i]), end = "")
+            print("\n")
+        return [cob_id, data]
     
     ''' SDO写指定标签 8bit数据 '''
     def sdo_write_8(self, label: str, value: int) -> list:
@@ -196,4 +224,7 @@ if __name__ == "__main__":
     generator_4.sdo_write_8("tpdo_1_transtype", 255)
 
     g_5 = CanOpenMsgGenerator(10)
-    g_5.rpdo("1", 0b00000110, format=8)
+    g_5.rpdo("1", 0xFFFF, format=4)
+
+    g_6 = CanOpenMsgGenerator(10)
+    g_6.sdo_write_16("tpdo_2_inhibit", 0xFFFF)
