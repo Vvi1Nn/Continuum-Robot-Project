@@ -73,7 +73,7 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
         else: return - ((int(data_str, 2) ^ 0xFFFFFFFF) + 1)
 
     ''' 获取总线状态 '''
-    def get_bus_status(self, /, *, times=1, delay=0.2) -> str:
+    def get_bus_status(self, /, *, times=1, delay=0.5) -> str:
         if not self.nmt_feedback[0]:
             [cob_id, data] = self.nmt_get_status() # 生成消息
 
@@ -90,7 +90,7 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
                         else: pass
                     else:
                         times -= 1
-                        if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] getting bus status ...\033[0m".format(self.node_id))
+                        if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] waiting bus status feedback ...\033[0m".format(self.node_id))
                         else: pass
                 else:
                     times -= 1
@@ -124,87 +124,187 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
         else: return False
     
     ''' 检查总线的状态 在操作之前 '''
-    def check_bus_status(self) -> bool:
-        self.get_bus_status() # 先获取总线的状态并更新
-        # 判断状态是否是预操作状态
-        if self.bus_status == "pre-operational":
-            self.bus_is_checked = True
-            if CanOpenBusProcessor.__is_log: print("\033[0;32m[Node-ID {}] checked\033[0m".format(self.node_id))
-            return True
-        # 不是预操作状态 人为设置一次总线状态 提示再次检查
-        if self.set_bus_status("enter_pre-operational_state"):
-            if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] try check again\033[0m".format(self.node_id))
+    def check_bus_status(self, /, *, times=1) -> bool:
+        while times != 0:
+            if self.set_bus_status("enter_pre-operational_state"):
+                self.bus_is_checked = True
+                if CanOpenBusProcessor.__is_log: print("\033[0;32m[Node-ID {}] checked\033[0m".format(self.node_id))
+                else: pass
+                return True
+            else:
+                times -= 1
+                if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] checking bus status ...\033[0m".format(self.node_id))
+                else: pass
+        else: 
+            if CanOpenBusProcessor.__is_log: print("\033[0;31m[Node-ID {}] unchecked\033[0m".format(self.node_id))
+            else: pass
             return False
-        # 人为设置也失败了
-        if CanOpenBusProcessor.__is_log: print("\033[0;31m[Node-ID {}] unchecked\033[0m".format(self.node_id))
-        return False
 
-    ''' 使用SDO进行寄存器读取数据 '''
-    def sdo_read(self, label: str, /, *, repeat=0, format=1) -> list:
-        [cob_id, data] = super().sdo_read(label) # 生成消息
-        ret = self.__send_msg(cob_id, data)
-        if ret != False: # 消息发送成功
-            [num, msg] = ret # 接收应答数据
-            if num != 0: # 有数据
-                # 判断应答的数据里 CMD和地址是否对应正确
-                if msg[0].ID == self.node_id + protocol.CAN_ID["SDO_T"] and (msg[0].Data[0] == protocol.CMD_R["read_16"] or msg[0].Data[0] == protocol.CMD_R["read_32"] or msg[0].Data[0] == protocol.CMD_R["read_8"]) and self.__match_index(msg[0].Data[1], msg[0].Data[2], msg[0].Data[3]) == protocol.OD[label]:
-                    if format == 1: # 4个hex转换成1个int
-                        return [self.__hex_list_to_int([msg[0].Data[4], msg[0].Data[5], msg[0].Data[6], msg[0].Data[7]])]
-                    elif format == 2: # 4个hex转换成2个int
-                        return [self.__hex_list_to_int([msg[0].Data[4], msg[0].Data[5]]), self.__hex_list_to_int([msg[0].Data[6], msg[0].Data[7]])]
-                    elif format == 4: # 4个hex转换成4个int
-                        return [self.__hex_list_to_int([msg[0].Data[4]]), self.__hex_list_to_int([msg[0].Data[5]]), self.__hex_list_to_int([msg[0].Data[6]]), self.__hex_list_to_int([msg[0].Data[7]])]
-        # 上述所有操作有失败
-        if repeat == 0:
-            if CanOpenBusProcessor.__is_log: print("\033[0;31m[Node-ID {}] read {} failed\033[0m".format(self.node_id, label))
+    ''' SDO 读 '''
+    def sdo_read(self, label: str, /, *, times=1, delay=0.5, format=1):
+        if self.bus_is_checked and self.bus_status != "stopped":
+            if not self.sdo_feedback[0]:
+                [cob_id, data] = super().sdo_read(label) # 生成消息
+
+                while times != 0:
+                    if CanOpenBusProcessor.device.send(cob_id, [data], remote_flag="data", data_len="default"):
+                        time_stamp = time.time()
+                        while time.time() - time_stamp < delay:
+                            if self.sdo_feedback[0]:
+                                if self.sdo_feedback[2] == label:
+                                    if self.sdo_feedback[1]:
+                                        if format == 1:
+                                            value_list = [self.__hex_list_to_int(self.sdo_feedback[3])]
+                                        elif format == 2:
+                                            value_list = [self.__hex_list_to_int(self.sdo_feedback[3][0:2]), self.__hex_list_to_int(self.sdo_feedback[3][2:4])]
+                                        elif format == 4:
+                                            value_list = [self.__hex_list_to_int([self.sdo_feedback[3][0]]), self.__hex_list_to_int([self.sdo_feedback[3][1]]), self.__hex_list_to_int([self.sdo_feedback[3][2]]), self.__hex_list_to_int([self.sdo_feedback[3][3]])]
+                                        else: value_list = None
+                                        self.sdo_feedback = (False, None, "", None)
+                                        return value_list
+                                    else: return None
+                                else: pass
+                            else: pass
+                        else:
+                            if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] waiting sdo feedback ...\033[0m".format(self.node_id))
+                            else: pass
+                            times -= 1
+                    else:
+                        times -= 1
+                        if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] reading {} ...\033[0m".format(self.node_id, label))
+                        else: pass
+                else:
+                    if CanOpenBusProcessor.__is_log: print("\033[0;31m[Node-ID {}] read {} failed\033[0m".format(self.node_id, label))
+                    else: pass
+                    return None
+            else:
+                if CanOpenBusProcessor.__is_log: print("\033[0;31m[Node-ID {}] sdo_feedback is wrong\033[0m".format(self.node_id))
+                else: pass
+                return None
+        else:
+            print("\033[0;31m[Node-ID {}] bus status wrong, no sdo\033[0m".format(self.node_id))
             return None
-        if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] read {} ...\033[0m".format(self.node_id, label))
-        return self.sdo_read(label, repeat=repeat-1)
 
-    ''' 使用SDO进行寄存器写操作 可设置是否需要进行写操作应答的校对 '''
-    def sdo_write_32(self, label: str, value: int, /, *, check=True, repeat=0) -> bool:
-        [cob_id, data] = super().sdo_write_32(label, value) # 生成消息
-        ret = self.__send_msg(cob_id, data, check=check) # 先接收返回值
-        if ret != False: # 发送成功
-            if check: # 需要校对
-                [num, msg] = ret # 接收应答消息
-                if num != 0: # 有消息
-                    if msg[0].ID == self.node_id + protocol.CAN_ID["SDO_T"] and msg[0].Data[0] == protocol.CMD_R["write"] and self.__match_index(msg[0].Data[1], msg[0].Data[2], msg[0].Data[3]) == protocol.OD[label]:
-                        return True # 应答消息的CMD和地址正确
-            else: return True # 无需校对
-        # 上述所有操作有失败
-        if repeat == 0:
-            if CanOpenBusProcessor.__is_log: print("\033[0;31m[Node-ID {}] write {} failed\033[0m".format(self.node_id, label))
+    ''' SDO 写 32bit '''
+    def sdo_write_32(self, label: str, value: int, /, *, times=1, check=True, delay=0.5) -> bool:
+        if self.bus_is_checked and self.bus_status != "stopped":
+            [cob_id, data] = super().sdo_write_32(label, value) # 生成消息
+
+            while times != 0:
+                if CanOpenBusProcessor.device.send(cob_id, [data], remote_flag="data", data_len="default"):
+                    if check:
+                        time_stamp = time.time()
+                        while time.time() - time_stamp < delay:
+                            if self.sdo_feedback[0]:
+                                if self.sdo_feedback[2] == label:
+                                    if self.sdo_feedback[1]:
+                                        self.sdo_feedback = (False, None, "", None)
+                                        return True
+                                    else: return False
+                                else: pass
+                            else: pass
+                        else:
+                            if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] waiting sdo feedback ...\033[0m".format(self.node_id))
+                            else: pass
+                            times -= 1
+                    else: return True
+                else:
+                    times -= 1
+                    if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] writing {} ...\033[0m".format(self.node_id, label))
+                    else: pass
+            else:
+                if CanOpenBusProcessor.__is_log: print("\033[0;31m[Node-ID {}] write {} failed\033[0m".format(self.node_id, label))
+                else: pass
+                return False
+        else:
+            print("\033[0;31m[Node-ID {}] bus status wrong, no sdo\033[0m".format(self.node_id))
             return False
-        if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] write {} ...\033[0m".format(self.node_id, label))
-        return self.sdo_write_32(label, value, repeat=repeat-1)
     
-    ''' SDO 8bit '''
-    def sdo_write_8(self, label: str, value: int, /, *, check=True, repeat=0) -> bool:
-        [cob_id, data] = super().sdo_write_8(label, value) # 生成消息
-        ret = self.__send_msg(cob_id, data, check=check) # 先接收返回值
-        if ret != False: # 发送成功
-            if check: # 需要校对
-                [num, msg] = ret # 接收应答消息
-                if num != 0: # 有消息
-                    if msg[0].ID == self.node_id + protocol.CAN_ID["SDO_T"] and msg[0].Data[0] == protocol.CMD_R["write"] and self.__match_index(msg[0].Data[1], msg[0].Data[2], msg[0].Data[3]) == protocol.OD[label]:
-                        return True # 应答消息的CMD和地址正确
-            else: return True # 无需校对
-        # 上述所有操作有失败
-        if repeat == 0:
-            if CanOpenBusProcessor.__is_log: print("\033[0;31m[Node-ID {}] write {} failed\033[0m".format(self.node_id, label))
+    ''' SDO 写 16bit '''
+    def sdo_write_16(self, label: str, value: int, /, *, times=1, check=True, delay=0.5) -> bool:
+        if self.bus_is_checked and self.bus_status != "stopped":
+            [cob_id, data] = super().sdo_write_16(label, value) # 生成消息
+
+            while times != 0:
+                if CanOpenBusProcessor.device.send(cob_id, [data], remote_flag="data", data_len="default"):
+                    if check:
+                        time_stamp = time.time()
+                        while time.time() - time_stamp < delay:
+                            if self.sdo_feedback[0]:
+                                if self.sdo_feedback[2] == label:
+                                    if self.sdo_feedback[1]:
+                                        self.sdo_feedback = (False, None, "", None)
+                                        return True
+                                    else: return False
+                                else: pass
+                            else: pass
+                        else:
+                            if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] waiting sdo feedback ...\033[0m".format(self.node_id))
+                            else: pass
+                            times -= 1
+                    else: return True
+                else:
+                    times -= 1
+                    if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] writing {} ...\033[0m".format(self.node_id, label))
+                    else: pass
+            else:
+                if CanOpenBusProcessor.__is_log: print("\033[0;31m[Node-ID {}] write {} failed\033[0m".format(self.node_id, label))
+                else: pass
+                return False
+        else:
+            print("\033[0;31m[Node-ID {}] bus status wrong, no sdo\033[0m".format(self.node_id))
             return False
-        if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] write {} ...\033[0m".format(self.node_id, label))
-        return self.sdo_write_8(label, value, repeat=repeat-1)
+    
+    '''' SDO 写 8bit '''
+    def sdo_write_8(self, label: str, value: int, /, *, times=1, check=True, delay=0.5) -> bool:
+        if self.bus_is_checked and self.bus_status != "stopped":    
+            [cob_id, data] = super().sdo_write_8(label, value) # 生成消息
+
+            while times != 0:
+                if CanOpenBusProcessor.device.send(cob_id, [data], remote_flag="data", data_len="default"):
+                    if check:
+                        time_stamp = time.time()
+                        while time.time() - time_stamp < delay:
+                            if self.sdo_feedback[0]:
+                                if self.sdo_feedback[2] == label:
+                                    if self.sdo_feedback[1]:
+                                        self.sdo_feedback = (False, None, "", None)
+                                        return True
+                                    else: return False
+                                else: pass
+                            else: pass
+                        else:
+                            if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] waiting sdo feedback ...\033[0m".format(self.node_id))
+                            else: pass
+                            times -= 1
+                    else: return True
+                else:
+                    times -= 1
+                    if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] writing {} ...\033[0m".format(self.node_id, label))
+                    else: pass
+            else:
+                if CanOpenBusProcessor.__is_log: print("\033[0;31m[Node-ID {}] write {} failed\033[0m".format(self.node_id, label))
+                else: pass
+                return False
+        else:
+            print("\033[0;31m[Node-ID {}] bus status wrong, no sdo\033[0m".format(self.node_id))
+            return False
 
     ''' RPD写操作 分别写低字和高字 '''
-    def rpdo(self, channel: str, *args: int, format=None, repeat=0) -> bool:
-        [cob_id, data] = super().rpdo(channel, *args, format=format) # 生成消息
-        # 直接发送 无需校验
-        if self.__send_msg(cob_id, data, check=False): return True
-        # 上述所有操作有失败
-        if repeat == 0:
-            if CanOpenBusProcessor.__is_log: print("\033[0;31m[Node-ID {}] rpdo() {} failed\033[0m".format(self.node_id, channel))
+    def rpdo(self, channel: str, *args: int, format=None, times=1) -> bool:
+        if self.bus_is_checked and self.bus_status == "operational":
+            [cob_id, data] = super().rpdo(channel, *args, format=format) # 生成消息
+
+            while times != 0:
+                if CanOpenBusProcessor.device.send(cob_id, [data], remote_flag="data", data_len="default"): return True
+                else:
+                    times -= 1
+                    if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] rpdo {} ...\033[0m".format(self.node_id, channel))
+                    else: pass
+            else:
+                if CanOpenBusProcessor.__is_log: print("\033[0;31m[Node-ID {}] rpdo() {} failed\033[0m".format(self.node_id, channel))
+                else: pass
+                return False
+        else:
+            print("\033[0;31m[Node-ID {}] bus status wrong, no pdo\033[0m".format(self.node_id))
             return False
-        if CanOpenBusProcessor.__is_log: print("\033[0;33m[Node-ID {}] rpdo {} ...\033[0m".format(self.node_id, channel))
-        return self.rpdo(channel, *args, format=format, repeat=repeat-1)
