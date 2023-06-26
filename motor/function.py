@@ -97,7 +97,7 @@ class Motor(CanOpenBusProcessor):
     def check_motor_status(self) -> None:
         if self.bus_is_checked: # 总线检查成功
             self.get_motor_status(log=False) # 更新伺服状态
-            if self.motor_status == "switch_on_disabled": # 检查伺服状态
+            if self.motor_status == "switched_on": # 检查伺服状态
                 self.motor_is_checked = True
                 self.permission = True
                 print("\033[0;32m[Motor {}] servo ready\033[0m".format(self.node_id))
