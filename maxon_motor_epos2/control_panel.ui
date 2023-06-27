@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1050</width>
-    <height>776</height>
+    <height>896</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -167,7 +167,7 @@ QSlider{
           <number>0</number>
          </property>
          <widget class="QWidget" name="pg_init">
-          <layout class="QVBoxLayout" name="verticalLayout_7" stretch="1,3,2,3">
+          <layout class="QVBoxLayout" name="verticalLayout_7" stretch="1,2,2,2,3">
            <property name="spacing">
             <number>1</number>
            </property>
@@ -347,7 +347,7 @@ QSlider{
               <bool>true</bool>
              </property>
              <property name="title">
-              <string>【Status Control】</string>
+              <string>【Status Control 1】</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_13" stretch="0">
               <property name="spacing">
@@ -367,7 +367,7 @@ QSlider{
               </property>
               <item>
                <widget class="QFrame" name="frame_5">
-                <layout class="QVBoxLayout" name="verticalLayout_19" stretch="0,0,0">
+                <layout class="QVBoxLayout" name="verticalLayout_19" stretch="0,0">
                  <property name="spacing">
                   <number>10</number>
                  </property>
@@ -391,7 +391,7 @@ QSlider{
                    <property name="frameShadow">
                     <enum>QFrame::Raised</enum>
                    </property>
-                   <layout class="QHBoxLayout" name="horizontalLayout_13" stretch="0,0,0">
+                   <layout class="QHBoxLayout" name="horizontalLayout_13" stretch="0,0,0,0">
                     <property name="spacing">
                      <number>10</number>
                     </property>
@@ -407,6 +407,22 @@ QSlider{
                     <property name="bottomMargin">
                      <number>0</number>
                     </property>
+                    <item>
+                     <widget class="QPushButton" name="bt_disable_voltage">
+                      <property name="enabled">
+                       <bool>true</bool>
+                      </property>
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="text">
+                       <string>Disable Voltage</string>
+                      </property>
+                     </widget>
+                    </item>
                     <item>
                      <widget class="QPushButton" name="bt_shut_down">
                       <property name="enabled">
@@ -483,22 +499,6 @@ QSlider{
                      <number>0</number>
                     </property>
                     <item>
-                     <widget class="QPushButton" name="bt_disable_voltage">
-                      <property name="enabled">
-                       <bool>true</bool>
-                      </property>
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <property name="text">
-                       <string>Disable Voltage</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
                      <widget class="QPushButton" name="bt_disable_operation">
                       <property name="enabled">
                        <bool>true</bool>
@@ -530,18 +530,82 @@ QSlider{
                       </property>
                      </widget>
                     </item>
+                    <item>
+                     <widget class="QPushButton" name="bt_fault_reset">
+                      <property name="enabled">
+                       <bool>true</bool>
+                      </property>
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="text">
+                       <string>Fault Reset</string>
+                      </property>
+                     </widget>
+                    </item>
                    </layout>
                   </widget>
                  </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="group_status_control_2">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="title">
+              <string>【Status Control 2】</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_15" stretch="0">
+              <property name="spacing">
+               <number>10</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>5</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QFrame" name="frame_6">
+                <layout class="QVBoxLayout" name="verticalLayout_20" stretch="0,0">
+                 <property name="spacing">
+                  <number>10</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
                  <item>
-                  <widget class="QFrame" name="frame_4">
+                  <widget class="QFrame" name="frame_9">
                    <property name="frameShape">
                     <enum>QFrame::StyledPanel</enum>
                    </property>
                    <property name="frameShadow">
                     <enum>QFrame::Raised</enum>
                    </property>
-                   <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="0">
+                   <layout class="QHBoxLayout" name="horizontalLayout_14" stretch="0,0,0,0">
                     <property name="spacing">
                      <number>10</number>
                     </property>
@@ -558,7 +622,130 @@ QSlider{
                      <number>0</number>
                     </property>
                     <item>
-                     <widget class="QPushButton" name="bt_fault_reset">
+                     <widget class="QPushButton" name="bt_disable_voltage_2">
+                      <property name="enabled">
+                       <bool>true</bool>
+                      </property>
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="text">
+                       <string>Disable Voltage</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="bt_shut_down_2">
+                      <property name="enabled">
+                       <bool>true</bool>
+                      </property>
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="text">
+                       <string>Shut Down</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="bt_switch_on_2">
+                      <property name="enabled">
+                       <bool>true</bool>
+                      </property>
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="text">
+                       <string>Switch On</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="bt_enable_operation_2">
+                      <property name="enabled">
+                       <bool>true</bool>
+                      </property>
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="text">
+                       <string>Enable Operation</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QFrame" name="frame_14">
+                   <property name="frameShape">
+                    <enum>QFrame::StyledPanel</enum>
+                   </property>
+                   <property name="frameShadow">
+                    <enum>QFrame::Raised</enum>
+                   </property>
+                   <layout class="QHBoxLayout" name="horizontalLayout_24" stretch="0,0,0">
+                    <property name="spacing">
+                     <number>10</number>
+                    </property>
+                    <property name="leftMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>0</number>
+                    </property>
+                    <item>
+                     <widget class="QPushButton" name="bt_disable_operation_2">
+                      <property name="enabled">
+                       <bool>true</bool>
+                      </property>
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="text">
+                       <string>Disable Operation</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="bt_quick_stop_2">
+                      <property name="enabled">
+                       <bool>true</bool>
+                      </property>
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="text">
+                       <string>Quick Stop</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QPushButton" name="bt_fault_reset_2">
                       <property name="enabled">
                        <bool>true</bool>
                       </property>
@@ -976,7 +1163,7 @@ QSlider{
                <number>0</number>
               </property>
               <item>
-               <widget class="QGroupBox" name="group_param_modify_6">
+               <widget class="QGroupBox" name="group_mode">
                 <property name="enabled">
                  <bool>true</bool>
                 </property>
@@ -1090,7 +1277,7 @@ QSlider{
                </widget>
               </item>
               <item>
-               <widget class="QGroupBox" name="group_param_modify_5">
+               <widget class="QGroupBox" name="group_motor_1">
                 <property name="enabled">
                  <bool>true</bool>
                 </property>
@@ -1311,7 +1498,7 @@ QSlider{
                </widget>
               </item>
               <item>
-               <widget class="QGroupBox" name="group_param_modify_7">
+               <widget class="QGroupBox" name="group_motor_2">
                 <property name="enabled">
                  <bool>true</bool>
                 </property>
