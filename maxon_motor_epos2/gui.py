@@ -30,7 +30,6 @@ class ControlPanel(QMainWindow):
         # CAN卡实例化
         self.usbcan_0 = UsbCan.set_device_type("USBCAN2", "0").is_show_log(False)("0") # 通道0
         self.usbcan_1 = UsbCan.set_device_type("USBCAN2", "0").is_show_log(False)("1") # 通道1
-        self.usbcan_is_running = False
         
         CanOpenBusProcessor.link_device(self.usbcan_0) # 将CANopen总线绑定至CAN卡的通道0
         CanOpenBusProcessor.is_show_log(False)
@@ -38,7 +37,6 @@ class ControlPanel(QMainWindow):
         # 电机实例化
         self.motor_1 = Motor(1, [-100000000,100000000], [-12700,12700])
         self.motor_2 = Motor(2, [-100000000,100000000], [-12700,12700])
-        self.motor_is_running = False
 
         
         self.initial_screen()
