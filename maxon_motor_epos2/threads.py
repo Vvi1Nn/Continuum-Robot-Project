@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' threads.py 在GUI中使用的线程 v1.0 修改停止运动后速度显示不为0的bug '''
+''' threads.py 在GUI中使用的线程 v1.0 '''
 
 
 from PyQt5.QtCore import QThread, pyqtSignal
@@ -18,8 +18,6 @@ from maxon_motor_epos2.motor import Motor
 class CANopenUpdateThread(QThread):
     pdo_1_update_signal = pyqtSignal(int)
     pdo_2_update_signal = pyqtSignal(int)
-    # sdo_update_signal = pyqtSignal(int, bool, str, int)
-    # nmt_update_signal = pyqtSignal(int, str)
     
     def __init__(self, pdo_1_slot_function, pdo_2_slot_function) -> None:
         super().__init__()
@@ -27,8 +25,6 @@ class CANopenUpdateThread(QThread):
 
         self.pdo_1_update_signal.connect(pdo_1_slot_function)
         self.pdo_2_update_signal.connect(pdo_2_slot_function)
-        # self.sdo_update_signal.connect(sdo_slot_function)
-        # self.nmt_update_signal.connect(nmt_slot_function)
     
     def run(self):
         while not self.__is_stop:
@@ -196,8 +192,14 @@ class MotorInitThread(QThread):
 class ParamLaunchThread(QThread):
     running_signal = pyqtSignal(bool)
     
-    def __init__(self) -> None:
+    def __init__(self, motion_profile_type, profile_acceleration, profile_deceleration, quick_stop_deceleration, inhibit_time) -> None:
         super().__init__()
+
+        self.__motion_profile_type = motion_profile_type
+        self.__profile_acceleration = profile_acceleration
+        self.__profile_deceleration = profile_deceleration
+        self.__quick_stop_deceleration = quick_stop_deceleration
+        self.__inhibit_time = inhibit_time
     
     def run(self):
         self.running_signal.emit(True)
@@ -206,21 +208,15 @@ class ParamLaunchThread(QThread):
             print("=============================================================")
             times = 3
             while times != 0:
-                success_1 = Motor.motor_dict[node_id].set_inhibit_time("2")
-                success_2 = Motor.motor_dict[node_id].set_profile_acceleration()
-                success_3 = Motor.motor_dict[node_id].set_profile_deceleration()
-                success_4 = Motor.motor_dict[node_id].set_quick_stop_deceleration()
-                success_5 = Motor.motor_dict[node_id].set_motion_profile_type()
+                success_1 = Motor.motor_dict[node_id].set_inhibit_time("2", self.__inhibit_time)
+                success_2 = Motor.motor_dict[node_id].set_profile_acceleration(self.__profile_acceleration)
+                success_3 = Motor.motor_dict[node_id].set_profile_deceleration(self.__profile_deceleration)
+                success_4 = Motor.motor_dict[node_id].set_quick_stop_deceleration(self.__quick_stop_deceleration)
+                success_5 = Motor.motor_dict[node_id].set_motion_profile_type(self.__motion_profile_type)
                 if success_1 and success_2 and success_3 and success_4 and success_5: break
                 else: times -= 1
         
         self.running_signal.emit(False)
-
-
-''' 速度更新 '''
-class SpeedSettingThread(QThread):
-    def __init__(self, motor, is_forward: bool, speed: int) -> None:
-        ...
 
 
 ''' 锁定模式 '''
@@ -257,53 +253,3 @@ class JointControlLockModeThread(QThread):
         self.__is_stop = True
         self.__motor.set_speed(0)
         self.__motor.disable_operation(is_pdo=True)
-
-
-
-
-
-class JointControlThread(QThread):
-    def __init__(self, motor, is_forward: bool, position: int, velocity: int) -> None:
-        super().__init__()
-        self.__is_stop = False
-        self.__motor = motor
-        self.__is_forward = is_forward
-        self.__position = position
-        self.__velocity = velocity
-    
-    def run(self):
-        while not self.__is_stop:
-            if self.__motor.is_in_range():
-                self.__motor.set_servo_status("position_mode_ready")
-                if self.__is_forward:
-                    self.__motor.set_position_and_velocity(self.__position, self.__velocity)
-                else:
-                    self.__motor.set_position_and_velocity(-self.__position, self.__velocity)
-                self.__motor.set_servo_status("position_mode_action")
-            else:
-                if self.__motor.current_position > self.__motor.max_position:
-                    if not self.__is_forward:
-                        self.__motor.set_servo_status("position_mode_ready")
-                        self.__motor.set_position_and_velocity(-self.__position, self.__velocity)
-                        self.__motor.set_servo_status("position_mode_action")
-                    else: pass
-                else:
-                    if self.__is_forward:
-                        self.__motor.set_servo_status("position_mode_ready")
-                        self.__motor.set_position_and_velocity(self.__position, self.__velocity)
-                        self.__motor.set_servo_status("position_mode_action")
-                    else: pass
-    
-    def stop(self):
-        self.__is_stop = True
-
-
-
-
-
-
-
-
-
-
-
