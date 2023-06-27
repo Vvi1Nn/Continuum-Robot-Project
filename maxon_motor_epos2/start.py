@@ -18,9 +18,8 @@ def main():
     if not app.exec_():
         print("=============================================================")
         print("\033[0;33mShuting down, waiting for processing ...\033[0m")
-        
-        
-        
+        win.motor_1.disable_voltage(is_pdo=True)
+        win.motor_2.disable_voltage(is_pdo=True)
         print("=============================================================")
         sys.exit()
 
