@@ -8,7 +8,6 @@
 import sys, os, time
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import maxon_motor_epos2.protocol as protocol
 from maxon_motor_epos2.processor import CanOpenBusProcessor
 
 
