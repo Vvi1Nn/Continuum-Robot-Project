@@ -111,6 +111,11 @@ class ControlPanel(QMainWindow):
         self.ui.tx_inhibit.setEnabled(False)
         self.ui.le_inhibit.setEnabled(False)
 
+        self.ui.le_acc.setPlaceholderText(str(Motor.profile_acceleration))
+        self.ui.le_dec.setPlaceholderText(str(Motor.profile_deceleration))
+        self.ui.le_quick.setPlaceholderText(str(Motor.quick_stop_deceleration))
+        self.ui.le_inhibit.setPlaceholderText(str(Motor.tpdo_inhibit_time))
+
         self.ui.bt_save.setEnabled(False)
 
         self.ui.bt_launch.setEnabled(False)
