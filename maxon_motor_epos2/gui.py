@@ -5,7 +5,6 @@
 
 
 from PyQt5.QtWidgets import QMainWindow
-from PyQt5.QtCore import QMutex
 
 
 # 添加模块路径
@@ -13,7 +12,6 @@ import sys, os, time
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from maxon_motor_epos2.control_panel import Ui_MainWindow as Ui_ControlPanel
 from maxon_motor_epos2.usbcan import UsbCan
-import maxon_motor_epos2.protocol as protocol
 from maxon_motor_epos2.processor import CanOpenBusProcessor
 from maxon_motor_epos2.motor import Motor
 from maxon_motor_epos2.threads import CANopenUpdateThread, MotorInitThread, ParamLaunchThread, JointControlLockModeThread
@@ -633,6 +631,8 @@ class ControlPanel(QMainWindow):
         elif self.mode == "adaptive":
             self.ui.slider_1.setEnabled(False)
             self.ui.slider_1.setProperty("value", 0)
+
+            time.sleep(0.05)
             
             self.motor_1.disable_operation(is_pdo=True)
 
@@ -713,6 +713,8 @@ class ControlPanel(QMainWindow):
         elif self.mode == "adaptive":
             self.ui.slider_2.setEnabled(False)
             self.ui.slider_2.setProperty("value", 0)
+
+            time.sleep(0.05)
             
             self.motor_2.disable_operation(is_pdo=True)
 
