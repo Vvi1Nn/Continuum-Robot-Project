@@ -45,13 +45,13 @@ class Motor(CanOpenBusProcessor):
     control_mode = "speed_control"
     motion_profile_type = "trapezoidal"
     profile_acceleration = 10000
-    profile_deceleration = 10000
+    profile_deceleration = 50000
     quick_stop_deceleration = 100000
     tpdo_inhibit_time = 10
 
     motor_dict = {}
     
-    def __init__(self, node_id, position_range=[-100000,100000], speed_range=[-100,100]) -> None:
+    def __init__(self, node_id, position_range=[-100000,100000], speed_range=[-12700,12700]) -> None:
         super().__init__(node_id)
 
         Motor.motor_dict[node_id] = self
