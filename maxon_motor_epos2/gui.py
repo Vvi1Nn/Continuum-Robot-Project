@@ -13,8 +13,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from maxon_motor_epos2.control_panel import Ui_MainWindow as Ui_ControlPanel
 from maxon_motor_epos2.usbcan import UsbCan
 from maxon_motor_epos2.processor import CanOpenBusProcessor
-from maxon_motor_epos2.motor import Motor
-from maxon_motor_epos2.threads import CANopenUpdateThread, MotorInitThread, ParamLaunchThread, JointControlLockModeThread
+from maxon_motor_epos2.motor import Motor, MotorInitThread
+from maxon_motor_epos2.threads import CANopenUpdateThread, ParamLaunchThread, JointControlLockModeThread
 
 
 
@@ -32,11 +32,10 @@ class ControlPanel(QMainWindow):
         self.usbcan_1 = UsbCan.set_device_type("USBCAN2", "0").is_show_log(False)("1") # 通道1
         
         CanOpenBusProcessor.link_device(self.usbcan_0) # 将CANopen总线绑定至CAN卡的通道0
-        CanOpenBusProcessor.is_show_log(False)
         
         # 电机实例化
         self.motor_1 = Motor(1, [-100000000,100000000], [-12700,12700])
-        self.motor_2 = Motor(2, [-100000000,100000000], [-12700,12700])
+        # self.motor_2 = Motor(2, [-100000000,100000000], [-12700,12700])
 
         
         self.initial_screen()
@@ -190,10 +189,10 @@ class ControlPanel(QMainWindow):
                 self.ui.bt_open_device.setEnabled(False)
                 self.ui.bt_open_device.setText("Device Ready")
                 
-                self.ui.bt_init_motor.setEnabled(True)
-
                 self.read_canopen_thread = CANopenUpdateThread(self.canopen_pdo_1, self.canopen_pdo_2)
                 self.read_canopen_thread.start()
+
+                self.ui.bt_init_motor.setEnabled(True)
             else: pass
 
         else: pass
@@ -644,10 +643,10 @@ class ControlPanel(QMainWindow):
     ''' 速度更新 '''
     def motor_1_set_speed(self):
         if self.motor_1_direction:
-            self.motor_1.set_speed(int(self.ui.slider_1.value()) * 100)
+            self.motor_1.set_speed(int(self.ui.slider_1.value()) * 100, is_pdo=True)
             self.motor_1.enable_operation(is_pdo=True)
         else:
-            self.motor_1.set_speed(- int(self.ui.slider_1.value()) * 100)
+            self.motor_1.set_speed(- int(self.ui.slider_1.value()) * 100, is_pdo=True)
             self.motor_1.enable_operation(is_pdo=True)
 
     ''' 正 '''

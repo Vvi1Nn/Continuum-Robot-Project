@@ -4,8 +4,11 @@
 ''' motor.py for maxon motor epos2 v1.0 '''
 
 
-# 添加模块路径
 import sys, os, time
+
+from PyQt5.QtCore import QThread, pyqtSignal
+
+# 添加模块路径
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from maxon_motor_epos2.processor import CanOpenBusProcessor
@@ -55,10 +58,10 @@ class Motor(CanOpenBusProcessor):
 
         Motor.motor_dict[node_id] = self
 
-        self.min_position = position_range[0] # 最大位置
-        self.max_position = position_range[1] # 最小位置
-        self.min_speed = speed_range[0] # 最大速度
-        self.max_speed = speed_range[1] # 最小位置
+        self.min_position = position_range[0] if position_range != None else None # 最大位置
+        self.max_position = position_range[1] if position_range != None else None # 最小位置
+        self.min_speed = speed_range[0] if speed_range != None else None # 最大速度
+        self.max_speed = speed_range[1] if speed_range != None else None # 最小位置
         
         self.servo_status = "unknown" # 电机状态
         self.servo_is_checked = False # 状态检查
@@ -80,6 +83,8 @@ class Motor(CanOpenBusProcessor):
             print("\033[0;31m[Motor {}] BUS UNCKECKED\033[0m".format(self.node_id))
             return False
     
+
+
     ''' 获取伺服状态 SDO '''
     def get_servo_status(self, /, *, times=1, log=False) -> str:
         while times != 0:
@@ -106,11 +111,11 @@ class Motor(CanOpenBusProcessor):
             if log: print("\033[0;31m[Motor {}] get servo status failed\033[0m".format(self.node_id))
             return "error"
     
-    ''' 设置伺服状态 SDO PDO '''
-    def set_servo_status(self, label: str, /, *, is_pdo=False, times=1, log=False, check=True, delay=0.5) -> bool:
-        # PDO
-        if is_pdo:
-            if self.permission:
+    ''' 设置伺服状态 SDO PDO 权限 '''
+    def set_servo_status(self, label: str, /, *, is_pdo=False, times=1, log=False, check=True, delay=0.5, admin=False) -> bool:
+        if self.permission or admin:
+            # PDO
+            if is_pdo:
                 while times != 0:
                     if self.rpdo("1", Motor.CONTROL_WORD[label], format=4):
                         if log: print("\033[0;32m[Motor {}] set servo status: {}\033[0m".format(self.node_id, label))
@@ -124,18 +129,49 @@ class Motor(CanOpenBusProcessor):
                     if log: print("\033[0;31m[Motor {}] set servo status failed\033[0m".format(self.node_id))
                     else: pass
                     return False
+            # SDO
             else:
-                print("\033[0;31m[Motor {}] no permission\033[0m".format(self.node_id))
-                return False
-        # SDO
+                while times != 0:
+                    if self.sdo_write_16("control_word", Motor.CONTROL_WORD[label], check=check, delay=delay):
+                        if log: print("\033[0;32m[Motor {}] set servo: {}\033[0m".format(self.node_id, label))
+                        else: pass
+                        return True
+                else:
+                    if log: print("\033[0;31m[Motor {}] set servo status failed\033[0m".format(self.node_id))
+                    else: pass
+                    return False
         else:
-            while times != 0:
-                if self.sdo_write_16("control_word", Motor.CONTROL_WORD[label], check=check, delay=delay):
-                    if log: print("\033[0;32m[Motor {}] set servo: {}\033[0m".format(self.node_id, label))
-                    return True
+            print("\033[0;31m[Motor {}] no permission\033[0m".format(self.node_id))
+            return False
+
+    ''' 检查伺服状态 '''
+    def check_servo_status(self, /, *, times=1, log=False) -> bool:
+        if self.bus_is_checked: # 总线检查成功
+            if self.servo_status == "switch_on_disabled":
+                self.servo_is_checked = True
+                self.permission = True
+                print("\033[0;32m[Motor {}] SERVO OK\033[0m".format(self.node_id))
+                return True
             else:
-                if log: print("\033[0;31m[Motor {}] set servo status failed\033[0m".format(self.node_id))
-                return False
+                while times != 0:
+                    self.disable_voltage(is_pdo=False, check=True, delay=0.5, admin=True)
+                    
+                    if self.get_servo_status() == "switch_on_disabled":
+                        self.servo_is_checked = True
+                        self.permission = True
+                        print("\033[0;32m[Motor {}] SERVO OK\033[0m".format(self.node_id))
+                        return True
+                    else:
+                        times -= 1
+                        if log: print("\033[0;33m[Motor {}] checking servo status ...\033[0m".format(self.node_id))
+                        else: pass
+                else:
+                    if log: print("\033[0;31m[Motor {}] check servo failed ...\033[0m".format(self.node_id))
+                    else: pass
+                    return False
+        else: print("\033[0;31m[Motor {}] check bus first\033[0m".format(self.node_id)) # 需检查总线
+    
+
 
     ''' SHUT DOWN '''
     def shut_down(self, /, *, is_pdo=False, check=False, delay=0.5) -> bool:
@@ -154,8 +190,8 @@ class Motor(CanOpenBusProcessor):
         return self.set_servo_status("enable_operation", is_pdo=is_pdo, check=check, delay=delay)
 
     ''' DISABLE VOLTAGE '''
-    def disable_voltage(self, /, *, is_pdo=False, check=False, delay=0.5) -> bool:
-        return self.set_servo_status("disable_voltage", is_pdo=is_pdo, check=check, delay=delay)
+    def disable_voltage(self, /, *, is_pdo=False, check=False, delay=0.5, admin=False) -> bool:
+        return self.set_servo_status("disable_voltage", is_pdo=is_pdo, check=check, delay=delay, admin=admin)
 
     ''' QUICK STOP '''
     def quick_stop(self, /, *, is_pdo=False, check=False, delay=0.5) -> bool:
@@ -169,37 +205,12 @@ class Motor(CanOpenBusProcessor):
     def halt(self, /, *, is_pdo=False, check=False, delay=0.5) -> bool:
         return self.set_servo_status("halt", is_pdo=is_pdo, check=check, delay=delay)
 
-    ''' 检查伺服状态 '''
-    def check_servo_status(self, /, *, times=1, log=False) -> bool:
-        if self.bus_is_checked: # 总线检查成功
-            if self.servo_status == "switch_on_disabled":
-                self.servo_is_checked = True
-                self.permission = True
-                print("\033[0;32m[Motor {}] SERVO OK\033[0m".format(self.node_id))
-                return True
-            else:
-                while times != 0:
-                    self.disable_voltage(is_pdo=False, check=True, delay=0.5)
-                    
-                    if self.get_servo_status() == "switch_on_disabled":
-                        self.servo_is_checked = True
-                        self.permission = True
-                        print("\033[0;32m[Motor {}] SERVO OK\033[0m".format(self.node_id))
-                        return True
-                    else:
-                        times -= 1
-                        if log: print("\033[0;33m[Motor {}] checking servo status ...\033[0m".format(self.node_id))
-                        else: pass
-                else:
-                    if log: print("\033[0;31m[Motor {}] check servo failed ...\033[0m".format(self.node_id))
-                    else: pass
-                    return False
-        else: print("\033[0;31m[Motor {}] check bus first\033[0m".format(self.node_id)) # 需检查总线
-    
+  
+
     ''' 开启PDO '''
-    def start_pdo(self, /, *, times=1, log=False) -> bool:
+    def start_pdo(self, /, *, times=1, check=True, delay=0.5, log=False) -> bool:
         while times != 0:
-            if self.set_bus_status("start_remote_node"):
+            if self.set_bus_status("start_remote_node", check=check, delay=delay, log=log):
                 if log: print("\033[0;32m[Motor {}] PDO START\033[0m".format(self.node_id))
                 else: pass
                 return True
@@ -213,9 +224,9 @@ class Motor(CanOpenBusProcessor):
             return False
 
     ''' 关闭PDO '''
-    def stop_pdo(self, /, *, times=1, log=False) -> bool:
+    def stop_pdo(self, /, *, times=1, check=True, delay=0.5, log=False) -> bool:
         while times != 0:
-            if self.set_bus_status("enter_pre-operational_state"):
+            if self.set_bus_status("enter_pre-operational_state", check=check, delay=delay, log=log):
                 if log: print("\033[0;32m[Motor {}] PDO STOP\033[0m".format(self.node_id))
                 else: pass
                 return True
@@ -227,6 +238,8 @@ class Motor(CanOpenBusProcessor):
             if log: print("\033[0;31m[Motor {}] stop pdo failed\033[0m".format(self.node_id))
             else: pass
             return False
+
+
 
     ''' 控制模式 '''
     def set_control_mode(self, mode=control_mode, /, *, times=1, log=True, check=True, delay=0.5) -> bool:
@@ -324,25 +337,92 @@ class Motor(CanOpenBusProcessor):
             else: pass
             return False
 
+
+
     ''' 速度 '''
-    def set_speed(self, speed) -> bool:
+    def set_speed(self, speed: int, /, *, is_pdo=False, times=1, log=True, check=True, delay=0.5) -> bool:
         if self.permission:
             if speed > self.max_speed: speed = self.max_speed
-            if speed < self.min_speed: speed = self.min_speed
+            elif speed < self.min_speed: speed = self.min_speed
+            else: pass
             self.target_speed = speed
-
-            if self.rpdo("3", self.target_speed):
-                print("\033[0;32m[Motor {}] target speed: {}\033[0m".format(self.node_id, self.target_speed))
-                return True
-            print("\033[0;31m[Motor {}] set target speed failed\033[0m".format(self.node_id))
-            return False
+            
+            # PDO
+            if is_pdo:
+                while times != 0:
+                    if self.rpdo("3", self.target_speed):
+                        if log: print("\033[0;32m[Motor {}] target speed: {}\033[0m".format(self.node_id, self.target_speed))
+                        else: pass
+                        return True
+                    else:
+                        times -= 1
+                        if log: print("\033[0;33m[Motor {}] setting target speed ...\033[0m".format(self.node_id))
+                        else: pass
+                else: 
+                    if log: print("\033[0;31m[Motor {}] set target speed failed\033[0m".format(self.node_id))
+                    else: pass
+                    return False
+            # SDO
+            else:
+                while times != 0:
+                    if self.sdo_write_32("target_speed", self.target_speed, check=check, delay=delay):
+                        if log: print("\033[0;32m[Motor {}] target speed: {}\033[0m".format(self.node_id, self.target_speed))
+                        else: pass
+                        return True
+                else:
+                    if log: print("\033[0;31m[Motor {}] set target speed failed\033[0m".format(self.node_id))
+                    else: pass
+                    return False
         else:
             print("\033[0;31m[Motor {}] no permission\033[0m".format(self.node_id))
             return False
 
+
     ''' 是否超出范围 '''
-    def is_in_range(self, ratio=1) -> bool:
-        if self.current_position < self.max_position*ratio and self.current_position > self.min_position*ratio: return True
-        else:
-            print("\033[0;31m[Motor {}] position out of range\033[0m".format(self.node_id))
-            return False
+    def is_in_range(self) -> bool:
+        if self.max_position != None and self.min_position != None:
+            if self.current_position < self.max_position and self.current_position > self.min_position: return True
+            else:
+                print("\033[0;31m[Motor {}] position out of range\033[0m".format(self.node_id))
+                return False
+        else: return True
+
+
+''' 电机初始化 '''
+class MotorInitThread(QThread):
+    running_signal = pyqtSignal(bool)
+    check_signal = pyqtSignal(int)
+    finish_signal = pyqtSignal()
+    
+    def __init__(self) -> None:
+        super().__init__()
+        self.__check_count = 0
+    
+    def run(self):
+        self.running_signal.emit(True)
+
+        for node_id in Motor.motor_dict:
+            print("=============================================================")
+            times = 3
+            while times != 0:
+                if Motor.motor_dict[node_id].check_bus_status():
+                    if Motor.motor_dict[node_id].start_pdo(log=True, check=False):
+                        if Motor.motor_dict[node_id].check_servo_status():
+                            success_1 = Motor.motor_dict[node_id].set_control_mode()
+                            success_2 = Motor.motor_dict[node_id].set_inhibit_time("2")
+                            success_3 = Motor.motor_dict[node_id].set_profile_acceleration()
+                            success_4 = Motor.motor_dict[node_id].set_profile_deceleration()
+                            success_5 = Motor.motor_dict[node_id].set_quick_stop_deceleration()
+                            success_6 = Motor.motor_dict[node_id].set_motion_profile_type()
+                            if success_1 and success_2 and success_3 and success_4 and success_5 and success_6:
+                                self.check_signal.emit(node_id)
+                                self.__check_count += 1
+                                break
+                            else: pass
+                        else: pass
+                    else: pass
+                else: pass
+
+                times -= 1
+        if self.__check_count == len(Motor.motor_dict): self.finish_signal.emit()
+        else: self.running_signal.emit(False)
