@@ -14,11 +14,11 @@ from canopen.processor import CanOpenBusProcessor
 
 class Motor(CanOpenBusProcessor):
     control_mode = protocol.CONTROL_MODE["position_control"]
-    acceleration = 1000 # 加速度
-    deceleration = 10000 # 减速度
+    acceleration = 100 # 加速度
+    deceleration = 100 # 减速度
     velocity     = 100 # 动作速度
     position     = 50 # 动作间隔
-    inhibit_time = 500 # 禁止时间 微秒
+    inhibit_time = 10 # 禁止时间 微秒
 
     motor_dict = {}
     motor_count = 0
