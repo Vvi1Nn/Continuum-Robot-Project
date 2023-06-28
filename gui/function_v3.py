@@ -80,15 +80,15 @@ class ControlPanel(QMainWindow):
         
         # 电机实例化
         self.motor_1 = Motor(1, [-10000000,10000000], [-200,200])
-        # self.motor_2 = Motor(2, [-10000000,10000000], [-200,200])
-        # self.motor_3 = Motor(3, [-10000000,10000000], [-200,200])
-        # self.motor_4 = Motor(4, [-10000000,10000000], [-200,200])
-        # self.motor_5 = Motor(5, [-10000000,10000000], [-200,200])
-        # self.motor_6 = Motor(6, [-10000000,10000000], [-200,200])
-        # self.motor_7 = Motor(7, [-10000000,10000000], [-200,200])
-        # self.motor_8 = Motor(8, [-10000000,10000000], [-200,200])
-        # self.motor_9 = Motor(9, [-10000000,10000000], [-200,200])
-        # self.motor_10 = Motor(10, [-500000,1], [-200,200])
+        self.motor_2 = Motor(2, [-10000000,10000000], [-200,200])
+        self.motor_3 = Motor(3, [-10000000,10000000], [-200,200])
+        self.motor_4 = Motor(4, [-10000000,10000000], [-200,200])
+        self.motor_5 = Motor(5, [-10000000,10000000], [-200,200])
+        self.motor_6 = Motor(6, [-10000000,10000000], [-200,200])
+        self.motor_7 = Motor(7, [-10000000,10000000], [-200,200])
+        self.motor_8 = Motor(8, [-10000000,10000000], [-200,200])
+        self.motor_9 = Motor(9, [-10000000,10000000], [-200,200])
+        self.motor_10 = Motor(10, [-10000000,10000000], [-200,200])
         self.motor_is_running = False
 
         Sensor.link_device(self.usbcan_1)
@@ -134,9 +134,7 @@ class ControlPanel(QMainWindow):
        
 
     
-    '''
-        界面的初始显示状态
-    '''
+    ''' 界面的初始显示状态 '''
     def initial_status(self) -> None:
         ''' 菜单 '''
         self.enable_menu(True, True, True) # 初始化激活 控制激活 日志激活
@@ -197,9 +195,7 @@ class ControlPanel(QMainWindow):
 
 
 
-    '''
-        菜单
-    '''
+    ''' 菜单 '''
     # 跳转
     def set_menu_jumping(self) -> None:
         self.ui.bt_init.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(0))
@@ -262,9 +258,7 @@ class ControlPanel(QMainWindow):
 
 
 
-    '''
-        CAN卡
-    '''
+    ''' CAN卡 '''
     # 界面 状态设置
     def enable_open_device(self, flag, text=None):
         self.ui.bt_open.setEnabled(flag)
@@ -296,6 +290,10 @@ class ControlPanel(QMainWindow):
         # self.ui.bt_reset0.clicked.connect(self.reset_cannel_0)
         # self.ui.bt_reset1.clicked.connect(self.reset_cannel_1)
         # self.ui.bt_close.clicked.connect(self.close_usbcan)
+
+
+        self.ui.bt_close.pressed.connect(self.test)
+        self.ui.bt_close.released.connect(self.stop_test)
     
     # 打开设备
     def open_usbcan(self):
@@ -362,9 +360,7 @@ class ControlPanel(QMainWindow):
 
     
     
-    '''
-        电机
-    '''
+    ''' 电机 '''
     # 界面 状态设置
     def enable_check_all(self, flag, text=None):
         self.ui.check_all.setEnabled(flag)
@@ -552,11 +548,11 @@ class ControlPanel(QMainWindow):
         if not self.is_admin: Motor.config() # 无权限 直接保存默认参数
         else: # 管理员权限
             mode = "position_control" if self.ui.r_pos.isChecked() else "speed_control" # 记录模式
-            acc = self.ui.le_acc.text() if self.ui.le_acc.text() != "" else "1000" # 记录加速度
-            dec = self.ui.le_dec.text() if self.ui.le_dec.text() != "" else "10000" # 记录减速度
+            acc = self.ui.le_acc.text() if self.ui.le_acc.text() != "" else "100" # 记录加速度
+            dec = self.ui.le_dec.text() if self.ui.le_dec.text() != "" else "100" # 记录减速度
             vel = self.ui.le_vel.text() if self.ui.le_vel.text() != "" else "100" # 记录动作速度
-            position = self.ui.le_position.text() if self.ui.le_position.text() != "" else "50" # 记录动作幅度
-            inhibit = self.ui.le_inhibit.text() if self.ui.le_inhibit.text() != "" else "500" # 记录禁止时间
+            position = self.ui.le_position.text() if self.ui.le_position.text() != "" else "100" # 记录动作幅度
+            inhibit = self.ui.le_inhibit.text() if self.ui.le_inhibit.text() != "" else "10" # 记录禁止时间
             # 保存上述参数
             Motor.config(mode, int(acc), int(dec), int(vel), int(position), int(inhibit))
             # 生效
@@ -592,7 +588,7 @@ class ControlPanel(QMainWindow):
                 else: self.enable_open_io(False) # 失效按钮 打开IO
             else:
                 self.motor_update.start() # 开启线程
-                self.enable_close_device(False)
+                # self.enable_close_device(False)
                 self.enable_start_pdo(False, "已启动")
                 self.enable_stop_pdo(True, "关闭状态读取")
                 self.enable_set_param(False) # 失效
@@ -803,10 +799,7 @@ class ControlPanel(QMainWindow):
 
 
 
-
-    '''
-        力传感器
-    '''
+    ''' 力传感器 '''
     # 界面 状态设置
     def enable_start_force(self, flag, text=None):
         self.ui.force_open.setEnabled(flag)
@@ -884,9 +877,7 @@ class ControlPanel(QMainWindow):
 
 
 
-    '''
-        IO模块
-    '''
+    ''' IO模块 '''
     # 界面 状态设置
     def enable_open_io(self, flag, text=None):
         self.ui.io_open.setEnabled(flag)
@@ -990,7 +981,7 @@ class ControlPanel(QMainWindow):
     def io_close_4(self):
         if self.io.set_channel_status(True, "4"): # 通电的时候 爪子是关闭的
             self.enable_io_4(False)
-            self.motor_10.permission = False # 手爪关闭的时候 电机10不可以移动
+            self.motor_10.permission = True # 手爪关闭的时候 电机10不可以移动
         else: pass
 
     # 显示电磁阀的状态
@@ -1018,16 +1009,13 @@ class ControlPanel(QMainWindow):
 
 
 
-
     
     
     
     
 
     
-    '''
-        操纵杆
-    '''
+    ''' 操纵杆 '''
     # 界面 状态设置
     def enable_end_control(self, flag, text=None):
         self.ui.bt_end_control.setEnabled(flag)
@@ -1124,9 +1112,7 @@ class ControlPanel(QMainWindow):
     
     
     
-    '''
-        CANOPEN总线下的状态更新
-    '''
+    ''' CANOPEN总线下的状态更新 '''
     # 界面 状态设置
     def enable_status_1(self, flag):
         self.ui.status_1.setEnabled(flag)
@@ -1228,3 +1214,46 @@ class ControlPanel(QMainWindow):
         
         else: pass
     
+
+
+
+    
+    ''' test '''
+    def test(self):
+        self.test_thread = NewTest(self.motor_10, self.sensor_1)
+
+        self.test_thread.start()
+    
+    def stop_test(self):
+        self.test_thread.stop()
+        self.test_thread.wait()
+
+from PyQt5.QtCore import QThread
+class NewTest(QThread):
+    
+    def __init__(self, motor, sensor) -> None:
+        super().__init__()
+        self.__is_stop = False
+        self.__motor = motor
+        self.__sensor = sensor
+    
+    def run(self):
+        # self.__motor.set_speed(50)
+
+        target_force = 2
+        
+        while not self.__is_stop:
+            print(self.__sensor.force)
+            
+            if self.__sensor.force < 0 and abs(self.__sensor.force) < 1:
+                self.__motor.set_servo_status("servo_enable/start")
+            else:
+                self.__motor.set_servo_status("quick_stop")
+
+        self.__motor.set_speed(0)
+        self.__motor.set_servo_status("quick_stop")
+    
+    def stop(self):
+        self.__is_stop = True
+        self.__motor.set_speed(0)
+        self.__motor.set_servo_status("quick_stop")
