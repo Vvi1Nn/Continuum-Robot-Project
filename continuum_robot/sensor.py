@@ -153,7 +153,7 @@ class SensorResolveThread(QThread):
                     
                     # Sensor
                     if node_id in Sensor.sensor_dict.keys():
-                        self.force = self.__hex_list_to_float([msg[0].Data[2], msg[0].Data[3], msg[0].Data[4], msg[0].Data[5]])
+                        self.original_force = self.__hex_list_to_float([msg[0].Data[2], msg[0].Data[3], msg[0].Data[4], msg[0].Data[5]])
                     
                     # Other
                     else: pass
@@ -161,6 +161,8 @@ class SensorResolveThread(QThread):
             else: pass
 
             self.update_signal.emit(node_id)
+        
+        print("Sensor Resolve Thread Stopped")
 
     def stop(self):
         self.__is_stop = True
