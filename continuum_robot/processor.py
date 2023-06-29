@@ -14,8 +14,11 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # 导入自定义模块
 from continuum_robot.canopen import CanOpenMsgGenerator
+from continuum_robot.motor import Motor
+from continuum_robot.io import IoModule
 
 
+''' CANopen 发送 '''
 class CanOpenBusProcessor(CanOpenMsgGenerator):
     device = None # CANopen总线在CAN卡的通道
 
@@ -384,20 +387,6 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
             return False
 
 
-    # ''' 匹配地址 '''
-    # @staticmethod
-    # def __match_index(index_low, index_high, subindex) -> list:
-    #     # 低位 int转hex
-    #     index_low_str = hex(index_low)[2:].upper()
-    #     index_low_str = (2 - len(index_low_str)) * "0" + index_low_str
-    #     # 高位 int转hex
-    #     index_high_str = hex(index_high)[2:].upper()
-    #     index_high_str = (2 - len(index_high_str)) * "0" + index_high_str
-    #     # 合并 转int
-    #     index = int(index_high_str + index_low_str, 16)
-    #     # 返回列表的形式 以供比较
-    #     return [index, subindex]
-    
     ''' hex列表转换为int '''
     @staticmethod
     def __hex_list_to_int(data_list) -> int:
@@ -412,17 +401,17 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
         else: return - ((int(data_str, 2) ^ 0xFFFFFFFF) + 1)
 
 
-''' CANopen 总线数据处理 '''
+''' CANopen 接收 数据处理 '''
 class CANopenUpdateThread(QThread):
-    pdo_1_update_signal = pyqtSignal(int)
-    pdo_2_update_signal = pyqtSignal(int)
+    __pdo_1_update_signal = pyqtSignal(int)
+    __pdo_2_update_signal = pyqtSignal(int)
     
-    def __init__(self, pdo_1_slot_function, pdo_2_slot_function) -> None:
+    def __init__(self, /, *, pdo_1_slot_function, pdo_2_slot_function) -> None:
         super().__init__()
         self.__is_stop = False
 
-        self.pdo_1_update_signal.connect(pdo_1_slot_function)
-        self.pdo_2_update_signal.connect(pdo_2_slot_function)
+        self.__pdo_1_update_signal.connect(pdo_1_slot_function)
+        self.__pdo_2_update_signal.connect(pdo_2_slot_function)
     
     def run(self):
         while not self.__is_stop:
@@ -446,11 +435,22 @@ class CANopenUpdateThread(QThread):
                                         Motor.motor_dict[node_id].servo_status = key # 更新电机的伺服状态
                                         break
                                     else: pass
-                        
+                        # IO模块的ID
+                        elif node_id in IoModule.io_dict.keys():
+                            data_low = bin(msg[i].Data[0])[2:] # 首先转换为bin 去除0b
+                            data_low = '0' * (8 - len(data_low)) + data_low # 头部补齐
+
+                            data_high = bin(msg[i].Data[1])[2:]
+                            data_high = '0' * (8 - len(data_high)) + data_high
+
+                            data = data_high + data_low # 拼接
+
+                            for i, c in enumerate(data):
+                                setattr(IoModule.io_dict[node_id], f"switch_{16-i}", False if c == "0" else True)
                         # 其他的ID
                         else: pass
 
-                        self.pdo_1_update_signal.emit(node_id)
+                        self.__pdo_1_update_signal.emit(node_id)
                     
                     # TPDO2
                     elif msg[i].ID > 0x280 and msg[i].ID < 0x300:
@@ -466,7 +466,7 @@ class CANopenUpdateThread(QThread):
                         # 其他的ID
                         else: pass
 
-                        self.pdo_2_update_signal.emit(node_id)
+                        self.__pdo_2_update_signal.emit(node_id)
                     
                     # SDO
                     elif msg[i].ID > 0x580 and msg[i].ID < 0x600:
