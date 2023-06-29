@@ -292,8 +292,8 @@ class ControlPanel(QMainWindow):
         # self.ui.bt_close.clicked.connect(self.close_usbcan)
 
 
-        self.ui.bt_close.pressed.connect(self.test)
-        self.ui.bt_close.released.connect(self.stop_test)
+        self.ui.bt_reset0.clicked.connect(self.test_1)
+        self.ui.bt_reset1.clicked.connect(self.test_2)
     
     # 打开设备
     def open_usbcan(self):
@@ -1219,31 +1219,78 @@ class ControlPanel(QMainWindow):
 
     
     ''' test '''
-    def test(self):
-        self.test_thread = NewTest(self.motor_10, self.sensor_1)
+    def test_1(self):
+        # self.test_thread = NewTest(self.motor_10, self.sensor_1)
 
-        self.test_thread.start()
+        # self.test_thread.start()
+
+        print("==================test_1==================")
+
+        print("set 1: ", self.motor_2.set_position_and_velocity(1000, 100))
+        time.sleep(0.001)
+        print("set 2: ", self.motor_5.set_position_and_velocity(1000, 100))
+        time.sleep(0.001)
+        print("set 3: ", self.motor_8.set_position_and_velocity(1000, 100))
+        time.sleep(0.001)
+
+        print("ready 1: ", self.motor_2.set_servo_status("position_mode_ready"))
+        time.sleep(0.001)
+        print("ready 3: ", self.motor_5.set_servo_status("position_mode_ready"))
+        time.sleep(0.001)
+        print("ready 2: ", self.motor_8.set_servo_status("position_mode_ready"))
+        time.sleep(0.001)
+
+        print("action 1: ", self.motor_2.set_servo_status("position_mode_action"))
+        time.sleep(0.001)
+        print("action 3: ", self.motor_5.set_servo_status("position_mode_action"))
+        time.sleep(0.001)
+        print("action 2: ", self.motor_8.set_servo_status("position_mode_action"))
+        
+    
+    def test_2(self):
+        print("==================test_2==================")
+
+        print("set 1: ", self.motor_2.set_position_and_velocity(-1000, 100))
+        time.sleep(0.001)
+        print("set 2: ", self.motor_5.set_position_and_velocity(-1000, 100))
+        time.sleep(0.001)
+        print("set 3: ", self.motor_8.set_position_and_velocity(-1000, 100))
+        time.sleep(0.001)
+
+        print("ready 1: ", self.motor_2.set_servo_status("position_mode_ready"))
+        time.sleep(0.001)
+        print("ready 3: ", self.motor_5.set_servo_status("position_mode_ready"))
+        time.sleep(0.001)
+        print("ready 2: ", self.motor_8.set_servo_status("position_mode_ready"))
+        time.sleep(0.001)
+        
+
+        print("action 1: ", self.motor_2.set_servo_status("position_mode_action"))
+        time.sleep(0.001)
+        print("action 3: ", self.motor_5.set_servo_status("position_mode_action"))
+        time.sleep(0.001)
+        print("action 2: ", self.motor_8.set_servo_status("position_mode_action"))
+        
     
     def stop_test(self):
-        self.test_thread.stop()
-        self.test_thread.wait()
+        # self.test_thread.stop()
+        # self.test_thread.wait()
+        ...
 
 from PyQt5.QtCore import QThread
 class NewTest(QThread):
     
-    def __init__(self, motor, sensor) -> None:
+    def __init__(self, motor_1, motor_2, motor_3) -> None:
         super().__init__()
         self.__is_stop = False
-        self.__motor = motor
-        self.__sensor = sensor
+        self.__motor_1 = motor_1
+        self.__motor_2 = motor_2
+        self.__motor_3 = motor_3
     
     def run(self):
-        # self.__motor.set_speed(50)
-
-        target_force = 2
+        self.__motor.set_position_and_velocity(25600, 100)
         
         while not self.__is_stop:
-            print(self.__sensor.force)
             
             if self.__sensor.force < 0 and abs(self.__sensor.force) < 1:
                 self.__motor.set_servo_status("servo_enable/start")
