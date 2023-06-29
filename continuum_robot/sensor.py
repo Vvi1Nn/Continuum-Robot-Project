@@ -23,9 +23,9 @@ class Sensor():
 
         self.__is_ready = False
 
-        self.original_force = None
+        self.original_data = None
 
-        self.__zero = 0
+        self.zero = 0
         self.force = None
 
     ''' 绑定 '''
@@ -135,15 +135,14 @@ class SensorRequestThread(QThread):
 
 ''' 解析数据 '''
 class SensorResolveThread(QThread):
-    update_signal = pyqtSignal()
+    __update_signal = pyqtSignal()
     
-    def __init__(self, mutex: QMutex, slot_function) -> None:
+    def __init__(self, /, *, update_screen_slot_function) -> None:
         super().__init__()
 
         self.__is_stop = False
 
-        self.__mutex = mutex
-        self.update_signal.connect(slot_function)
+        self.__update_signal.connect(update_screen_slot_function)
     
     def run(self):
         print("Sensor Resolve Thread Started")
@@ -162,15 +161,15 @@ class SensorResolveThread(QThread):
                         
                         # Sensor
                         if msg[i].ID in Sensor.sensor_dict.keys():
-                            Sensor.sensor_dict[msg[i].ID].original_force = self.__hex_list_to_float([msg[i].Data[j] for j in range(2, 6)])
+                            Sensor.sensor_dict[msg[i].ID].original_data = self.__hex_list_to_float([msg[i].Data[j] for j in range(2, 6)])
 
-                            Sensor.sensor_dict[msg[i].ID].force = self.__hex_list_to_float([msg[i].Data[j] for j in range(2, 6)]) - Sensor.sensor_dict[msg[i].ID].__init
+                            Sensor.sensor_dict[msg[i].ID].force = (self.__hex_list_to_float([msg[i].Data[j] for j in range(2, 6)]) - Sensor.sensor_dict[msg[i].ID].zero) / 2
                         # Other
                         else: pass
                     else: pass
             else: pass
 
-            self.update_signal.emit(msg[i].ID)
+            self.__update_signal.emit(msg[i].ID)
         
         print("Sensor Resolve Thread Stopped")
 
