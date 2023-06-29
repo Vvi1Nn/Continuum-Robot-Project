@@ -50,9 +50,9 @@ class Motor(CanOpenBusProcessor):
 
     control_mode = "speed_control"
     motion_profile_type = "trapezoidal"
-    profile_acceleration = 10000
-    profile_deceleration = 50000
-    quick_stop_deceleration = 100000
+    profile_acceleration = 100
+    profile_deceleration = 100
+    quick_stop_deceleration = 150
     tpdo_inhibit_time = 10
 
     motor_dict = {}
