@@ -1,11 +1,11 @@
 # -*- coding:utf-8 -*-
 
 
-''' function_new.py 新GUI功能函数 v3.2 '''
+''' gui.py GUI '''
 
 
 from PyQt5.QtWidgets import QMainWindow
-from PyQt5.QtCore import QMutex
+from PyQt5.QtCore import QThread, pyqtSignal, QMutex
 
 
 # 添加模块路径
@@ -13,15 +13,13 @@ import sys, os, time
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from continuum_robot.control_panel import Ui_MainWindow as Ui_ControlPanel
+
 from continuum_robot.usbcan import UsbCan
-from continuum_robot.processor import CanOpenBusProcessor
+from continuum_robot.processor import CanOpenBusProcessor, CANopenUpdateThread
 from continuum_robot.motor import Motor
 from continuum_robot.io import IoModule
+from continuum_robot.sensor import Sensor, SensorRequestThread, SensorResolveThread
 
-# from motor.threads import CANopenUpdateThread, JointControlThread, JointControlSpeedModeThread, InitMotorThread, CheckMotorThread, StartPDO, StopPDO
-# from sensor.function import Sensor, SensorUpdateThread
-
-# from joystick.function import JoystickThread
 
 
 
@@ -32,18 +30,23 @@ class ControlPanel(QMainWindow):
         self.ui = Ui_ControlPanel()
         self.ui.setupUi(self)
         
-        # 是否是管理员权限
-        self.is_admin = False if account == "测试人员" else True
-        
         # CAN卡实例化
-        self.usbcan_0 = UsbCan.set_device_type("USBCAN2", "0").is_show_log(False)("0") # 通道0
-        self.usbcan_1 = UsbCan.set_device_type("USBCAN2", "0").is_show_log(False)("1") # 通道1
-        self.usbcan_is_running = False
+        self.usbcan_0 = UsbCan.set_device_type(type="USBCAN2", index="0").is_show_log(False)("0") # 通道0
+        self.usbcan_1 = UsbCan.set_device_type(type="USBCAN2", index="0").is_show_log(False)("1") # 通道1
+
+        # 波特率
+        self.usbcan_0.set_timer("250K")
+        self.usbcan_1.set_timer("1000K")
+
+        # FLAG
+        self.__usbcan_0_is_start = False
+        self.__usbcan_1_is_start = False
         
+        # 绑定通道
         CanOpenBusProcessor.link_device(self.usbcan_0) # 将CANopen总线绑定至CAN卡的通道0
-        CanOpenBusProcessor.is_show_log(False)
+        Sensor.link_device(self.usbcan_1) # 将Sensor的CAN总线绑定至CAN卡的通道1
         
-        # 电机实例化
+        # 电机
         self.motor_1 = Motor(1, [-10000000,10000000], [-200,200])
         self.motor_2 = Motor(2, [-10000000,10000000], [-200,200])
         self.motor_3 = Motor(3, [-10000000,10000000], [-200,200])
@@ -56,22 +59,21 @@ class ControlPanel(QMainWindow):
         self.motor_10 = Motor(10, [-10000000,10000000], [-200,200])
         self.motor_is_running = False
 
-        # Sensor.link_device(self.usbcan_1)
-        # # 力传感器
-        # self.sensor_1 = Sensor(1)
-        # self.sensor_2 = Sensor(2)
-        # self.sensor_3 = Sensor(3)
-        # self.sensor_4 = Sensor(4)
-        # self.sensor_5 = Sensor(5)
-        # self.sensor_6 = Sensor(6)
-        # self.sensor_7 = Sensor(7)
-        # self.sensor_8 = Sensor(8)
-        # self.sensor_9 = Sensor(9)
-        # self.sensor_10 = Sensor(10)
-        # self.sensor_is_running = False
+        # 力传感器
+        self.sensor_1 = Sensor(1)
+        self.sensor_2 = Sensor(2)
+        self.sensor_3 = Sensor(3)
+        self.sensor_4 = Sensor(4)
+        self.sensor_5 = Sensor(5)
+        self.sensor_6 = Sensor(6)
+        self.sensor_7 = Sensor(7)
+        self.sensor_8 = Sensor(8)
+        self.sensor_9 = Sensor(9)
+        self.sensor_10 = Sensor(10)
+        self.sensor_is_running = False
 
-        # IO模块
-        self.io = IoModule(11, self.update_magnetic_valve) # IO
+        # IO
+        self.io = IoModule(11, update_output_status_slot_function=self.update_magnetic_valve) # IO
         self.io_is_running = False
 
         # self.check_motor_thread = CheckMotorThread() # 检查电机
@@ -96,9 +98,45 @@ class ControlPanel(QMainWindow):
 
         self.show() # 显示界面
 
-       
 
+    ''' 打开设备 '''
+    def open_device(self) -> None:
+        if UsbCan.open_device():
+            
+            if not self.__usbcan_0_is_start and self.usbcan_0.init_can() and self.usbcan_0.start_can():
+                self.read_canopen_thread = CANopenUpdateThread(pdo_1_slot_function=..., pdo_2_slot_function=...)
+                self.read_canopen_thread.start()
+
+                self.__usbcan_0_is_start = True
+            else: pass
+
+            if not self.__usbcan_1_is_start and self.usbcan_1.init_can() and self.usbcan_1.start_can():
+                self.read_sensor_thread = SensorResolveThread(update_screen_slot_function=...)
+                self.read_sensor_thread.start()
+
+                self.__usbcan_1_is_start = True
+            else: pass
+
+            if self.__usbcan_0_is_start and self.__usbcan_1_is_start:
+                ...
+                ...
+                ...
+            else: pass
+        else: pass
     
+    ''' 初始化 '''
+    def initialize_robot(self):
+        ...
+
+
+
+
+
+
+
+
+
+
     ''' 界面的初始显示状态 '''
     def initial_status(self) -> None:
         ''' 菜单 '''
@@ -148,7 +186,7 @@ class ControlPanel(QMainWindow):
 
 
 
-
+    
 
 
 
@@ -1182,41 +1220,67 @@ class ControlPanel(QMainWindow):
 
 
 
-    
-    ''' test '''
-    def test(self):
-        self.test_thread = NewTest(self.motor_10, self.sensor_1)
 
-        self.test_thread.start()
+''' 初始化 '''
+class RobotInitThread(QThread):
+    running_signal = pyqtSignal(bool)
+    finish_signal = pyqtSignal()
     
-    def stop_test(self):
-        self.test_thread.stop()
-        self.test_thread.wait()
-
-from PyQt5.QtCore import QThread
-class NewTest(QThread):
-    
-    def __init__(self, motor, sensor) -> None:
+    def __init__(self, times=1) -> None:
         super().__init__()
-        self.__is_stop = False
-        self.__motor = motor
-        self.__sensor = sensor
-    
-    def run(self):
-        # self.__motor.set_speed(50)
-        
-        while not self.__is_stop:
-            print(self.__sensor.force)
-            
-            if self.__sensor.force < 0 and abs(self.__sensor.force) < 1:
-                self.__motor.set_servo_status("servo_enable/start")
-            else:
-                self.__motor.set_servo_status("quick_stop")
 
-        self.__motor.set_speed(0)
-        self.__motor.set_servo_status("quick_stop")
+        self.__motor_init_count = 0
+
+        self.__io_init_count = 0
+
+        self.__sensor_init_count = 0
+
+        self.__times = times
     
-    def stop(self):
-        self.__is_stop = True
-        self.__motor.set_speed(0)
-        self.__motor.set_servo_status("quick_stop")
+    def __init_motor(self) -> bool:
+        for node_id in Motor.motor_dict:
+            if Motor.motor_dict[node_id].check_bus_status() \
+                and Motor.motor_dict[node_id].start_pdo(log=True, check=False) \
+                and Motor.motor_dict[node_id].check_servo_status():
+                    
+                    if Motor.motor_dict[node_id].set_control_mode("position_control") \
+                        and Motor.motor_dict[node_id].set_tpdo_inhibit_time(10, channel="2") \
+                        and Motor.motor_dict[node_id].set_profile_acceleration(10) \
+                            and Motor.motor_dict[node_id].set_profile_deceleration(10):
+                            
+                            self.__motor_init_count += 1
+                    else: pass
+            else: pass
+        
+        return self.__motor_init_count == len(Motor.motor_dict)
+
+    def __init_io(self) -> bool:
+        for node_id in IoModule.io_dict:
+            if IoModule.io_dict[node_id].check_bus_status() \
+            and IoModule.io_dict[node_id].initialize_device(log=True) \
+            and IoModule.io_dict[node_id].start_device(log=True):
+                
+                if IoModule.io_dict[node_id].close_valve_1() \
+                and IoModule.io_dict[node_id].close_valve_2() \
+                and IoModule.io_dict[node_id].close_valve_3() \
+                and IoModule.io_dict[node_id].open_valve_4():
+                    
+                    self.__io_init_count += 1
+            else: pass
+        
+        return self.__io_init_count == len(IoModule.io_dict)
+    
+    def __init_sensor(self) -> bool:
+        
+        return self.__sensor_init_count == len(Sensor.sensor_dict)
+
+    def run(self):
+        self.running_signal.emit(True)
+
+        while self.__times != 0:
+            if self.__init_motor() and self.__init_io() and self.__init_sensor():
+                self.finish_signal.emit(True)
+                break
+            else: self.__times -= 1
+        
+        else: self.running_signal.emit(False)
