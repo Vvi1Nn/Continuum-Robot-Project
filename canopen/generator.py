@@ -196,4 +196,4 @@ if __name__ == "__main__":
     generator_4.sdo_write_8("tpdo_1_transtype", 255)
 
     g_5 = CanOpenMsgGenerator(10)
-    g_5.rpdo("1", 0b00000110, format=8)
+    g_5.rpdo("2", 100,100)
