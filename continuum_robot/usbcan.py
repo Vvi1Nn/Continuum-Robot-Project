@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' function.py USBCAN卡功能函数 v2.2.2 '''
+''' function.py USBCAN '''
 
 
 # 添加路径
