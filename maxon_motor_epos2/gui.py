@@ -35,7 +35,7 @@ class ControlPanel(QMainWindow):
         
         # 电机实例化
         self.motor_1 = Motor(1, [-100000000,100000000], [-12700,12700])
-        # self.motor_2 = Motor(2, [-100000000,100000000], [-12700,12700])
+        self.motor_2 = Motor(2, [-100000000,100000000], [-12700,12700])
 
         
         self.initial_screen()
