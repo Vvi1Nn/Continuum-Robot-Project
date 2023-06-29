@@ -45,6 +45,9 @@ class Motor(CanOpenBusProcessor):
                    "sinusoidal" : 1,
     }
     
+    STEP_ANGLE = 1.8
+    FRACTION = 128
+
     control_mode = "speed_control"
     motion_profile_type = "trapezoidal"
     profile_acceleration = 10000
