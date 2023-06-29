@@ -14,17 +14,17 @@ from continuum_robot.processor import CanOpenBusProcessor
 
 
 class IoModule(CanOpenBusProcessor, QObject):
-    update_signal = pyqtSignal()
+    __update_signal = pyqtSignal()
 
     io_dict = {}
     
-    def __init__(self, node_id, slot_function) -> None:
+    def __init__(self, node_id, /, *, update_output_status_slot_function) -> None:
         CanOpenBusProcessor.__init__(self, node_id)
         QObject.__init__(self)
 
         self.io_dict[node_id] = self
 
-        self.update_signal.connect(slot_function)
+        self.__update_signal.connect(update_output_status_slot_function)
 
         self.__is_initialized = False
 
@@ -67,9 +67,8 @@ class IoModule(CanOpenBusProcessor, QObject):
     def initialize_device(self, /, *, times=3, check=True, log=False) -> bool:
         if self.bus_is_checked:
             while times != 0:
-                if (self.set_tpdo_mode("asynchronous", channel="1", times=1, check=check, delay=0.5, log=log)
-                    and
-                    self.set_tpdo_inhibit_time(10, channel="1", times=1, check=check, delay=0.5, log=log)):
+                if self.set_tpdo_mode("asynchronous", channel="1", times=1, check=check, delay=0.5, log=log) \
+                    and self.set_tpdo_inhibit_time(10, channel="1", times=1, check=check, delay=0.5, log=log):
                     
                     self.__is_initialized = True
                     print("\033[0;32m[IO {}] DEVICE INIT\033[0m".format(self.node_id))
@@ -137,7 +136,7 @@ class IoModule(CanOpenBusProcessor, QObject):
             
             while times != 0:
                 if self.rpdo("1", int(value_str, 2), format=8):
-                    self.update_signal.emit() # 向外发送信号 提示更新状态显示
+                    self.__update_signal.emit() # 向外发送信号 提示更新状态显示
 
                     if log: print("\033[0;32m[IO {}] OUTPUT STATUS: {}\033[0m".format(self.node_id, value_str))
                     else: pass
@@ -185,20 +184,3 @@ class IoModule(CanOpenBusProcessor, QObject):
     def close_valve_4(self) -> bool:
         return self.set_output(True, "4")
     
-    # ''' 配置TPDO参数 启动PDO通讯 控制电磁阀的初始状态 '''
-    # @staticmethod
-    # def start_output() -> None:
-    #     for io in IoModule.io_dict.values():
-    #         print("=============================================================")
-    #         if io.__check_bus_status():
-    #             if io.__set_tpdo_mode():
-    #                 if io.set_bus_status("start_remote_node"):
-    #                     io.is_start = True
-    #                     # io.set_channel_status(False, "1", "2", "3") # 3个小爪
-    #                     # io.set_channel_status(True, "4") # 大爪
-    #                     print("\033[0;32m[IO {}] START OUTPUT\033[0m".format(io.node_id))
-    #                 else: print("\033[0;31m[IO {}] In function [start_output], set bus status failed\033[0m".format(io.node_id))
-    #             else: print("\033[0;31m[IO {}] In function [start_output], set tpdo mode failed\033[0m".format(io.node_id))
-    #         else: print("\033[0;31m[IO {}] In function [start_output], check bus status failed\033[0m".format(io.node_id))
-    
-   
