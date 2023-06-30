@@ -14,8 +14,6 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # 导入自定义模块
 from continuum_robot.canopen import CanOpenMsgGenerator
-from continuum_robot.motor import Motor
-from continuum_robot.io import IoModule
 
 
 ''' CANopen 发送 '''
@@ -46,34 +44,25 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
 
     ''' 获取总线状态 '''
     def get_bus_status(self, /, *, times=1, delay=0.5, log=False) -> str:
-        if not self.nmt_feedback[0]:
-            [cob_id, data] = self.nmt_get_status() # 生成消息
+        [cob_id, data] = self.nmt_get_status() # 生成消息
 
-            while times != 0:
-                if CanOpenBusProcessor.device.send(cob_id, [data], remote_flag="remote", data_len="default"):
-                    time_stamp = time.time()
-                    while time.time() - time_stamp < delay:
-                        if self.nmt_feedback[0]:
-                            self.bus_status = self.nmt_feedback[1]
-                            self.nmt_feedback = (False, "")
-                            if log: print("\033[0;32m[Node-ID {}] bus status: {}\033[0m".format(self.node_id, self.bus_status))
-                            else: pass
-                            return self.bus_status
-                        else: pass
-                    else:
-                        times -= 1
-                        if log: print("\033[0;33m[Node-ID {}] no nmt feedback ...\033[0m".format(self.node_id))
-                        else: pass
+        self.nmt_feedback = (False, "")
+
+        while times != 0:
+            if CanOpenBusProcessor.device.send(cob_id, [data], remote_flag="remote", data_len="default"):
+                time_stamp = time.time()
+                while time.time() - time_stamp < delay:
+                    if self.nmt_feedback[0]:
+                        self.bus_status = self.nmt_feedback[1]
+                        if log: print("\033[0;32m[Node-ID {}] bus status: {}\033[0m".format(self.node_id, self.bus_status))
+                        return self.bus_status
                 else:
                     times -= 1
-                    if log: print("\033[0;33m[Node-ID {}] usbcan sending message ...\033[0m".format(self.node_id))
-            else: return "error"
-        else:
-            self.bus_status = self.nmt_feedback[1]
-            self.nmt_feedback = (False, "")
-            if log: print("\033[0;32m[Node-ID {}] bus status: {}\033[0m".format(self.node_id, self.bus_status))
-            else: pass
-            return self.bus_status
+                    if log: print("\033[0;33m[Node-ID {}] no nmt feedback ...\033[0m".format(self.node_id))
+            else:
+                times -= 1
+                if log: print("\033[0;33m[Node-ID {}] usbcan sending message ...\033[0m".format(self.node_id))
+        else: return "error"
 
     ''' 设置总线状态 '''
     def set_bus_status(self, label: str, /, *, times=1, check=True, delay=0.5, log=False) -> bool:
@@ -86,31 +75,24 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
                         # 判断当前状态和设置的状态是否一致
                         if label == "start_remote_node" and self.bus_status == "operational":
                             if log: print("\033[0;32m[Node-ID {}] set bus: {}\033[0m".format(self.node_id, label))
-                            else: pass
                             return True
                         elif label == "stop_remote_node" and self.bus_status == "stopped":
                             if log: print("\033[0;32m[Node-ID {}] set bus: {}\033[0m".format(self.node_id, label))
-                            else: pass
                             return True
                         elif label == "enter_pre-operational_state" and self.bus_status == "pre-operational":
                             if log: print("\033[0;32m[Node-ID {}] set bus: {}\033[0m".format(self.node_id, label))
-                            else: pass
                             return True
                         elif label == "reset_node" and self.bus_status == "pre-operational":
                             if log: print("\033[0;32m[Node-ID {}] set bus: {}\033[0m".format(self.node_id, label))
-                            else: pass
                             return True
                         elif label == "reset_communication" and self.bus_status == "pre-operational":
                             if log: print("\033[0;32m[Node-ID {}] set bus: {}\033[0m".format(self.node_id, label))
-                            else: pass
                             return True
                         else:
                             if log: print("\033[0;31m[Node-ID {}] bus status not match\033[0m".format(self.node_id))
-                            else: pass
                             return False
                     else:
                         if log: print("\033[0;31m[Node-ID {}] get bus status failed, return is error\033[0m".format(self.node_id))
-                        else: pass
                         return False
                 else:
                     if label == "start_remote_node": self.bus_status = "operational"
@@ -121,7 +103,6 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
                     else: pass
 
                     if log: print("\033[0;32m[Node-ID {}] set bus: {}\033[0m".format(self.node_id, label))
-                    else: pass
                     return True
             else:
                 times -= 1
@@ -133,22 +114,18 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
     def check_bus_status(self, /, *, times=1, log=False) -> bool:
         if not self.bus_is_checked:
             while times != 0:
-                if self.set_bus_status("enter_pre-operational_state"):
+                if self.bus_status == "pre-operational" or self.set_bus_status("enter_pre-operational_state", log=log):
                     self.bus_is_checked = True
                     if log: print("\033[0;32m[Node-ID {}] checked\033[0m".format(self.node_id))
-                    else: pass
                     return True
                 else:
                     times -= 1
                     if log: print("\033[0;33m[Node-ID {}] checking bus status ...\033[0m".format(self.node_id))
-                    else: pass
             else: 
                 if log: print("\033[0;31m[Node-ID {}] unchecked\033[0m".format(self.node_id))
-                else: pass
                 return False
         else:
             if log: print("\033[0;32m[Node-ID {}] already checked\033[0m".format(self.node_id))
-            else: pass
             return True
 
     ''' SDO 读 '''
@@ -399,152 +376,3 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
         if int(data_str[0]) == 0: return int(data_str, 2)
         # 首位是1 负数
         else: return - ((int(data_str, 2) ^ 0xFFFFFFFF) + 1)
-
-
-''' CANopen 接收 数据处理 '''
-class CANopenUpdateThread(QThread):
-    __pdo_1_update_signal = pyqtSignal(int)
-    __pdo_2_update_signal = pyqtSignal(int)
-    
-    def __init__(self, /, *, pdo_1_slot_function, pdo_2_slot_function) -> None:
-        super().__init__()
-        self.__is_stop = False
-
-        self.__pdo_1_update_signal.connect(pdo_1_slot_function)
-        self.__pdo_2_update_signal.connect(pdo_2_slot_function)
-    
-    def run(self):
-        while not self.__is_stop:
-            ret = CanOpenBusProcessor.device.read_buffer(1, wait_time=0)
-            
-            if ret != None:
-                [num, msg] = ret
-                
-                for i in range(num):
-                    # TPDO1
-                    if msg[i].ID > 0x180 and msg[i].ID < 0x200:
-                        node_id = msg[i].ID - 0x180
-                        
-                        # 电机的ID
-                        if node_id in Motor.motor_dict.keys():
-                            status = self.__hex_list_to_int([msg[i].Data[0]]) # 状态字
-                            
-                            for key in Motor.STATUS_WORD: # 遍历字典关键字
-                                for r in Motor.STATUS_WORD[key]: # 在每一个关键字对应的列表中 核对数值
-                                    if status == r:
-                                        Motor.motor_dict[node_id].servo_status = key # 更新电机的伺服状态
-                                        break
-                                    else: pass
-                        # IO模块的ID
-                        elif node_id in IoModule.io_dict.keys():
-                            data_low = bin(msg[i].Data[0])[2:] # 首先转换为bin 去除0b
-                            data_low = '0' * (8 - len(data_low)) + data_low # 头部补齐
-
-                            data_high = bin(msg[i].Data[1])[2:]
-                            data_high = '0' * (8 - len(data_high)) + data_high
-
-                            data = data_high + data_low # 拼接
-
-                            for i, c in enumerate(data):
-                                setattr(IoModule.io_dict[node_id], f"switch_{16-i}", False if c == "0" else True)
-                        # 其他的ID
-                        else: pass
-
-                        self.__pdo_1_update_signal.emit(node_id)
-                    
-                    # TPDO2
-                    elif msg[i].ID > 0x280 and msg[i].ID < 0x300:
-                        node_id = msg[i].ID - 0x280
-                        
-                        # 电机的ID
-                        if node_id in Motor.motor_dict.keys():
-                            position = self.__hex_list_to_int([msg[i].Data[j] for j in range(0,4)]) # 当前位置
-                            speed = self.__hex_list_to_int([msg[i].Data[j] for j in range(4,8)]) # 当前速度
-                            Motor.motor_dict[node_id].current_position = position
-                            Motor.motor_dict[node_id].current_speed = speed
-                        
-                        # 其他的ID
-                        else: pass
-
-                        self.__pdo_2_update_signal.emit(node_id)
-                    
-                    # SDO
-                    elif msg[i].ID > 0x580 and msg[i].ID < 0x600:
-                        node_id = msg[i].ID - 0x580
-                        
-                        command =  msg[i].Data[0]
-                        if command == CanOpenMsgGenerator.CMD_R["read_16"] or CanOpenMsgGenerator.CMD_R["read_32"] or CanOpenMsgGenerator.CMD_R["read_8"]: status = True
-                        elif command == CanOpenMsgGenerator.CMD_R["write"]: status = True
-                        elif command == CanOpenMsgGenerator.CMD_R["error"]: status = False
-                        else: status = None
-                        
-                        index = self.__match_index(msg[i].Data[1], msg[i].Data[2], msg[i].Data[3])
-                        for key in CanOpenMsgGenerator.OD: # 遍历字典关键字
-                            if index == CanOpenMsgGenerator.OD[key]: # 在每一个关键字对应的列表中 核对数值
-                                label = key
-                                break
-                            else: pass
-                        else: label = ""
-                        
-                        value_list = [msg[i].Data[j] for j in range(4,8)]
-                        
-                        # print("OLD", CanOpenBusProcessor.node_dict[node_id].sdo_feedback)
-
-                        wait_time = 1
-                        time_stamp = time.time()
-                        while CanOpenBusProcessor.node_dict[node_id].sdo_feedback[0] and time.time() - time_stamp < wait_time: time.sleep(0.1)
-                        
-                        CanOpenBusProcessor.node_dict[node_id].sdo_feedback = (True, status, label, value_list)
-
-                        print("[SDO NEW] ", CanOpenBusProcessor.node_dict[node_id].sdo_feedback)
-                    
-                    # NMT
-                    elif msg[i].ID > 0x700 and msg[i].ID < 0x780:
-                        node_id = msg[i].ID - 0x700
-
-                        for key in CanOpenMsgGenerator.NMT_STATUS:
-                            if msg[0].Data[0] & 0b01111111 == CanOpenMsgGenerator.NMT_STATUS[key]:
-                                label = key
-                                break
-                            else: pass
-                        else: label = ""
-
-                        # print("old  ", CanOpenBusProcessor.node_dict[node_id].nmt_feedback)
-                        CanOpenBusProcessor.node_dict[node_id].nmt_feedback = (True, label)
-                        
-                        print("[NMT NEW] ", CanOpenBusProcessor.node_dict[node_id].nmt_feedback)
-                    
-                    # 其他
-                    else: pass
-            else: pass
-    
-    def stop(self):
-        self.__is_stop = True
-
-
-    ''' hex列表转换为int '''
-    @staticmethod
-    def __hex_list_to_int(data_list) -> int:
-        data_str = ""
-        for i in range(len(data_list)):
-            data_bin = bin(data_list[i])[2:] # 首先转换为bin 去除0b
-            data_bin = '0' * (8 - len(data_bin)) + data_bin # 头部补齐
-            data_str = data_bin + data_str # 拼接
-        # 首位是0 正数
-        if int(data_str[0]) == 0: return int(data_str, 2)
-        # 首位是1 负数
-        else: return - ((int(data_str, 2) ^ 0xFFFFFFFF) + 1)
-    
-    ''' 匹配地址 '''
-    @staticmethod
-    def __match_index(index_low, index_high, subindex) -> list:
-        # 低位 int转hex
-        index_low_str = hex(index_low)[2:].upper()
-        index_low_str = (2 - len(index_low_str)) * "0" + index_low_str
-        # 高位 int转hex
-        index_high_str = hex(index_high)[2:].upper()
-        index_high_str = (2 - len(index_high_str)) * "0" + index_high_str
-        # 合并 转int
-        index = int(index_high_str + index_low_str, 16)
-        # 返回列表的形式 以供比较
-        return [index, subindex]
