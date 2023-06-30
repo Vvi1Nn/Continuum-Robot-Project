@@ -1,9 +1,12 @@
 # -*- coding:utf-8 -*-
 
 
-import sys, time
-
 from PyQt5.QtWidgets import QApplication
+
+
+# 添加模块路径
+import sys, os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from continuum_robot.gui import ControlPanel
 
