@@ -1226,50 +1226,60 @@ class ControlPanel(QMainWindow):
 
         print("==================test_1==================")
 
-        print("set 1: ", self.motor_2.set_position_and_velocity(1000, 100))
+        # print("set 1: ", self.motor_1.set_position_and_velocity(1000, 100))
+        # time.sleep(0.001)
+        # print("set 2: ", self.motor_2.set_position_and_velocity(1000, 100))
+        # time.sleep(0.001)
+        # print("set 3: ", self.motor_3.set_position_and_velocity(1000, 100))
+        # time.sleep(0.001)
+
+        # print("ready 1: ", self.motor_1.set_servo_status("position_mode_ready"))
+        # time.sleep(0.001)
+        # print("ready 3: ", self.motor_2.set_servo_status("position_mode_ready"))
+        # time.sleep(0.001)
+        # print("ready 2: ", self.motor_3.set_servo_status("position_mode_ready"))
+        # time.sleep(0.001)
+
+        # print("action 1: ", self.motor_1.set_servo_status("position_mode_action"))
+        # time.sleep(0.001)
+        # print("action 3: ", self.motor_2.set_servo_status("position_mode_action"))
+        # time.sleep(0.001)
+        # print("action 2: ", self.motor_3.set_servo_status("position_mode_action"))
+
+        self.motor_10.set_position_and_velocity(-5120, 100)
         time.sleep(0.001)
-        print("set 2: ", self.motor_5.set_position_and_velocity(1000, 100))
+        self.motor_10.set_servo_status("position_mode_ready")
         time.sleep(0.001)
-        print("set 3: ", self.motor_8.set_position_and_velocity(1000, 100))
+        self.motor_10.set_servo_status("position_mode_action")
         time.sleep(0.001)
 
-        print("ready 1: ", self.motor_2.set_servo_status("position_mode_ready"))
-        time.sleep(0.001)
-        print("ready 3: ", self.motor_5.set_servo_status("position_mode_ready"))
-        time.sleep(0.001)
-        print("ready 2: ", self.motor_8.set_servo_status("position_mode_ready"))
-        time.sleep(0.001)
-
-        print("action 1: ", self.motor_2.set_servo_status("position_mode_action"))
-        time.sleep(0.001)
-        print("action 3: ", self.motor_5.set_servo_status("position_mode_action"))
-        time.sleep(0.001)
-        print("action 2: ", self.motor_8.set_servo_status("position_mode_action"))
         
     
     def test_2(self):
         print("==================test_2==================")
 
-        print("set 1: ", self.motor_2.set_position_and_velocity(-1000, 100))
-        time.sleep(0.001)
-        print("set 2: ", self.motor_5.set_position_and_velocity(-1000, 100))
-        time.sleep(0.001)
-        print("set 3: ", self.motor_8.set_position_and_velocity(-1000, 100))
-        time.sleep(0.001)
+        # print("set 1: ", self.motor_1.set_position_and_velocity(-1000, 100))
+        # time.sleep(0.001)
+        # print("set 2: ", self.motor_2.set_position_and_velocity(-1000, 100))
+        # time.sleep(0.001)
+        # print("set 3: ", self.motor_3.set_position_and_velocity(-1000, 100))
+        # time.sleep(0.001)
 
-        print("ready 1: ", self.motor_2.set_servo_status("position_mode_ready"))
-        time.sleep(0.001)
-        print("ready 3: ", self.motor_5.set_servo_status("position_mode_ready"))
-        time.sleep(0.001)
-        print("ready 2: ", self.motor_8.set_servo_status("position_mode_ready"))
-        time.sleep(0.001)
+        # print("ready 1: ", self.motor_1.set_servo_status("position_mode_ready"))
+        # time.sleep(0.001)
+        # print("ready 3: ", self.motor_2.set_servo_status("position_mode_ready"))
+        # time.sleep(0.001)
+        # print("ready 2: ", self.motor_3.set_servo_status("position_mode_ready"))
+        # time.sleep(0.001)
         
 
-        print("action 1: ", self.motor_2.set_servo_status("position_mode_action"))
-        time.sleep(0.001)
-        print("action 3: ", self.motor_5.set_servo_status("position_mode_action"))
-        time.sleep(0.001)
-        print("action 2: ", self.motor_8.set_servo_status("position_mode_action"))
+        # print("action 1: ", self.motor_1.set_servo_status("position_mode_action"))
+        # time.sleep(0.001)
+        # print("action 3: ", self.motor_2.set_servo_status("position_mode_action"))
+        # time.sleep(0.001)
+        # print("action 2: ", self.motor_3.set_servo_status("position_mode_action"))
+
+
         
     
     def stop_test(self):
