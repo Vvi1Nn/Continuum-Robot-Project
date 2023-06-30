@@ -31,7 +31,7 @@ class Sensor():
     ''' 绑定 '''
     @staticmethod
     def link_device(device) -> None:
-        Sensor.__device = device
+        Sensor.device = device
     
     ''' 发送请求 '''
     def send_request(self) -> bool:
@@ -109,91 +109,87 @@ class Sensor():
     #         sensor.get_force()
 
 
-''' 发送请求 '''
-class SensorRequestThread(QThread):
-    def __init__(self) -> None:
-        super().__init__()
+# ''' 发送请求 '''
+# class SensorRequestThread(QThread):
+#     def __init__(self) -> None:
+#         super().__init__()
 
-        self.__is_stop = False
+#         self.__is_stop = False
     
-    def run(self):
-        clear_success = Sensor.device.clear_buffer()
+#     def run(self):
+#         clear_success = Sensor.device.clear_buffer()
 
-        print("Sensor Request Sending")
+#         print("Sensor Request Sending")
         
-        while not self.__is_stop:
-            for sensor in Sensor.sensor_dict.values():
-                send_success = sensor.send_request()
+#         while not self.__is_stop:
+#             for sensor in Sensor.sensor_dict.values():
+#                 send_success = sensor.send_request()
 
-        print("Sensor Request Thread Stopped")
+#         print("Sensor Request Thread Stopped")
 
-    def stop(self):
-        self.__is_stop = True
+#     def stop(self):
+#         self.__is_stop = True
 
-        print("Stopping Sensor Request Thread")
+#         print("Stopping Sensor Request Thread")
 
 
-''' 解析数据 '''
-class SensorResolveThread(QThread):
-    __update_signal = pyqtSignal()
+# ''' 解析数据 '''
+# class SensorResolveThread(QThread):
+#     __update_signal = pyqtSignal()
     
-    def __init__(self, /, *, update_screen_slot_function) -> None:
-        super().__init__()
+#     def __init__(self, /, *, update_screen_slot_function) -> None:
+#         super().__init__()
 
-        self.__is_stop = False
+#         self.__is_stop = False
 
-        self.__update_signal.connect(update_screen_slot_function)
+#         self.__update_signal.connect(update_screen_slot_function)
     
-    def run(self):
-        print("Sensor Resolve Thread Started")
+#     def run(self):
+#         print("Sensor Resolve Thread Started")
         
-        while not self.__is_stop:
-            ret = Sensor.device.read_buffer(1, wait_time=0)
+#         while not self.__is_stop:
+#             ret = Sensor.device.read_buffer(1, wait_time=0)
 
-            if ret != None:
-                [num, msg] = ret
+#             if ret != None:
+#                 [num, msg] = ret
                 
-                for i in range(num):
-                    if msg[i].Data[0] == Sensor.msg[0] \
-                        and msg[i].Data[1] == Sensor.msg[1] \
-                        and msg[i].Data[6] == Sensor.msg[2] \
-                        and msg[i].Data[7] == Sensor.msg[3]:
+#                 for i in range(num):
+#                     if msg[i].Data[0] == Sensor.msg[0] \
+#                         and msg[i].Data[1] == Sensor.msg[1] \
+#                         and msg[i].Data[6] == Sensor.msg[2] \
+#                         and msg[i].Data[7] == Sensor.msg[3]:
                         
-                        # Sensor
-                        if msg[i].ID in Sensor.sensor_dict.keys():
-                            Sensor.sensor_dict[msg[i].ID].original_data = self.__hex_list_to_float([msg[i].Data[j] for j in range(2, 6)])
+#                         # Sensor
+#                         if msg[i].ID in Sensor.sensor_dict.keys():
+#                             Sensor.sensor_dict[msg[i].ID].original_data = self.__hex_list_to_float([msg[i].Data[j] for j in range(2, 6)])
 
-                            Sensor.sensor_dict[msg[i].ID].force = (self.__hex_list_to_float([msg[i].Data[j] for j in range(2, 6)]) - Sensor.sensor_dict[msg[i].ID].zero) / 2
-                        # Other
-                        else: pass
-                    else: pass
-            else: pass
-
-            self.__update_signal.emit(msg[i].ID)
+#                             Sensor.sensor_dict[msg[i].ID].force = (self.__hex_list_to_float([msg[i].Data[j] for j in range(2, 6)]) - Sensor.sensor_dict[msg[i].ID].zero) / 2
+                        
+#                             self.__update_signal.emit(msg[i].ID)
         
-        print("Sensor Resolve Thread Stopped")
+#         print("Sensor Resolve Thread Stopped")
 
-    def stop(self):
-        self.__is_stop = True
+#     def stop(self):
+#         self.__is_stop = True
 
-        print("Stopping Sensor Resolve Thread")
+#         print("Stopping Sensor Resolve Thread")
 
 
-    @staticmethod
-    def __hex_list_to_float(data_list: list) -> float:
-        data_str = ""
-        for i in range(len(data_list)):
-            data_bin = bin(data_list[i])[2:] # 首先转换为bin 去除0b
-            data_bin = '0' * (8 - len(data_bin)) + data_bin # 头部补齐
-            data_str = data_bin + data_str # 拼接
-        # 确定符号
-        if data_str[0] == "0": sign = 1
-        else: sign = -1
-        # 确定整数
-        power = 2 ** (int(data_str[1:9], 2) - 127)
-        # 确定小数
-        decimal = 1
-        for i, num in enumerate(data_str[9:]):
-            if num == "1": decimal = 2 ** (- (i + 1)) + decimal
-        # 结果
-        return sign * power * decimal
+#     @staticmethod
+#     def __hex_list_to_float(data_list: list) -> float:
+#         data_str = ""
+#         for i in range(len(data_list)):
+#             data_bin = bin(data_list[i])[2:] # 首先转换为bin 去除0b
+#             data_bin = '0' * (8 - len(data_bin)) + data_bin # 头部补齐
+#             data_str = data_bin + data_str # 拼接
+#         # 确定符号
+#         if data_str[0] == "0": sign = 1
+#         else: sign = -1
+#         # 确定整数
+#         power = 2 ** (int(data_str[1:9], 2) - 127)
+#         # 确定小数
+#         decimal = 1
+#         for i, num in enumerate(data_str[9:]):
+#             if num == "1": decimal = 2 ** (- (i + 1)) + decimal
+#         # 结果
+#         return sign * power * decimal
