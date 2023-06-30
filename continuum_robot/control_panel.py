@@ -13,8 +13,34 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1447, 1098)
-        MainWindow.setStyleSheet("")
+        MainWindow.resize(1442, 1100)
+        MainWindow.setStyleSheet("QMenuBar{\n"
+"    background-color: rgb(86, 88, 93);\n"
+"    font-size: 25px;\n"
+"    color: white;\n"
+"}\n"
+"QMenuBar::selected{\n"
+"    background-color: rgb(114, 159, 207);\n"
+"}\n"
+"\n"
+"QMenu{\n"
+"    font-size: 25px;\n"
+"    color: white;\n"
+"    background-color: rgb(86, 88, 93);\n"
+"}\n"
+"QMenu::item:selected{\n"
+"    background-color: rgb(114, 159, 207);\n"
+"}\n"
+"QMenu::item:pressed{\n"
+"    color: rgb(86, 88, 93);\n"
+"    background-color: rgb(138, 226, 52);\n"
+"}\n"
+"\n"
+"QStatusBar{\n"
+"    background-color: rgb(86, 88, 93);\n"
+"    font-size: 20px;\n"
+"    color: white;\n"
+"}")
         self.control_window = QtWidgets.QWidget(MainWindow)
         self.control_window.setStyleSheet("QWidget {\n"
 "    background-color: rgb(56, 57, 60);\n"
@@ -153,13 +179,13 @@ class Ui_MainWindow(object):
         self.stackedWidget = QtWidgets.QStackedWidget(self.frame_2)
         self.stackedWidget.setStyleSheet("")
         self.stackedWidget.setObjectName("stackedWidget")
-        self.pg_init = QtWidgets.QWidget()
-        self.pg_init.setObjectName("pg_init")
-        self.verticalLayout_7 = QtWidgets.QVBoxLayout(self.pg_init)
+        self.page_control = QtWidgets.QWidget()
+        self.page_control.setObjectName("page_control")
+        self.verticalLayout_7 = QtWidgets.QVBoxLayout(self.page_control)
         self.verticalLayout_7.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_7.setSpacing(10)
         self.verticalLayout_7.setObjectName("verticalLayout_7")
-        self.init = QtWidgets.QFrame(self.pg_init)
+        self.init = QtWidgets.QFrame(self.page_control)
         self.init.setObjectName("init")
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout(self.init)
         self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)
@@ -186,7 +212,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_2.setStretch(0, 1)
         self.horizontalLayout_2.setStretch(1, 1)
         self.verticalLayout_7.addWidget(self.init)
-        self.control = QtWidgets.QTabWidget(self.pg_init)
+        self.control = QtWidgets.QTabWidget(self.page_control)
         self.control.setEnabled(True)
         self.control.setObjectName("control")
         self.tab_motor_1 = QtWidgets.QWidget()
@@ -2884,7 +2910,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_46.addWidget(self.test_10)
         self.control.addTab(self.tab_test, "")
         self.verticalLayout_7.addWidget(self.control)
-        self.status = QtWidgets.QTabWidget(self.pg_init)
+        self.status = QtWidgets.QTabWidget(self.page_control)
         self.status.setObjectName("status")
         self.tab_joint_status = QtWidgets.QWidget()
         self.tab_joint_status.setObjectName("tab_joint_status")
@@ -3384,7 +3410,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_48.addWidget(self.groupBox_53)
         self.status.addTab(self.tab_advanced_status, "")
         self.verticalLayout_7.addWidget(self.status)
-        self.control_all = QtWidgets.QGroupBox(self.pg_init)
+        self.control_all = QtWidgets.QGroupBox(self.page_control)
         self.control_all.setObjectName("control_all")
         self.verticalLayout_116 = QtWidgets.QVBoxLayout(self.control_all)
         self.verticalLayout_116.setContentsMargins(0, 5, 0, 0)
@@ -3463,7 +3489,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_50.addWidget(self.fault_reset_11)
         self.verticalLayout_116.addWidget(self.frame_26)
         self.verticalLayout_7.addWidget(self.control_all)
-        self.param = QtWidgets.QGroupBox(self.pg_init)
+        self.param = QtWidgets.QGroupBox(self.page_control)
         self.param.setObjectName("param")
         self.horizontalLayout_5 = QtWidgets.QHBoxLayout(self.param)
         self.horizontalLayout_5.setContentsMargins(0, 5, 0, 0)
@@ -3576,11 +3602,35 @@ class Ui_MainWindow(object):
         self.status.raise_()
         self.param.raise_()
         self.control_all.raise_()
-        self.stackedWidget.addWidget(self.pg_init)
+        self.stackedWidget.addWidget(self.page_control)
+        self.page_param = QtWidgets.QWidget()
+        self.page_param.setObjectName("page_param")
+        self.stackedWidget.addWidget(self.page_param)
         self.verticalLayout_3.addWidget(self.stackedWidget)
         self.verticalLayout.addWidget(self.frame_2)
         self.verticalLayout.setStretch(0, 8)
         MainWindow.setCentralWidget(self.control_window)
+        self.menuBar = QtWidgets.QMenuBar(MainWindow)
+        self.menuBar.setGeometry(QtCore.QRect(0, 0, 1442, 42))
+        self.menuBar.setObjectName("menuBar")
+        self.menuSetting = QtWidgets.QMenu(self.menuBar)
+        self.menuSetting.setObjectName("menuSetting")
+        self.menuJump = QtWidgets.QMenu(self.menuBar)
+        self.menuJump.setObjectName("menuJump")
+        MainWindow.setMenuBar(self.menuBar)
+        self.statusBar = QtWidgets.QStatusBar(MainWindow)
+        self.statusBar.setObjectName("statusBar")
+        MainWindow.setStatusBar(self.statusBar)
+        self.actionParameters = QtWidgets.QAction(MainWindow)
+        self.actionParameters.setObjectName("actionParameters")
+        self.set_motor_param = QtWidgets.QAction(MainWindow)
+        self.set_motor_param.setObjectName("set_motor_param")
+        self.jump_control = QtWidgets.QAction(MainWindow)
+        self.jump_control.setObjectName("jump_control")
+        self.menuSetting.addAction(self.set_motor_param)
+        self.menuJump.addAction(self.jump_control)
+        self.menuBar.addAction(self.menuSetting.menuAction())
+        self.menuBar.addAction(self.menuJump.menuAction())
 
         self.retranslateUi(MainWindow)
         self.stackedWidget.setCurrentIndex(0)
@@ -4018,11 +4068,16 @@ class Ui_MainWindow(object):
         self.fault_reset_11.setText(_translate("MainWindow", "Fault\n"
 "Reset"))
         self.param.setTitle(_translate("MainWindow", "【Parameters】"))
-        self.tx_acc.setText(_translate("MainWindow", "加速度"))
+        self.tx_acc.setText(_translate("MainWindow", "Profile Acceleration"))
         self.le_acc.setPlaceholderText(_translate("MainWindow", "1000"))
-        self.tx_dec.setText(_translate("MainWindow", "减速度"))
+        self.tx_dec.setText(_translate("MainWindow", "Profile Deceleration"))
         self.le_dec.setPlaceholderText(_translate("MainWindow", "10000"))
-        self.tx_inhibit.setText(_translate("MainWindow", "禁止时间"))
+        self.tx_inhibit.setText(_translate("MainWindow", "Inhibit Time"))
         self.le_inhibit.setPlaceholderText(_translate("MainWindow", "500"))
-        self.bt_save.setText(_translate("MainWindow", "保存"))
-        self.bt_launch.setText(_translate("MainWindow", "生效"))
+        self.bt_save.setText(_translate("MainWindow", "Save"))
+        self.bt_launch.setText(_translate("MainWindow", "Launch"))
+        self.menuSetting.setTitle(_translate("MainWindow", "Settings"))
+        self.menuJump.setTitle(_translate("MainWindow", "Jump"))
+        self.actionParameters.setText(_translate("MainWindow", "Parameters"))
+        self.set_motor_param.setText(_translate("MainWindow", "Motor Parameters"))
+        self.jump_control.setText(_translate("MainWindow", "Control Panel"))

@@ -6,15 +6,41 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1447</width>
-    <height>1098</height>
+    <width>1442</width>
+    <height>1100</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>龙骨式连续体机器人操作软件</string>
   </property>
   <property name="styleSheet">
-   <string notr="true"/>
+   <string notr="true">QMenuBar{
+	background-color: rgb(86, 88, 93);
+	font-size: 25px;
+	color: white;
+}
+QMenuBar::selected{
+	background-color: rgb(114, 159, 207);
+}
+
+QMenu{
+	font-size: 25px;
+	color: white;
+	background-color: rgb(86, 88, 93);
+}
+QMenu::item:selected{
+	background-color: rgb(114, 159, 207);
+}
+QMenu::item:pressed{
+	color: rgb(86, 88, 93);
+	background-color: rgb(138, 226, 52);
+}
+
+QStatusBar{
+	background-color: rgb(86, 88, 93);
+	font-size: 20px;
+	color: white;
+}</string>
   </property>
   <widget class="QWidget" name="control_window">
    <property name="styleSheet">
@@ -177,7 +203,7 @@ QStackedWidget QTextBrowser {
          <property name="currentIndex">
           <number>0</number>
          </property>
-         <widget class="QWidget" name="pg_init">
+         <widget class="QWidget" name="page_control">
           <layout class="QVBoxLayout" name="verticalLayout_7" stretch="1,8,6,3,1">
            <property name="spacing">
             <number>10</number>
@@ -7649,7 +7675,7 @@ Reset</string>
                    </sizepolicy>
                   </property>
                   <property name="text">
-                   <string>加速度</string>
+                   <string>Profile Acceleration</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignCenter</set>
@@ -7703,7 +7729,7 @@ Reset</string>
                    </sizepolicy>
                   </property>
                   <property name="text">
-                   <string>减速度</string>
+                   <string>Profile Deceleration</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignCenter</set>
@@ -7757,7 +7783,7 @@ Reset</string>
                    </sizepolicy>
                   </property>
                   <property name="text">
-                   <string>禁止时间</string>
+                   <string>Inhibit Time</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignCenter</set>
@@ -7796,7 +7822,7 @@ Reset</string>
                    </sizepolicy>
                   </property>
                   <property name="text">
-                   <string>保存</string>
+                   <string>Save</string>
                   </property>
                  </widget>
                 </item>
@@ -7809,7 +7835,7 @@ Reset</string>
                    </sizepolicy>
                   </property>
                   <property name="text">
-                   <string>生效</string>
+                   <string>Launch</string>
                   </property>
                  </widget>
                 </item>
@@ -7825,6 +7851,7 @@ Reset</string>
           <zorder>param</zorder>
           <zorder>control_all</zorder>
          </widget>
+         <widget class="QWidget" name="page_param"/>
         </widget>
        </item>
       </layout>
@@ -7832,6 +7859,46 @@ Reset</string>
     </item>
    </layout>
   </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1442</width>
+     <height>42</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuSetting">
+    <property name="title">
+     <string>Settings</string>
+    </property>
+    <addaction name="set_motor_param"/>
+   </widget>
+   <widget class="QMenu" name="menuJump">
+    <property name="title">
+     <string>Jump</string>
+    </property>
+    <addaction name="jump_control"/>
+   </widget>
+   <addaction name="menuSetting"/>
+   <addaction name="menuJump"/>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionParameters">
+   <property name="text">
+    <string>Parameters</string>
+   </property>
+  </action>
+  <action name="set_motor_param">
+   <property name="text">
+    <string>Motor Parameters</string>
+   </property>
+  </action>
+  <action name="jump_control">
+   <property name="text">
+    <string>Control Panel</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
