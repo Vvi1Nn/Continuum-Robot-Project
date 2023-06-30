@@ -37,22 +37,22 @@ class IoModule(CanOpenBusProcessor, QObject):
         self.output_7 = False
         self.output_8 = False
 
-        self.input_1 = None
-        self.input_2 = None
-        self.input_3 = None
-        self.input_4 = None
-        self.input_5 = None
-        self.input_6 = None
-        self.input_7 = None
-        self.input_8 = None
-        self.input_9 = None
-        self.input_10 = None
-        self.input_11 = None
-        self.input_12 = None
-        self.input_13 = None
-        self.input_14 = None
-        self.input_15 = None
-        self.input_16 = None
+        self.input_1 = False
+        self.input_2 = False
+        self.input_3 = False
+        self.input_4 = False
+        self.input_5 = False
+        self.input_6 = False
+        self.input_7 = False
+        self.input_8 = False
+        self.input_9 = False
+        self.input_10 = False
+        self.input_11 = False
+        self.input_12 = False
+        self.input_13 = False
+        self.input_14 = False
+        self.input_15 = False
+        self.input_16 = False
     
     ''' 检查总线 '''
     def check_bus_status(self, /, *, times=1, log=False) -> bool:
