@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' gui.py GUI v4.0 '''
+''' gui.py GUI v4.1 '''
 
 
 from PyQt5.QtWidgets import QMainWindow
@@ -27,7 +27,7 @@ class RobotInitThread(QThread):
     running_signal = pyqtSignal(bool)
     finish_signal = pyqtSignal()
     
-    def __init__(self, /, *, times=1) -> None:
+    def __init__(self, /, *, times=1, panel: Ui_ControlPanel) -> None:
         super().__init__()
 
         self.__motor_init_count = 0
@@ -37,6 +37,8 @@ class RobotInitThread(QThread):
         self.__sensor_init_count = 0
 
         self.__times = times
+
+        self.__panel = panel
     
     def __init_motor(self) -> bool:
         for node_id in Motor.motor_dict:
@@ -54,6 +56,8 @@ class RobotInitThread(QThread):
                         and Motor.motor_dict[node_id].set_profile_deceleration(100):
                             
                             self.__motor_init_count += 1
+                            
+                            self.__panel.statusBar.showMessage("Motor {} is initialized !!!".format(node_id), 1000)
                             continue
             
             print("===============INIT MOTOR SHUT DOWN===============")
@@ -75,6 +79,8 @@ class RobotInitThread(QThread):
                 and IoModule.io_dict[node_id].open_valve_4():
                     
                     self.__io_init_count += 1
+
+                    self.__panel.statusBar.showMessage("IO {} is initialized !!!".format(node_id), 1000)
                     continue
             
             print("===============INIT IO SHUT DOWN===============")
@@ -102,15 +108,19 @@ class CANopenUpdateThread(QThread):
     __pdo_1_update_signal = pyqtSignal(int)
     __pdo_2_update_signal = pyqtSignal(int)
     
-    def __init__(self, /, *, pdo_1_slot_function, pdo_2_slot_function) -> None:
+    def __init__(self, /, *, pdo_1_slot_function, pdo_2_slot_function, panel: Ui_ControlPanel) -> None:
         super().__init__()
         self.__is_stop = False
 
         self.__pdo_1_update_signal.connect(pdo_1_slot_function)
         self.__pdo_2_update_signal.connect(pdo_2_slot_function)
+
+        self.__panel = panel
     
     def run(self):
         print("CANopen Update Thread Started")
+
+        self.__panel.statusBar.showMessage("CANopen Update Thread is Started !!!", 1000)
         
         while not self.__is_stop:
             ret = CanOpenBusProcessor.device.read_buffer(1, wait_time=0)
@@ -131,8 +141,10 @@ class CANopenUpdateThread(QThread):
                                 for r in Motor.STATUS_WORD[key]: # 在每一个关键字对应的列表中 核对数值
                                     if status == r:
                                         Motor.motor_dict[node_id].servo_status = key # 更新电机的伺服状态
+
+                                        self.__panel.statusBar.showMessage("Motor {}'s status is updated, current status is {}".format(node_id, key), 1000)
                                         break
-                                    else: pass
+                        
                         # IO模块的ID
                         elif node_id in IoModule.io_dict.keys():
                             data_low = bin(msg[i].Data[0])[2:] # 首先转换为bin 去除0b
@@ -158,8 +170,11 @@ class CANopenUpdateThread(QThread):
                         if node_id in Motor.motor_dict.keys():
                             position = self.__hex_list_to_int([msg[i].Data[j] for j in range(0,4)]) # 当前位置
                             speed = self.__hex_list_to_int([msg[i].Data[j] for j in range(4,8)]) # 当前速度
+
                             Motor.motor_dict[node_id].current_position = position
                             Motor.motor_dict[node_id].current_speed = speed
+
+                            self.__panel.statusBar.showMessage("Motor {}'s motion parameters are updated, current postion is {}, current velocity is {}".format(node_id, position, speed), 1000)
                         
                         # 其他的ID
                         else: pass
@@ -195,6 +210,8 @@ class CANopenUpdateThread(QThread):
                         CanOpenBusProcessor.node_dict[node_id].sdo_feedback = (True, status, label, value_list)
 
                         print("[SDO NEW {}] ".format(node_id), CanOpenBusProcessor.node_dict[node_id].sdo_feedback)
+
+                        self.__panel.statusBar.showMessage("Node {} got a SDO response from {}, status is {}".format(node_id, label, status), 1000)
                     
                     # NMT
                     elif msg[i].ID > 0x700 and msg[i].ID < 0x780:
@@ -212,12 +229,16 @@ class CANopenUpdateThread(QThread):
                         CanOpenBusProcessor.node_dict[node_id].nmt_feedback = (True, label)
                         
                         print("[NMT NEW {}] ".format(node_id), CanOpenBusProcessor.node_dict[node_id].nmt_feedback)
+
+                        self.__panel.statusBar.showMessage("Node {} got a NMT response, current status of BUS is {}".format(node_id, label), 1000)
                     
                     # 其他
                     else: pass
             else: pass
 
         print("CANopen Update Thread Stopped")
+
+        self.__panel.statusBar.showMessage("CANopen Update Thread is Stopped !!!", 1000)
     
     def stop(self):
         self.__is_stop = True
@@ -252,21 +273,27 @@ class CANopenUpdateThread(QThread):
 
 ''' 发送 读取请求 '''
 class SensorRequestThread(QThread):
-    def __init__(self) -> None:
+    def __init__(self, /, *, panel: Ui_ControlPanel) -> None:
         super().__init__()
 
         self.__is_stop = False
+
+        self.__panel = panel
     
     def run(self):
         clear_success = Sensor.device.clear_buffer()
 
         print("Sensor Request Sending")
+
+        self.__panel.statusBar.showMessage("Sensor Request Thread is Started !!!", 1000)
         
         while not self.__is_stop:
             for sensor in Sensor.sensor_dict.values():
                 send_success = sensor.send_request()
 
         print("Sensor Request Thread Stopped")
+
+        self.__panel.statusBar.showMessage("Sensor Request Thread is Stopped !!!", 1000)
 
     def stop(self):
         self.__is_stop = True
@@ -277,15 +304,19 @@ class SensorRequestThread(QThread):
 class SensorResolveThread(QThread):
     __update_signal = pyqtSignal()
     
-    def __init__(self, /, *, update_screen_slot_function) -> None:
+    def __init__(self, /, *, update_screen_slot_function, panel: Ui_ControlPanel) -> None:
         super().__init__()
 
         self.__is_stop = False
 
         self.__update_signal.connect(update_screen_slot_function)
+
+        self.__panel = panel
     
     def run(self):
         print("Sensor Resolve Thread Started")
+
+        self.__panel.statusBar.showMessage("Sensor Resolve Thread is Started !!!", 1000)
         
         while not self.__is_stop:
             ret = Sensor.device.read_buffer(1, wait_time=0)
@@ -308,6 +339,8 @@ class SensorResolveThread(QThread):
                             self.__update_signal.emit(msg[i].ID)
         
         print("Sensor Resolve Thread Stopped")
+
+        self.__panel.statusBar.showMessage("Sensor Resolve Thread is Stopped !!!", 1000)
 
     def stop(self):
         self.__is_stop = True
@@ -336,12 +369,14 @@ class SensorResolveThread(QThread):
 
 ''' 速度模式 '''
 class JointControlSpeedModeThread(QThread):
-    def __init__(self, motor, speed: int, /, *, is_forward: bool) -> None:
+    def __init__(self, motor, speed: int, /, *, is_forward: bool, panel: Ui_ControlPanel) -> None:
         super().__init__()
 
         self.__is_stop = False
 
         self.__motor = motor
+
+        self.__panel = panel
 
         self.__is_forward = is_forward
 
@@ -358,13 +393,19 @@ class JointControlSpeedModeThread(QThread):
         while not self.__is_stop:
             if self.__motor.is_in_range():
                 self.__motor.enable_operation(is_pdo=True)
+
+                self.__panel.statusBar.showMessage("Motor {} is running ...".format(self.__motor.node_id), 1000)
             else:
+                self.__panel.statusBar.showMessage("Motor {} is out of range !".format(self.__motor.node_id), 1000)
+                
                 if self.__motor.current_position > self.__motor.max_position:
                     if self.__is_forward: self.__motor.halt(is_pdo=True)
                     else: self.__motor.enable_operation(is_pdo=True)
                 else:
                     if not self.__is_forward: self.__motor.halt(is_pdo=True)
                     else: self.__motor.enable_operation(is_pdo=True)
+
+        self.__panel.statusBar.showMessage("Motor {} is stopped".format(self.__motor.node_id), 1000)
     
     def stop(self):
         self.__is_stop = True
@@ -419,14 +460,20 @@ class ControlPanel(QMainWindow):
 
         self.io = IoModule(11, update_output_status_slot_function=self.show_valve_status)
 
+        ''' 菜单 '''
+        self.ui.set_motor_param.triggered.connect(lambda: self.ui.stackedWidget.setCurrentIndex(1))
+        self.ui.jump_control.triggered.connect(lambda: self.ui.stackedWidget.setCurrentIndex(0))
 
+        self.ui.statusBar.setSizeGripEnabled(False)
+        self.ui.statusBar.showMessage("Welcome to Continnum Robot Control Panel", 10000)
+        
         ''' 打开设备 '''
         self.ui.bt_open_device.setEnabled(True)
         self.ui.bt_open_device.setText("Open Device")
         self.ui.bt_open_device.clicked.connect(self.open_device)
 
         ''' 初始化机器人 '''
-        self.ui.bt_init_robot.setEnabled(True)
+        self.ui.bt_init_robot.setEnabled(False)
         self.ui.bt_init_robot.setText("Initialize Robot")
         self.ui.bt_init_robot.clicked.connect(self.initialize_robot)
 
@@ -550,6 +597,8 @@ class ControlPanel(QMainWindow):
             getattr(self.ui, f"speed_reverse_{node_id}").pressed.connect(getattr(self, f"speed_reverse_{node_id}"))
             getattr(self.ui, f"speed_reverse_{node_id}").released.connect(getattr(self, f"speed_stop_{node_id}"))
 
+        
+
         self.show() # 显示界面
 
 
@@ -571,7 +620,11 @@ class ControlPanel(QMainWindow):
 
             if self.__usbcan_0_is_start and self.__usbcan_1_is_start:
                 self.ui.bt_open_device.setEnabled(False)
-                self.ui.bt_open_device.setText("Device Ready")
+
+                self.ui.bt_init_robot.setEnabled(False)
+
+                self.ui.statusBar.showMessage("Open Device !!!", 1000)
+        else: self.ui.statusBar.showMessage("Open Device Failed", 1000)
     
     ''' 初始化机器人 '''
     def initialize_robot(self) -> None:
@@ -580,14 +633,14 @@ class ControlPanel(QMainWindow):
         def change(status):
             if status:
                 self.ui.bt_init_robot.setEnabled(False)
-                self.ui.bt_init_robot.setText("Initializing ...")
+                self.ui.statusBar.showMessage("Initializing Robot ...", 1000)
             else:
                 self.ui.bt_init_robot.setEnabled(True)
-                self.ui.bt_init_robot.setText("Initialize Again")
+                self.ui.statusBar.showMessage("Something is wrong in the progress of Initializing Robot, please try again", 1000)
         
         def next():
             self.ui.bt_init_robot.setEnabled(False)
-            self.ui.bt_init_robot.setText("Robot Ready")
+            self.ui.statusBar.showMessage("Robot is ready, Control is launch !!!", 1000)
 
             self.ui.control.setEnabled(True)
             self.ui.control_all.setEnabled(True)
@@ -887,4 +940,4 @@ class ControlPanel(QMainWindow):
 
 
     def test(self):
-        ...
+        print("111")
