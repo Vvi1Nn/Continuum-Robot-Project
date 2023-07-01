@@ -73,15 +73,15 @@ class Motor(CanOpenBusProcessor):
 
     motor_dict = {}
     
-    def __init__(self, node_id, position_range=[-100000,100000], speed_range=[-12700,12700]) -> None:
+    def __init__(self, node_id, /, *, position_range=[None,None], speed_range=[None,None]) -> None:
         super().__init__(node_id)
 
         Motor.motor_dict[node_id] = self
 
-        self.min_position = position_range[0] if position_range != None else None # 最大位置
-        self.max_position = position_range[1] if position_range != None else None # 最小位置
-        self.min_speed = speed_range[0] if speed_range != None else None # 最大速度
-        self.max_speed = speed_range[1] if speed_range != None else None # 最小位置
+        self.min_position = position_range[0]
+        self.max_position = position_range[1]
+        self.min_speed = speed_range[0]
+        self.max_speed = speed_range[1]
         
         self.servo_status = "unknown" # 电机状态
         self.servo_is_checked = False # 状态检查
