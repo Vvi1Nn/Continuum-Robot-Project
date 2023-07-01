@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' gui.py GUI v4.1 '''
+''' gui.py GUI v4.2 '''
 
 
 from PyQt5.QtWidgets import QMainWindow
