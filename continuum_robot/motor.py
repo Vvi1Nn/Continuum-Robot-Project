@@ -92,6 +92,8 @@ class Motor(CanOpenBusProcessor):
 
         self.current_position = None # 当前位置
         self.current_speed = None # 当前速度
+
+        self.zero_position = 0
     
     
     ''' 检查总线状态 '''
@@ -367,8 +369,8 @@ class Motor(CanOpenBusProcessor):
             print("\033[0;31m[Motor {}] no permission\033[0m".format(self.node_id))
             return False
 
-    ''' 位置 速度 '''
-    def set_position_and_velocity(self, position: int, /, *, velocity=100, is_pdo=False, times=1, log=True, check=True, delay=0.5) -> bool:
+    ''' 位置 '''
+    def set_position(self, position: int, /, *, velocity=100, is_pdo=False, times=1, log=True, check=True, delay=0.5) -> bool:
         if self.permission:
             # PDO
             if is_pdo:
