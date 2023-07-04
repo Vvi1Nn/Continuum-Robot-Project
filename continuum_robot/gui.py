@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' gui.py GUI v4.2 '''
+''' gui.py GUI v4.3 '''
 
 
 from PyQt5.QtWidgets import QMainWindow
@@ -21,9 +21,252 @@ from continuum_robot.io import IoModule
 from continuum_robot.sensor import Sensor
 
 
+''' CANopen 接收 数据处理 '''
+class CANopenUpdate(QThread):
+    __pdo_1_update_signal = pyqtSignal(int)
+    __pdo_2_update_signal = pyqtSignal(int)
+    __pdo_4_update_signal = pyqtSignal(int)
+
+    __status_signal = pyqtSignal(str)
+    
+    def __init__(self, /, *, pdo_1_slot_function=None, pdo_2_slot_function=None, pdo_4_slot_function=None, status_signal=None) -> None:
+        super().__init__()
+        self.__is_stop = False
+
+        if pdo_1_slot_function != None: self.__pdo_1_update_signal.connect(pdo_1_slot_function)
+        if pdo_2_slot_function != None: self.__pdo_2_update_signal.connect(pdo_2_slot_function)
+        if pdo_4_slot_function != None: self.__pdo_4_update_signal.connect(pdo_4_slot_function)
+
+        if status_signal != None: self.__status_signal.connect(status_signal)
+    
+    def run(self):
+        print("CANopen Update Thread Started")
+        self.__status_signal.emit("CANopen Update Thread Started !")
+        
+        while not self.__is_stop:
+            ret = CanOpenBusProcessor.device.read_buffer(1, wait_time=0)
+            
+            if ret != None:
+                [num, msg] = ret
+                
+                for i in range(num):
+                    # TPDO1
+                    if msg[i].ID > 0x180 and msg[i].ID < 0x200:
+                        node_id = msg[i].ID - 0x180
+                        
+                        # 电机的ID
+                        if node_id in Motor.motor_dict.keys():
+                            status = self.__hex_list_to_int([msg[i].Data[0]]) # 状态字
+                            
+                            for key in Motor.STATUS_WORD: # 遍历字典关键字
+                                for r in Motor.STATUS_WORD[key]: # 在每一个关键字对应的列表中 核对数值
+                                    if status == r:
+                                        Motor.motor_dict[node_id].servo_status = key # 更新电机的伺服状态
+                                        break
+                        
+                        # IO模块的ID
+                        elif node_id in IoModule.io_dict.keys():
+                            data_low = bin(msg[i].Data[0])[2:] # 首先转换为bin 去除0b
+                            data_low = '0' * (8 - len(data_low)) + data_low # 头部补齐
+
+                            data_high = bin(msg[i].Data[1])[2:]
+                            data_high = '0' * (8 - len(data_high)) + data_high
+
+                            data = data_high + data_low # 拼接
+
+                            for i, c in enumerate(data):
+                                setattr(IoModule.io_dict[node_id], f"input_{16-i}", False if c == "0" else True)
+                        # 其他的ID
+                        else: pass
+
+                        self.__pdo_1_update_signal.emit(node_id)
+                    
+                    # TPDO2
+                    elif msg[i].ID > 0x280 and msg[i].ID < 0x300:
+                        node_id = msg[i].ID - 0x280
+                        
+                        # 电机的ID
+                        if node_id in Motor.motor_dict.keys():
+                            position = self.__hex_list_to_int([msg[i].Data[j] for j in range(0,4)]) # 当前位置
+                            speed = self.__hex_list_to_int([msg[i].Data[j] for j in range(4,8)]) # 当前速度
+
+                            Motor.motor_dict[node_id].current_position = position
+                            Motor.motor_dict[node_id].current_speed = speed
+                        
+                        # 其他的ID
+                        else: pass
+
+                        self.__pdo_2_update_signal.emit(node_id)
+                    
+                    # TPDO4
+                    elif msg[i].ID > 0x480 and msg[i].ID < 0x500:
+                        node_id = msg[i].ID - 0x480
+                        
+                        # 电机的ID
+                        if node_id in Motor.motor_dict.keys():
+                            control_mode = self.__hex_list_to_int([msg[i].Data[0]])
+
+                            for key in Motor.CONTROL_MODE:
+                                if control_mode == Motor.CONTROL_MODE[key]:
+                                    Motor.motor_dict[node_id].control_mode = key
+                                    break
+                        
+                        # 其他的ID
+                        else: pass
+
+                        self.__pdo_4_update_signal.emit(node_id)
+                    
+                    # SDO
+                    elif msg[i].ID > 0x580 and msg[i].ID < 0x600:
+                        node_id = msg[i].ID - 0x580
+                        
+                        command =  msg[i].Data[0]
+                        if command == CanOpenBusProcessor.CMD_R["read_16"] or CanOpenBusProcessor.CMD_R["read_32"] or CanOpenBusProcessor.CMD_R["read_8"]: status = True
+                        elif command == CanOpenBusProcessor.CMD_R["write"]: status = True
+                        elif command == CanOpenBusProcessor.CMD_R["error"]: status = False
+                        else: status = None
+                        
+                        index = self.__match_index(msg[i].Data[1], msg[i].Data[2], msg[i].Data[3])
+                        for key in CanOpenBusProcessor.OD: # 遍历字典关键字
+                            if index == CanOpenBusProcessor.OD[key]: # 在每一个关键字对应的列表中 核对数值
+                                label = key
+                                break
+                            else: pass
+                        else: label = ""
+                        
+                        value_list = [msg[i].Data[j] for j in range(4,8)]
+                        
+                        # print("OLD", CanOpenBusProcessor.node_dict[node_id].sdo_feedback)
+
+                        wait_time = 1
+                        time_stamp = time.time()
+                        while CanOpenBusProcessor.node_dict[node_id].sdo_feedback[0] and time.time() - time_stamp < wait_time: time.sleep(0.1)
+                        
+                        CanOpenBusProcessor.node_dict[node_id].sdo_feedback = (True, status, label, value_list)
+
+                        print("[SDO NEW {}] ".format(node_id), CanOpenBusProcessor.node_dict[node_id].sdo_feedback)
+                        self.__status_signal.emit("[Node {}] Get SDO response, object is {}, status is {}, value is {}".format(node_id, label, status, hex(self.__hex_list_to_int(value_list))))
+                    
+                    # NMT
+                    elif msg[i].ID > 0x700 and msg[i].ID < 0x780:
+                        node_id = msg[i].ID - 0x700
+
+                        for key in CanOpenBusProcessor.NMT_STATUS:
+                            if msg[0].Data[0] & 0b01111111 == CanOpenBusProcessor.NMT_STATUS[key]:
+                                label = key
+                                break
+                            else: pass
+                        else: label = ""
+
+                        # print("old  ", CanOpenBusProcessor.node_dict[node_id].nmt_feedback)
+                        
+                        CanOpenBusProcessor.node_dict[node_id].nmt_feedback = (True, label)
+                        
+                        print("[NMT NEW {}] ".format(node_id), CanOpenBusProcessor.node_dict[node_id].nmt_feedback)
+                        self.__status_signal.emit("[Node {}] Get NMT response, bus status is {}".format(node_id, label))
+                    
+                    # 其他
+                    else: pass
+
+        print("CANopen Update Thread Stopped")
+        self.__status_signal.emit("CANopen Update Thread Stopped.")
+    
+    def stop(self):
+        self.__is_stop = True
+
+
+    ''' hex列表转换为int '''
+    @staticmethod
+    def __hex_list_to_int(data_list) -> int:
+        data_str = ""
+        for i in range(len(data_list)):
+            data_bin = bin(data_list[i])[2:] # 首先转换为bin 去除0b
+            data_bin = '0' * (8 - len(data_bin)) + data_bin # 头部补齐
+            data_str = data_bin + data_str # 拼接
+        # 首位是0 正数
+        if int(data_str[0]) == 0: return int(data_str, 2)
+        # 首位是1 负数
+        else: return - ((int(data_str, 2) ^ 0xFFFFFFFF) + 1)
+    
+    ''' 匹配地址 '''
+    @staticmethod
+    def __match_index(index_low, index_high, subindex) -> list:
+        # 低位 int转hex
+        index_low_str = hex(index_low)[2:].upper()
+        index_low_str = (2 - len(index_low_str)) * "0" + index_low_str
+        # 高位 int转hex
+        index_high_str = hex(index_high)[2:].upper()
+        index_high_str = (2 - len(index_high_str)) * "0" + index_high_str
+        # 合并 转int
+        index = int(index_high_str + index_low_str, 16)
+        # 返回列表的形式 以供比较
+        return [index, subindex]
+
+''' 解析数据 '''
+class SensorResolve(QThread):
+    __update_signal = pyqtSignal(int)
+    
+    def __init__(self, /, *, update_signal=None) -> None:
+        super().__init__()
+
+        self.__is_stop = False
+
+        if update_signal != None: self.__update_signal.connect(update_signal)
+    
+    def run(self):
+        print("Sensor Resolve Thread Started")
+        
+        while not self.__is_stop:
+            ret = Sensor.device.read_buffer(1, wait_time=0)
+
+            if ret != None:
+                [num, msg] = ret
+                
+                for i in range(num):
+                    if msg[i].Data[0] == Sensor.msg[0] \
+                        and msg[i].Data[1] == Sensor.msg[1] \
+                        and msg[i].Data[6] == Sensor.msg[2] \
+                        and msg[i].Data[7] == Sensor.msg[3]:
+                        
+                        # Sensor
+                        if msg[i].ID in Sensor.sensor_dict.keys():
+                            Sensor.sensor_dict[msg[i].ID].original_data = self.__hex_list_to_float([msg[i].Data[j] for j in range(2, 6)])
+
+                            Sensor.sensor_dict[msg[i].ID].force = (self.__hex_list_to_float([msg[i].Data[j] for j in range(2, 6)]) - Sensor.sensor_dict[msg[i].ID].zero) / 2
+                        
+                            self.__update_signal.emit(msg[i].ID)
+        
+        print("Sensor Resolve Thread Stopped")
+
+    def stop(self):
+        self.__is_stop = True
+
+        print("Stopping Sensor Resolve Thread")
+
+
+    @staticmethod
+    def __hex_list_to_float(data_list: list) -> float:
+        data_str = ""
+        for i in range(len(data_list)):
+            data_bin = bin(data_list[i])[2:] # 首先转换为bin 去除0b
+            data_bin = '0' * (8 - len(data_bin)) + data_bin # 头部补齐
+            data_str = data_bin + data_str # 拼接
+        # 确定符号
+        if data_str[0] == "0": sign = 1
+        else: sign = -1
+        # 确定整数
+        power = 2 ** (int(data_str[1:9], 2) - 127)
+        # 确定小数
+        decimal = 1
+        for i, num in enumerate(data_str[9:]):
+            if num == "1": decimal = 2 ** (- (i + 1)) + decimal
+        # 结果
+        return sign * power * decimal
+
+
 
 ''' 初始化机器人 '''
-class RobotInitThread(QThread):
+class RobotInit(QThread):
     __running_signal = pyqtSignal(bool)
     __finish_signal = pyqtSignal()
     
@@ -100,170 +343,8 @@ class RobotInitThread(QThread):
         
         else: self.__running_signal.emit(False)
 
-''' CANopen 接收 数据处理 '''
-class CANopenUpdateThread(QThread):
-    __pdo_1_update_signal = pyqtSignal(int)
-    __pdo_2_update_signal = pyqtSignal(int)
-
-    __status_signal = pyqtSignal(str)
-    
-    def __init__(self, /, *, pdo_1_slot_function=None, pdo_2_slot_function=None, status_signal=None) -> None:
-        super().__init__()
-        self.__is_stop = False
-
-        if pdo_1_slot_function != None: self.__pdo_1_update_signal.connect(pdo_1_slot_function)
-        if pdo_2_slot_function != None: self.__pdo_2_update_signal.connect(pdo_2_slot_function)
-
-        if status_signal != None: self.__status_signal.connect(status_signal)
-    
-    def run(self):
-        print("CANopen Update Thread Started")
-        self.__status_signal.emit("CANopen Update Thread Started !")
-        
-        while not self.__is_stop:
-            ret = CanOpenBusProcessor.device.read_buffer(1, wait_time=0)
-            
-            if ret != None:
-                [num, msg] = ret
-                
-                for i in range(num):
-                    # TPDO1
-                    if msg[i].ID > 0x180 and msg[i].ID < 0x200:
-                        node_id = msg[i].ID - 0x180
-                        
-                        # 电机的ID
-                        if node_id in Motor.motor_dict.keys():
-                            status = self.__hex_list_to_int([msg[i].Data[0]]) # 状态字
-                            
-                            for key in Motor.STATUS_WORD: # 遍历字典关键字
-                                for r in Motor.STATUS_WORD[key]: # 在每一个关键字对应的列表中 核对数值
-                                    if status == r:
-                                        Motor.motor_dict[node_id].servo_status = key # 更新电机的伺服状态
-                                        break
-                        
-                        # IO模块的ID
-                        elif node_id in IoModule.io_dict.keys():
-                            data_low = bin(msg[i].Data[0])[2:] # 首先转换为bin 去除0b
-                            data_low = '0' * (8 - len(data_low)) + data_low # 头部补齐
-
-                            data_high = bin(msg[i].Data[1])[2:]
-                            data_high = '0' * (8 - len(data_high)) + data_high
-
-                            data = data_high + data_low # 拼接
-
-                            for i, c in enumerate(data):
-                                setattr(IoModule.io_dict[node_id], f"input_{16-i}", False if c == "0" else True)
-                        # 其他的ID
-                        else: pass
-
-                        self.__pdo_1_update_signal.emit(node_id)
-                    
-                    # TPDO2
-                    elif msg[i].ID > 0x280 and msg[i].ID < 0x300:
-                        node_id = msg[i].ID - 0x280
-                        
-                        # 电机的ID
-                        if node_id in Motor.motor_dict.keys():
-                            position = self.__hex_list_to_int([msg[i].Data[j] for j in range(0,4)]) # 当前位置
-                            speed = self.__hex_list_to_int([msg[i].Data[j] for j in range(4,8)]) # 当前速度
-
-                            Motor.motor_dict[node_id].current_position = position
-                            Motor.motor_dict[node_id].current_speed = speed
-                        
-                        # 其他的ID
-                        else: pass
-
-                        self.__pdo_2_update_signal.emit(node_id)
-                    
-                    # SDO
-                    elif msg[i].ID > 0x580 and msg[i].ID < 0x600:
-                        node_id = msg[i].ID - 0x580
-                        
-                        command =  msg[i].Data[0]
-                        if command == CanOpenBusProcessor.CMD_R["read_16"] or CanOpenBusProcessor.CMD_R["read_32"] or CanOpenBusProcessor.CMD_R["read_8"]: status = True
-                        elif command == CanOpenBusProcessor.CMD_R["write"]: status = True
-                        elif command == CanOpenBusProcessor.CMD_R["error"]: status = False
-                        else: status = None
-                        
-                        index = self.__match_index(msg[i].Data[1], msg[i].Data[2], msg[i].Data[3])
-                        for key in CanOpenBusProcessor.OD: # 遍历字典关键字
-                            if index == CanOpenBusProcessor.OD[key]: # 在每一个关键字对应的列表中 核对数值
-                                label = key
-                                break
-                            else: pass
-                        else: label = ""
-                        
-                        value_list = [msg[i].Data[j] for j in range(4,8)]
-                        
-                        # print("OLD", CanOpenBusProcessor.node_dict[node_id].sdo_feedback)
-
-                        wait_time = 1
-                        time_stamp = time.time()
-                        while CanOpenBusProcessor.node_dict[node_id].sdo_feedback[0] and time.time() - time_stamp < wait_time: time.sleep(0.1)
-                        
-                        CanOpenBusProcessor.node_dict[node_id].sdo_feedback = (True, status, label, value_list)
-
-                        print("[SDO NEW {}] ".format(node_id), CanOpenBusProcessor.node_dict[node_id].sdo_feedback)
-                        self.__status_signal.emit("[Node {}] Get SDO response, object is {}, status is {}, value is {}".format(node_id, label, status, hex(self.__hex_list_to_int(value_list))))
-                    
-                    # NMT
-                    elif msg[i].ID > 0x700 and msg[i].ID < 0x780:
-                        node_id = msg[i].ID - 0x700
-
-                        for key in CanOpenBusProcessor.NMT_STATUS:
-                            if msg[0].Data[0] & 0b01111111 == CanOpenBusProcessor.NMT_STATUS[key]:
-                                label = key
-                                break
-                            else: pass
-                        else: label = ""
-
-                        # print("old  ", CanOpenBusProcessor.node_dict[node_id].nmt_feedback)
-                        
-                        CanOpenBusProcessor.node_dict[node_id].nmt_feedback = (True, label)
-                        
-                        print("[NMT NEW {}] ".format(node_id), CanOpenBusProcessor.node_dict[node_id].nmt_feedback)
-                        self.__status_signal.emit("[Node {}] Get NMT response, bus status is {}".format(node_id, label))
-                    
-                    # 其他
-                    else: pass
-            else: pass
-
-        print("CANopen Update Thread Stopped")
-        self.__status_signal.emit("CANopen Update Thread Stopped.")
-    
-    def stop(self):
-        self.__is_stop = True
-
-
-    ''' hex列表转换为int '''
-    @staticmethod
-    def __hex_list_to_int(data_list) -> int:
-        data_str = ""
-        for i in range(len(data_list)):
-            data_bin = bin(data_list[i])[2:] # 首先转换为bin 去除0b
-            data_bin = '0' * (8 - len(data_bin)) + data_bin # 头部补齐
-            data_str = data_bin + data_str # 拼接
-        # 首位是0 正数
-        if int(data_str[0]) == 0: return int(data_str, 2)
-        # 首位是1 负数
-        else: return - ((int(data_str, 2) ^ 0xFFFFFFFF) + 1)
-    
-    ''' 匹配地址 '''
-    @staticmethod
-    def __match_index(index_low, index_high, subindex) -> list:
-        # 低位 int转hex
-        index_low_str = hex(index_low)[2:].upper()
-        index_low_str = (2 - len(index_low_str)) * "0" + index_low_str
-        # 高位 int转hex
-        index_high_str = hex(index_high)[2:].upper()
-        index_high_str = (2 - len(index_high_str)) * "0" + index_high_str
-        # 合并 转int
-        index = int(index_high_str + index_low_str, 16)
-        # 返回列表的形式 以供比较
-        return [index, subindex]
-
 ''' 发送 读取请求 '''
-class SensorRequestThread(QThread):
+class SensorRequest(QThread):
     def __init__(self) -> None:
         super().__init__()
 
@@ -285,66 +366,314 @@ class SensorRequestThread(QThread):
 
         print("Stopping Sensor Request Thread")
 
-''' 解析数据 '''
-class SensorResolveThread(QThread):
-    __update_signal = pyqtSignal(int)
+
+
+''' 滚珠丝杠 调零 '''
+class BallScrewSetZero(QThread):
+    __start_signal = pyqtSignal()
+    __finish_signal = pyqtSignal()
     
-    def __init__(self, /, *, update_signal=None) -> None:
+    def __init__(self, distance=50, velocity=200, speed=50, /, *, motor: Motor, io: IoModule, start_signal, finish_signal) -> None:
         super().__init__()
 
         self.__is_stop = False
 
-        if update_signal != None: self.__update_signal.connect(update_signal)
+        self.__distance = distance
+        self.__velocity = velocity
+        self.__speed = speed
+
+        self.__motor = motor
+        self.__io = io
+
+        self.__start_signal.connect(start_signal)
+        self.__finish_signal.connect(finish_signal)
     
     def run(self):
-        print("Sensor Resolve Thread Started")
+        self.__start_signal.emit()
         
+        self.__io.open_valve_4()
+        time.sleep(1)
+
+        if self.__distance != 0:
+            self.__motor.set_control_mode("position_control", check=False)
+            time.sleep(0.01)
+
+            d = abs(self.__distance)
+            v = abs(self.__velocity)
+            duration = (d * 5120) / (v * 440) + 0.5
+
+            self.__motor.set_position(- int(d * 5120), velocity=v, is_pdo=True)
+
+            self.__motor.ready(is_pdo=True)
+            self.__motor.action(is_immediate=True, is_relative=True, is_pdo=True)
+
+            duration = (d * 5120) / (v * 440) + 0.5
+            time.sleep(duration)
+        
+        if not self.__io.input_1:
+            self.__motor.set_control_mode("speed_control")
+            time.sleep(0.01)
+        
+            self.__motor.set_speed(abs(self.__speed), is_pdo=True)
+
+            self.__motor.halt(is_pdo=True)
+
+            self.__motor.enable_operation(is_pdo=True)
+        else: pass
+
         while not self.__is_stop:
-            ret = Sensor.device.read_buffer(1, wait_time=0)
+            if self.__io.input_1:
+                self.__motor.halt(is_pdo=True)
 
-            if ret != None:
-                [num, msg] = ret
-                
-                for i in range(num):
-                    if msg[i].Data[0] == Sensor.msg[0] \
-                        and msg[i].Data[1] == Sensor.msg[1] \
-                        and msg[i].Data[6] == Sensor.msg[2] \
-                        and msg[i].Data[7] == Sensor.msg[3]:
-                        
-                        # Sensor
-                        if msg[i].ID in Sensor.sensor_dict.keys():
-                            Sensor.sensor_dict[msg[i].ID].original_data = self.__hex_list_to_float([msg[i].Data[j] for j in range(2, 6)])
+                time.sleep(0.5)
 
-                            Sensor.sensor_dict[msg[i].ID].force = (self.__hex_list_to_float([msg[i].Data[j] for j in range(2, 6)]) - Sensor.sensor_dict[msg[i].ID].zero) / 2
-                        
-                            self.__update_signal.emit(msg[i].ID)
-        
-        print("Sensor Resolve Thread Stopped")
+                self.__motor.zero_position = self.__motor.current_position
 
+                self.__finish_signal.emit()
+
+                break
+    
     def stop(self):
         self.__is_stop = True
 
-        print("Stopping Sensor Resolve Thread")
+        self.__motor.set_speed(0, is_pdo=True)
+        self.__motor.disable_operation(is_pdo=True)
+
+''' 连续体 调整 '''
+class ContinuumAttitudeAdjust(QThread):
+    __start_signal = pyqtSignal()
+    __finish_signal = pyqtSignal()
+    
+    def __init__(self, 
+                 m1: Motor, m2: Motor, m3: Motor, m4: Motor, m5: Motor, m6: Motor, m7: Motor, m8: Motor, m9: Motor, 
+                 s1: Sensor, s2: Sensor, s3: Sensor, s4: Sensor, s5: Sensor, s6: Sensor, s7: Sensor, s8: Sensor, s9: Sensor, 
+                 io: IoModule, 
+                 /, *, i_f: int, m_f: int, o_f: int, 
+                 i_pid: tuple, m_pid: tuple, o_pid: tuple, 
+                 start_signal=None, finish_signal=None) -> None:
+        
+        super().__init__()
+
+        self.__is_stop = False
+
+        self.__motor_1 = m1
+        self.__motor_2 = m2
+        self.__motor_3 = m3
+        self.__motor_4 = m4
+        self.__motor_5 = m5
+        self.__motor_6 = m6
+        self.__motor_7 = m7
+        self.__motor_8 = m8
+        self.__motor_9 = m9
+
+        self.__sensor_1 = s1
+        self.__sensor_2 = s2
+        self.__sensor_3 = s3
+        self.__sensor_4 = s4
+        self.__sensor_5 = s5
+        self.__sensor_6 = s6
+        self.__sensor_7 = s7
+        self.__sensor_8 = s8
+        self.__sensor_9 = s9
+
+        self.__io = io
+
+        self.__inside_reference_force = - abs(i_f)
+        self.__midside_reference_force = - abs(m_f)
+        self.__outside_reference_force = - abs(o_f)
+        
+        self.__inside_kp = abs(i_pid[0])
+        self.__inside_ki = abs(i_pid[1])
+        self.__inside_kd = abs(i_pid[2])
+        
+        self.__midside_kp = abs(m_pid[0])
+        self.__midside_ki = abs(m_pid[1])
+        self.__midside_kd = abs(m_pid[2])
+
+        self.__outside_kp = abs(o_pid[0])
+        self.__outside_ki = abs(o_pid[1])
+        self.__outside_kd = abs(o_pid[2])
+
+        # last_error  current_error  error_integral
+        self.__error_1 = [0, 0, 0]
+        self.__error_2 = [0, 0, 0]
+        self.__error_3 = [0, 0, 0]
+        self.__error_4 = [0, 0, 0]
+        self.__error_5 = [0, 0, 0]
+        self.__error_6 = [0, 0, 0]
+        self.__error_7 = [0, 0, 0]
+        self.__error_8 = [0, 0, 0]
+        self.__error_9 = [0, 0, 0]
+
+        if start_signal != None and finish_signal != None:
+            self.__start_signal.connect(start_signal)
+            self.__finish_signal.connect(finish_signal)
+    
+    def run(self):
+        self.__start_signal.emit()
+
+        self.open_valve()
+        
+        self.force_follow()
+
+        self.close_valve()
+
+        self.set_zero()
+
+        self.__finish_signal.emit()
+
+    def open_valve(self):
+        self.__io.open_valve_3()
+        time.sleep(0.5)
+        self.__io.open_valve_2()
+        time.sleep(0.5)
+        self.__io.open_valve_1()
+        time.sleep(0.5)
+
+    def close_valve(self):
+        self.__io.close_valve_1()
+        time.sleep(0.5)
+        self.__io.close_valve_2()
+        time.sleep(0.5)
+        self.__io.close_valve_3()
+        time.sleep(0.5)
+
+    def force_follow(self):
+        self.__motor_1.set_control_mode("speed_control", check=False)
+        self.__motor_2.set_control_mode("speed_control", check=False)
+        self.__motor_3.set_control_mode("speed_control", check=False)
+        self.__motor_4.set_control_mode("speed_control", check=False)
+        self.__motor_5.set_control_mode("speed_control", check=False)
+        self.__motor_6.set_control_mode("speed_control", check=False)
+        self.__motor_7.set_control_mode("speed_control", check=False)
+        self.__motor_8.set_control_mode("speed_control", check=False)
+        self.__motor_9.set_control_mode("speed_control", check=False)
+
+        self.__motor_1.set_speed(0, is_pdo=True)
+        self.__motor_2.set_speed(0, is_pdo=True)
+        self.__motor_3.set_speed(0, is_pdo=True)
+        self.__motor_4.set_speed(0, is_pdo=True)
+        self.__motor_5.set_speed(0, is_pdo=True)
+        self.__motor_6.set_speed(0, is_pdo=True)
+        self.__motor_7.set_speed(0, is_pdo=True)
+        self.__motor_8.set_speed(0, is_pdo=True)
+        self.__motor_9.set_speed(0, is_pdo=True)
+
+        self.__motor_1.halt(is_pdo=True)
+        self.__motor_2.halt(is_pdo=True)
+        self.__motor_3.halt(is_pdo=True)
+        self.__motor_4.halt(is_pdo=True)
+        self.__motor_5.halt(is_pdo=True)
+        self.__motor_6.halt(is_pdo=True)
+        self.__motor_7.halt(is_pdo=True)
+        self.__motor_8.halt(is_pdo=True)
+        self.__motor_9.halt(is_pdo=True)
+
+        self.__motor_1.enable_operation(is_pdo=True)
+        self.__motor_2.enable_operation(is_pdo=True)
+        self.__motor_3.enable_operation(is_pdo=True)
+        self.__motor_4.enable_operation(is_pdo=True)
+        self.__motor_5.enable_operation(is_pdo=True)
+        self.__motor_6.enable_operation(is_pdo=True)
+        self.__motor_7.enable_operation(is_pdo=True)
+        self.__motor_8.enable_operation(is_pdo=True)
+        self.__motor_9.enable_operation(is_pdo=True)
+
+        while not self.__is_stop:
+            self.__error_1[0] = self.__error_1[1]
+            self.__error_2[0] = self.__error_2[1]
+            self.__error_3[0] = self.__error_3[1]
+            self.__error_4[0] = self.__error_4[1]
+            self.__error_5[0] = self.__error_5[1]
+            self.__error_6[0] = self.__error_6[1]
+            self.__error_7[0] = self.__error_7[1]
+            self.__error_8[0] = self.__error_8[1]
+            self.__error_9[0] = self.__error_9[1]
+
+            self.__error_1[2] += self.__error_1[1]
+            self.__error_2[2] += self.__error_2[1]
+            self.__error_3[2] += self.__error_3[1]
+            self.__error_4[2] += self.__error_4[1]
+            self.__error_5[2] += self.__error_5[1]
+            self.__error_6[2] += self.__error_6[1]
+            self.__error_7[2] += self.__error_7[1]
+            self.__error_8[2] += self.__error_8[1]
+            self.__error_9[2] += self.__error_9[1]
+
+            self.__error_1[1] = self.__outside_reference_force - self.__sensor_1.force
+            self.__error_2[1] = self.__outside_reference_force - self.__sensor_2.force
+            self.__error_3[1] = self.__outside_reference_force - self.__sensor_3.force
+
+            self.__error_4[1] = self.__midside_reference_force - self.__sensor_4.force
+            self.__error_5[1] = self.__midside_reference_force - self.__sensor_5.force
+            self.__error_6[1] = self.__midside_reference_force - self.__sensor_6.force
+
+            self.__error_7[1] = self.__inside_reference_force - self.__sensor_7.force
+            self.__error_8[1] = self.__inside_reference_force - self.__sensor_8.force
+            self.__error_9[1] = self.__inside_reference_force - self.__sensor_9.force
+
+            speed_1 = self.__outside_kp * self.__error_1[1] + self.__outside_ki * self.__error_1[2] + self.__outside_kd * (self.__error_1[1] - self.__error_1[0])
+            speed_2 = self.__outside_kp * self.__error_2[1] + self.__outside_ki * self.__error_2[2] + self.__outside_kd * (self.__error_2[1] - self.__error_2[0])
+            speed_3 = self.__outside_kp * self.__error_3[1] + self.__outside_ki * self.__error_3[2] + self.__outside_kd * (self.__error_3[1] - self.__error_3[0])
+
+            speed_4 = self.__midside_kp * self.__error_4[1] + self.__midside_ki * self.__error_4[2] + self.__midside_kd * (self.__error_4[1] - self.__error_4[0])
+            speed_5 = self.__midside_kp * self.__error_5[1] + self.__midside_ki * self.__error_5[2] + self.__midside_kd * (self.__error_5[1] - self.__error_5[0])
+            speed_6 = self.__midside_kp * self.__error_6[1] + self.__midside_ki * self.__error_6[2] + self.__midside_kd * (self.__error_6[1] - self.__error_6[0])
+
+            speed_7 = self.__inside_kp * self.__error_7[1] + self.__inside_ki * self.__error_7[2] + self.__inside_kd * (self.__error_7[1] - self.__error_7[0])
+            speed_8 = self.__inside_kp * self.__error_8[1] + self.__inside_ki * self.__error_8[2] + self.__inside_kd * (self.__error_8[1] - self.__error_8[0])
+            speed_9 = self.__inside_kp * self.__error_9[1] + self.__inside_ki * self.__error_9[2] + self.__inside_kd * (self.__error_9[1] - self.__error_9[0])
+
+            print("==================================================")
+            print(int(speed_1), int(speed_2), int(speed_3))
+            print(int(speed_4), int(speed_5), int(speed_6))
+            print(int(speed_7), int(speed_8), int(speed_9))
+
+            self.__motor_1.set_speed(int(speed_1), is_pdo=True, log=False)
+            self.__motor_2.set_speed(int(speed_2), is_pdo=True, log=False)
+            self.__motor_3.set_speed(int(speed_3), is_pdo=True, log=False)
+            self.__motor_4.set_speed(int(speed_4), is_pdo=True, log=False)
+            self.__motor_5.set_speed(int(speed_5), is_pdo=True, log=False)
+            self.__motor_6.set_speed(int(speed_6), is_pdo=True, log=False)
+            self.__motor_7.set_speed(int(speed_7), is_pdo=True, log=False)
+            self.__motor_8.set_speed(int(speed_8), is_pdo=True, log=False)
+            self.__motor_9.set_speed(int(speed_9), is_pdo=True, log=False)
+        
+        self.__motor_1.set_speed(0, is_pdo=True)
+        self.__motor_2.set_speed(0, is_pdo=True)
+        self.__motor_3.set_speed(0, is_pdo=True)
+        self.__motor_4.set_speed(0, is_pdo=True)
+        self.__motor_5.set_speed(0, is_pdo=True)
+        self.__motor_6.set_speed(0, is_pdo=True)
+        self.__motor_7.set_speed(0, is_pdo=True)
+        self.__motor_8.set_speed(0, is_pdo=True)
+        self.__motor_9.set_speed(0, is_pdo=True)
+
+        self.__motor_1.disable_operation(is_pdo=True)
+        self.__motor_2.disable_operation(is_pdo=True)
+        self.__motor_3.disable_operation(is_pdo=True)
+        self.__motor_4.disable_operation(is_pdo=True)
+        self.__motor_5.disable_operation(is_pdo=True)
+        self.__motor_6.disable_operation(is_pdo=True)
+        self.__motor_7.disable_operation(is_pdo=True)
+        self.__motor_8.disable_operation(is_pdo=True)
+        self.__motor_9.disable_operation(is_pdo=True)
+
+    def set_zero(self):
+        self.__motor_1.zero_position = self.__motor_1.current_position
+        self.__motor_2.zero_position = self.__motor_2.current_position
+        self.__motor_3.zero_position = self.__motor_3.current_position
+        self.__motor_4.zero_position = self.__motor_4.current_position
+        self.__motor_5.zero_position = self.__motor_5.current_position
+        self.__motor_6.zero_position = self.__motor_6.current_position
+        self.__motor_7.zero_position = self.__motor_7.current_position
+        self.__motor_8.zero_position = self.__motor_8.current_position
+        self.__motor_9.zero_position = self.__motor_9.current_position
+    
+    def stop(self):
+        self.__is_stop = True
 
 
-    @staticmethod
-    def __hex_list_to_float(data_list: list) -> float:
-        data_str = ""
-        for i in range(len(data_list)):
-            data_bin = bin(data_list[i])[2:] # 首先转换为bin 去除0b
-            data_bin = '0' * (8 - len(data_bin)) + data_bin # 头部补齐
-            data_str = data_bin + data_str # 拼接
-        # 确定符号
-        if data_str[0] == "0": sign = 1
-        else: sign = -1
-        # 确定整数
-        power = 2 ** (int(data_str[1:9], 2) - 127)
-        # 确定小数
-        decimal = 1
-        for i, num in enumerate(data_str[9:]):
-            if num == "1": decimal = 2 ** (- (i + 1)) + decimal
-        # 结果
-        return sign * power * decimal
 
 ''' 速度模式 '''
 class JointControlSpeedModeThread(QThread):
@@ -384,66 +713,9 @@ class JointControlSpeedModeThread(QThread):
         self.__motor.disable_operation(is_pdo=True)
         self.__motor.set_control_mode("position_control")
 
-''' 电机10 调零 '''
-class BallScrewSetZeroThread(QThread):
-    __start_signal = pyqtSignal()
-    __finish_signal = pyqtSignal()
-    
-    def __init__(self, distance=50, /, *, motor: Motor, io: IoModule, start_signal, finish_signal) -> None:
-        super().__init__()
 
-        self.__is_stop = False
 
-        self.__distance = distance
 
-        self.__motor = motor
-        self.__io = io
-
-        self.__start_signal.connect(start_signal)
-        self.__finish_signal.connect(finish_signal)
-    
-    def run(self):
-        self.__start_signal.emit()
-        
-        self.__io.open_valve_4()
-        time.sleep(1)
-
-        while not self.__motor.set_control_mode("position_control", check=False): time.sleep(0.1)
-
-        self.__motor.set_position(- self.__distance * 5120, velocity=200, is_pdo=True)
-        self.__motor.ready(is_pdo=True)
-
-        self.__motor.action(is_immediate=True, is_relative=True, is_pdo=True)
-
-        time.sleep(3)
-        
-        if not self.__io.input_1:
-            while not self.__motor.set_control_mode("speed_control"): time.sleep(0.1)
-        
-            self.__motor.set_speed(50, is_pdo=True)
-
-            self.__motor.halt(is_pdo=True)
-
-            self.__motor.enable_operation(is_pdo=True)
-        else: pass
-
-        while not self.__is_stop:
-            if self.__io.input_1:
-                self.__motor.halt(is_pdo=True)
-
-                time.sleep(0.5)
-
-                self.__motor.zero_position = self.__motor.current_position
-
-                self.__finish_signal.emit()
-
-                break
-    
-    def stop(self):
-        self.__is_stop = True
-
-        self.__motor.set_speed(0, is_pdo=True)
-        self.__motor.disable_operation(is_pdo=True)
 
 ''' 电机10 归零 '''
 class BallScrewGoZeroThread(QThread):
@@ -519,9 +791,9 @@ class BallScrewMoveThread(QThread):
         
         if self.__is_close: self.__io.close_valve_4()
         else: self.__io.open_valve_4()
-        time.sleep(0.5)
+        # time.sleep(0.5)
 
-        while not self.__motor.set_control_mode("position_control", check=False): time.sleep(0.1)
+        self.__motor.set_control_mode("position_control", check=False)
 
         if self.__is_relative:
             position = - self.__distance * 5120
@@ -545,8 +817,47 @@ class BallScrewMoveThread(QThread):
             
         self.__finish_signal.emit()
 
+''' 电机1-9 移动 '''
+class RopeMoveThread(QThread):
+    RATIO = 12536.512440
 
+    def __init__(self, *args: tuple) -> None:
+        super().__init__()
 
+        self.__motor_list = []
+
+        for object in args:
+            self.__motor_list.append(object)
+            
+            motor = object[0]
+            motor.set_control_mode("position_control")
+    
+    def run(self):
+        for object in self.__motor_list:
+            motor = object[0]
+            is_rel = object[1]
+            p = object[2]
+            v = object[3]
+
+            distance = int(p * RopeMoveThread.RATIO) if is_rel else motor.zero_position + int(p * RopeMoveThread.RATIO)
+
+            motor.set_position(distance, velocity=v, is_pdo=True)
+
+            motor.ready(is_pdo=True)
+
+        for object in self.__motor_list:
+            motor = object[0]
+            is_rel = object[1]
+
+            motor.action(is_immediate=False, is_relative=is_rel, is_pdo=True)
+
+        for object in self.__motor_list:
+            motor = object[0]
+
+            while True:
+                last_position = motor.current_position
+                time.sleep(0.01)
+                if last_position == motor.current_position: break
 
 
 
@@ -601,24 +912,50 @@ class ControlPanel(QMainWindow):
         self.io = IoModule(11, update_output_status_slot_function=self.show_valve_status)
 
         self.ballscrew_is_set_zero = False
-        self.ballscrew_position = None
+        self.ballscrew_position = None # mm
         self.ballscrew_is_moving = False
+
+        self.rope_move_mutex = QMutex()
+
+        self.rope_is_set_zero = False
+        self.rope_1_position = None # mm
+        self.rope_2_position = None
+        self.rope_3_position = None
+        self.rope_4_position = None
+        self.rope_5_position = None
+        self.rope_6_position = None
+        self.rope_7_position = None
+        self.rope_8_position = None
+        self.rope_9_position = None
 
         self.signal_connect_slot()
 
         ''' 高级测试 '''
-        self.ui.test_11.pressed.connect(self.stretch_inside)
-        self.ui.test_11.released.connect(self.my_stop)
-        self.ui.test_12.pressed.connect(self.release_inside)
-        self.ui.test_12.released.connect(self.my_stop)
+        self.ui.stretch_inside.pressed.connect(self.stretch_inside)
+        self.ui.stretch_inside.released.connect(self.stop_inside)
+        self.ui.release_inside.pressed.connect(self.release_inside)
+        self.ui.release_inside.released.connect(self.stop_inside)
 
-        self.ui.test_4.clicked.connect(lambda: self.ballscrew_move(221))
-        self.ui.test_5.clicked.connect(lambda: self.ballscrew_move(237))
+        self.ui.stretch_midside.pressed.connect(self.stretch_midside)
+        self.ui.stretch_midside.released.connect(self.stop_midside)
+        self.ui.release_midside.pressed.connect(self.release_midside)
+        self.ui.release_midside.released.connect(self.stop_midside)
+
+        self.ui.stretch_outside.pressed.connect(self.stretch_outside)
+        self.ui.stretch_outside.released.connect(self.stop_outside)
+        self.ui.release_outside.pressed.connect(self.release_outside)
+        self.ui.release_outside.released.connect(self.stop_outside)
+
+        self.ui.test_4.clicked.connect(lambda: self.ballscrew_move(221, velocity=300))
+        self.ui.test_5.clicked.connect(lambda: self.ballscrew_move(237, velocity=10))
         self.ui.test_6.clicked.connect(lambda: self.ballscrew_move(348))
         self.ui.test_7.clicked.connect(lambda: self.ballscrew_move(358))
 
         self.ui.test_8.clicked.connect(self.force_test)
         self.ui.test_9.clicked.connect(self.force_test_stop)
+
+        self.ui.test_11.clicked.connect(lambda: self.rope_move(5))
+        self.ui.test_12.clicked.connect(lambda: self.rope_move(-5))
         
         self.show() # 显示界面
 
@@ -627,7 +964,7 @@ class ControlPanel(QMainWindow):
     def signal_connect_slot(self) -> None:
         ''' 菜单 '''
         self.ui.control_panel.triggered.connect(lambda: self.ui.stackedWidget.setCurrentIndex(0))
-        self.ui.param_panel.triggered.connect(lambda: self.ui.stackedWidget.setCurrentIndex(1))
+        self.ui.set_zero_panel.triggered.connect(lambda: self.ui.stackedWidget.setCurrentIndex(1))
 
         self.ui.statusBar.setSizeGripEnabled(False)
         self.ui.statusBar.showMessage("Welcome to Continnum Robot Control Panel", 10000)
@@ -763,21 +1100,28 @@ class ControlPanel(QMainWindow):
             getattr(self.ui, f"speed_reverse_{node_id}").released.connect(getattr(self, f"speed_stop_{node_id}"))
 
         ''' 滚珠 调0 归0 '''
-        self.ui.set_zero.clicked.connect(self.ballscrew_set_zero)
+        self.ui.set_ballscrew_zero.clicked.connect(self.ballscrew_set_zero)
+
+        ''' 线 适应 调0 '''
+        self.ui.start_adjust.clicked.connect(self.rope_force_adapt)
+        self.ui.set_rope_zero.clicked.connect(self.rope_set_zero)
+
+        # self.ui.set_zero.clicked.connect(self.ballscrew_set_zero)
         self.ui.go_zero.clicked.connect(self.ballscrew_go_zero)
+
 
     ''' 打开设备 '''
     def open_device(self) -> None:
         if UsbCan.open_device():
             
             if not self.__usbcan_0_is_start and self.usbcan_0.init_can() and self.usbcan_0.start_can():
-                self.read_canopen_thread = CANopenUpdateThread(pdo_1_slot_function=self.show_pdo_1, pdo_2_slot_function=self.show_pdo_2, status_signal=self.show_status)
+                self.read_canopen_thread = CANopenUpdate(pdo_1_slot_function=self.show_pdo_1, pdo_2_slot_function=self.show_pdo_2, pdo_4_slot_function=self.show_pdo_4, status_signal=self.show_status)
                 self.read_canopen_thread.start()
 
                 self.__usbcan_0_is_start = True
 
             if not self.__usbcan_1_is_start and self.usbcan_1.init_can() and self.usbcan_1.start_can():
-                self.read_sensor_thread = SensorResolveThread(update_signal=self.show_force)
+                self.read_sensor_thread = SensorResolve(update_signal=self.show_force)
                 self.read_sensor_thread.start()
 
                 self.__usbcan_1_is_start = True
@@ -808,12 +1152,97 @@ class ControlPanel(QMainWindow):
             self.ui.control_all.setEnabled(True)
             self.ui.status.setEnabled(True)
             self.ui.param.setEnabled(True)
+
+            self.ui.set_ballscrew_zero.setEnabled(True) # 调零
+            self.ui.start_adjust.setEnabled(True) # 调零
         
-        self.init_robot_thread = RobotInitThread(times=1, running_signal=change, finish_signal=next)
-        self.send_request_thread = SensorRequestThread()
+        self.init_robot_thread = RobotInit(times=1, running_signal=change, finish_signal=next)
+        self.send_request_thread = SensorRequest()
 
         self.init_robot_thread.start()
         self.send_request_thread.start()
+
+    ''' 丝杠 调零 '''
+    def ballscrew_set_zero(self):
+        def start():
+            self.ballscrew_is_set_zero = False
+            self.ui.ballscrew_set_zero.setEnabled(False)
+            self.show_status("Ballscrew is being setting zero ...")
+        
+        def finish():
+            self.ballscrew_is_set_zero = True
+            self.ui.ballscrew_set_zero.setEnabled(True)
+            self.show_status("Ballscrew is set zero !")
+            self.ui.ballscrew.setText("<span style=\"color:#00ff00;\">Zero</span>")
+        
+        distance = float(self.ui.forward_distance.text()) if self.ui.forward_distance.text() != "" \
+            else float(self.ui.forward_distance.placeholderText())
+        velocity = int(self.ui.forward_velocity.text()) if self.ui.forward_velocity.text() != "" \
+            else int(self.ui.forward_velocity.placeholderText())
+        speed = int(self.ui.backward_speed.text()) if self.ui.backward_speed.text() != "" \
+            else int(self.ui.backward_speed.placeholderText())
+        
+        self.ballscrew_set_zero_thread = BallScrewSetZero(distance, velocity, speed, 
+                                                          motor=self.motor_10, io=self.io, 
+                                                          start_signal=start, finish_signal=finish)
+
+        self.ballscrew_set_zero_thread.start()
+    
+    ''' 线 调零 '''
+    def rope_force_adapt(self):
+        def start():
+            self.rope_is_set_zero = False
+            self.ui.start_adjust.setEnabled(False)
+            self.ui.set_rope_zero.setEnabled(True)
+            self.show_status("All ropes are being adapting force ...")
+
+        def finish():
+            self.rope_is_set_zero = True
+            self.ui.start_adjust.setEnabled(True)
+            self.ui.set_rope_zero.setEnabled(False)
+            self.show_status("All ropes are set zero !")
+
+            for i in range(1,10):
+                getattr(self.ui, f"rope_{i}").setText("<span style=\"color:#00ff00;\">Zero</span>")
+
+        i_f = float(self.ui.inside_force.text()) if self.ui.inside_force.text() != "" \
+            else float(self.ui.inside_force.placeholderText())
+        m_f = float(self.ui.midside_force.text()) if self.ui.midside_force.text() != "" \
+            else float(self.ui.midside_force.placeholderText())
+        o_f = float(self.ui.outside_force.text()) if self.ui.outside_force.text() != "" \
+            else float(self.ui.outside_force.placeholderText())
+        
+        i_pid = (float(self.ui.inside_p.text()) if self.ui.inside_p.text() != "" \
+                    else float(self.ui.inside_p.placeholderText()), 
+                 float(self.ui.inside_i.text()) if self.ui.inside_i.text() != "" \
+                    else float(self.ui.inside_i.placeholderText()), 
+                 float(self.ui.inside_d.text()) if self.ui.inside_d.text() != "" \
+                    else float(self.ui.inside_d.placeholderText()))
+        m_pid = (float(self.ui.midside_p.text()) if self.ui.midside_p.text() != "" \
+                    else float(self.ui.midside_p.placeholderText()), 
+                 float(self.ui.midside_i.text()) if self.ui.midside_i.text() != "" \
+                    else float(self.ui.midside_i.placeholderText()), 
+                 float(self.ui.midside_d.text()) if self.ui.midside_d.text() != "" \
+                    else float(self.ui.midside_d.placeholderText()))
+        o_pid = (float(self.ui.outside_p.text()) if self.ui.outside_p.text() != "" \
+                    else float(self.ui.midside_p.placeholderText()), 
+                 float(self.ui.outside_i.text()) if self.ui.outside_i.text() != "" \
+                    else float(self.ui.outside_i.placeholderText()), 
+                 float(self.ui.outside_d.text()) if self.ui.outside_d.text() != "" \
+                    else float(self.ui.outside_d.placeholderText()))
+        
+        self.rope_force_adapt_thread = ContinuumAttitudeAdjust(self.motor_1, self.motor_2, self.motor_3, self.motor_4, self.motor_5, self.motor_6, self.motor_7, self.motor_8, self.motor_9, 
+                                                               self.sensor_1, self.sensor_2, self.sensor_3, self.sensor_4, self.sensor_5, self.sensor_6, self.sensor_7, self.sensor_8, self.sensor_9, 
+                                                               self.io, 
+                                                               i_f=i_f, m_f=m_f, o_f=o_f, 
+                                                               i_pid=i_pid, m_pid=m_pid, o_pid=o_pid, 
+                                                               start_signal=start, finish_signal=finish)
+
+        self.rope_force_adapt_thread.start()
+    def rope_set_zero(self):
+        self.rope_force_adapt_thread.stop()
+        self.rope_force_adapt_thread.wait()
+
 
 
     ''' 显示 TPDO1 '''
@@ -950,8 +1379,15 @@ class ControlPanel(QMainWindow):
                 if self.ballscrew_is_set_zero:
                     self.ballscrew_position = (self.motor_10.zero_position - self.motor_10.current_position) / 5120
                     color = "#00ff00" if self.ballscrew_position >=0 else "#ff0000"
-                    self.ui.ballscrew.setText("<span style=\"color:{};\">{} mm</span>".format(color, round(self.ballscrew_position), 2))
-                else: self.ui.ballscrew.setText("<span style=\"color:#ff0000;\">None</span>")
+                    self.ui.ballscrew.setText("<span style=\"color:{};\">{}</span>".format(color, round(self.ballscrew_position, 3)))
+                else: self.ui.ballscrew.setText("<span style=\"color:#ff0000;\">No Zero</span>")
+            else:
+                if self.rope_is_set_zero:
+                    value = (getattr(self, f"motor_{node_id}").current_position - getattr(self, f"motor_{node_id}").zero_position) / 12536.512440
+                    setattr(self, f"rope_{node_id}_position", value)
+                    color = "#00ff00" if value >=0 else "#ff0000"
+                    getattr(self.ui, "rope_{}".format(node_id)).setText("<span style=\"color:{};\">{}</span>".format(color, round(value, 3)))
+                else: getattr(self.ui, "rope_{}".format(node_id)).setText("<span style=\"color:#ff0000;\">No Zero</span>")
             
             # 位置
             position = getattr(self, f"motor_{node_id}").current_position
@@ -990,6 +1426,16 @@ class ControlPanel(QMainWindow):
             speed_str = "<span style=\"color:{};\">{}</span>".format(color, speed)
 
             getattr(self.ui, f"current_velocity_{node_id}").setText(speed_str)
+    
+    ''' 显示 TPDO4 '''
+    def show_pdo_4(self, node_id):
+        # 电机
+        if node_id in Motor.motor_dict.keys():
+            control_mode = getattr(self, f"motor_{node_id}").control_mode
+            if control_mode == "position_control": mode_str = "<span style=\"color:#00ff00;\">POSITION</span>"
+            elif control_mode == "speed_control": mode_str = "<span style=\"color:#00ff00;\">SPEED</span>"
+            else: pass
+            getattr(self.ui, f"mode_{node_id}").setText(mode_str)
     
     ''' 显示 传感器 '''
     def show_force(self, node_id):
@@ -1064,6 +1510,7 @@ class ControlPanel(QMainWindow):
         self.ui.statusBar.showMessage(message, 5000)
 
 
+
     ''' 集体控制 '''
     def shut_down_all(self):
         for motor in Motor.motor_dict.values():
@@ -1127,21 +1574,7 @@ class ControlPanel(QMainWindow):
     for node_id in range(1,11):
         exec(f"def speed_stop_{node_id}(self): self.speed_stop_factory({node_id})")
 
-    ''' 电机10 调零 '''
-    def ballscrew_set_zero(self):
-        def start():
-            self.ballscrew_is_set_zero = False
-            self.ui.set_zero.setEnabled(False)
-            self.show_status("Ballscrew is being setting zero ...")
-        
-        def finish():
-            self.ballscrew_is_set_zero = True
-            self.ui.set_zero.setEnabled(True)
-            self.show_status("Ballscrew is set zero !")
-        
-        self.ballscrew_set_zero_thread = BallScrewSetZeroThread(30, motor=self.motor_10, io=self.io, start_signal=start, finish_signal=finish)
 
-        self.ballscrew_set_zero_thread.start()
     
     ''' 电机10 归零 '''
     def ballscrew_go_zero(self):
@@ -1157,30 +1590,15 @@ class ControlPanel(QMainWindow):
 
         self.ballscrew_go_zero_thread.start()
     
-    ''' 电机10 移动 '''
+    ''' 丝杠 移动 '''
     def ballscrew_move(self, distance, /, *, velocity=100, is_close=False, is_relative=False) -> bool:
-        # if is_close: self.io.close_valve_4()
-        # else: self.io.open_valve_4()
+        if not self.ballscrew_is_set_zero:
+            self.show_status("Ballscrew is not set zero.")
+            return False
 
-        # while not self.motor_10.set_control_mode("position_control", check=False): time.sleep(0.1)
-
-        # if is_relative: position = - distance * 5120
-        # else:
-        #     if distance > 0:
-        #         position = self.motor_10.zero_position - distance * 5120
-        #     else: return False
-
-        # self.motor_10.set_position(position, velocity=velocity, is_pdo=True)
-        
-        # self.motor_10.ready(is_pdo=True)
-
-        # self.motor_10.action(is_immediate=True, is_relative=is_relative, is_pdo=True)
-
-        # if is_relative: time.sleep(distance * 0.2)
-
-        # while not is_relative:
-        #     time.sleep(0.1)
-        #     if abs(self.motor_10.current_position - position) < 10000: break
+        while self.ballscrew_is_moving:
+            self.show_status("Ballscrew is moving, you cannot move it now.")
+            time.sleep(1)
         
         def start():
             self.ballscrew_is_moving = True
@@ -1188,50 +1606,85 @@ class ControlPanel(QMainWindow):
         def finish():
             self.ballscrew_is_moving = False
         
-        if not self.ballscrew_is_moving:
-            self.ballscrew_move_thread = BallScrewMoveThread(distance, velocity=velocity, 
-                                                            is_close=is_close, is_relative=is_relative, 
-                                                            motor=self.motor_10, io=self.io, 
-                                                            start_signal=start, finish_signal=finish)
-            
-            self.ballscrew_move_thread.start()
-            return True
-        else: return False
+        self.ballscrew_move_thread = BallScrewMoveThread(distance, velocity=velocity, 
+                                                        is_close=is_close, is_relative=is_relative, 
+                                                        motor=self.motor_10, io=self.io, 
+                                                        start_signal=start, finish_signal=finish)
+        self.ballscrew_move_thread.start()
+        return True
 
+
+    ''' 线 移动 '''
+    def rope_move(self, dis):
+        self.rope_move_thread = RopeMoveThread((self.motor_1, True, dis, 100))
+        self.rope_move_thread.start()
+
+    def move_test(self):
+        ...
 
 
 
 
     ''' 缩放 内段 线 '''
     def stretch_inside(self):
-        self.stretch_inside_thread = StretchRopeThread(50, 
-            self.motor_1, self.motor_2, self.motor_3, 
-            self.motor_4, self.motor_5, self.motor_6, 
+        self.stretch_inside_thread = StretchInsideThread(-50, 
+            # self.motor_1, self.motor_2, self.motor_3, 
+            # self.motor_4, self.motor_5, self.motor_6, 
             self.motor_7, self.motor_8, self.motor_9)
         self.stretch_inside_thread.start()
-    
     def release_inside(self):
-        self.stretch_inside_thread = StretchRopeThread(50, 
-            self.motor_1, self.motor_2, self.motor_3, 
-            self.motor_4, self.motor_5, self.motor_6, 
+        self.stretch_inside_thread = StretchInsideThread(50, 
+            # self.motor_1, self.motor_2, self.motor_3, 
+            # self.motor_4, self.motor_5, self.motor_6, 
             self.motor_7, self.motor_8, self.motor_9)
         self.stretch_inside_thread.start()
-
-    def my_stop(self):
+    def stop_inside(self):
         self.stretch_inside_thread.stop()
         self.stretch_inside_thread.wait()
 
-
+    ''' 缩放 中段 线 '''
+    def stretch_midside(self):
+        self.stretch_midside_thread = StretchMidsideThread(-50, 
+            # self.motor_1, self.motor_2, self.motor_3, 
+            self.motor_4, self.motor_5, self.motor_6)
+        self.stretch_midside_thread.start()
+    def release_midside(self):
+        self.stretch_midside_thread = StretchMidsideThread(50, 
+            # self.motor_1, self.motor_2, self.motor_3, 
+            self.motor_4, self.motor_5, self.motor_6)
+        self.stretch_midside_thread.start()
+    def stop_midside(self):
+        self.stretch_midside_thread.stop()
+        self.stretch_midside_thread.wait()
+    
+    ''' 缩放 外段 线 '''
+    def stretch_outside(self):
+        self.stretch_outide_thread = StretchOutsideThread(-50, 
+            self.motor_1, self.motor_2, self.motor_3)
+        self.stretch_outide_thread.start()
+    def release_outside(self):
+        self.stretch_outide_thread = StretchOutsideThread(50, 
+            self.motor_1, self.motor_2, self.motor_3)
+        self.stretch_outide_thread.start()
+    def stop_outside(self):
+        self.stretch_outide_thread.stop()
+        self.stretch_outide_thread.wait()
+    
+    
+    
+    
     def force_test(self):
-        self.force_test_thread_1 = JointForceFollow(self.motor_1, self.sensor_1, force_ref=10)
-        self.force_test_thread_2 = JointForceFollow(self.motor_2, self.sensor_2, force_ref=10)
-        self.force_test_thread_3 = JointForceFollow(self.motor_3, self.sensor_3, force_ref=10)
-        self.force_test_thread_4 = JointForceFollow(self.motor_4, self.sensor_4, force_ref=10)
-        self.force_test_thread_5 = JointForceFollow(self.motor_5, self.sensor_5, force_ref=10)
-        self.force_test_thread_6 = JointForceFollow(self.motor_6, self.sensor_6, force_ref=10)
-        self.force_test_thread_7 = JointForceFollow(self.motor_7, self.sensor_7, force_ref=10)
-        self.force_test_thread_8 = JointForceFollow(self.motor_8, self.sensor_8, force_ref=10)
-        self.force_test_thread_9 = JointForceFollow(self.motor_9, self.sensor_9, force_ref=10)
+        self.force_test_thread_1 = JointForceFollow(self.motor_1, self.sensor_1, force_ref=10, kp=5, ki=0, kd=1)
+        self.force_test_thread_2 = JointForceFollow(self.motor_2, self.sensor_2, force_ref=10, kp=5, ki=0, kd=1)
+        self.force_test_thread_3 = JointForceFollow(self.motor_3, self.sensor_3, force_ref=10, kp=5, ki=0, kd=1)
+        
+        self.force_test_thread_4 = JointForceFollow(self.motor_4, self.sensor_4, force_ref=10, kp=5, ki=0, kd=1)
+        self.force_test_thread_5 = JointForceFollow(self.motor_5, self.sensor_5, force_ref=10, kp=5, ki=0, kd=1)
+        self.force_test_thread_6 = JointForceFollow(self.motor_6, self.sensor_6, force_ref=10, kp=5, ki=0, kd=1)
+        
+        # self.force_test_thread_7 = JointForceFollow(self.motor_7, self.sensor_7, force_ref=10, kp=5, ki=0, kd=1)
+        # self.force_test_thread_8 = JointForceFollow(self.motor_8, self.sensor_8, force_ref=10, kp=5, ki=0, kd=1)
+        # self.force_test_thread_9 = JointForceFollow(self.motor_9, self.sensor_9, force_ref=10, kp=5, ki=0, kd=1)
         
         self.force_test_thread_1.start()
         self.force_test_thread_2.start()
@@ -1239,9 +1692,9 @@ class ControlPanel(QMainWindow):
         self.force_test_thread_4.start()
         self.force_test_thread_5.start()
         self.force_test_thread_6.start()
-        self.force_test_thread_7.start()
-        self.force_test_thread_8.start()
-        self.force_test_thread_9.start()
+        # self.force_test_thread_7.start()
+        # self.force_test_thread_8.start()
+        # self.force_test_thread_9.start()
     def force_test_stop(self):
         self.force_test_thread_1.stop()
         self.force_test_thread_2.stop()
@@ -1249,9 +1702,9 @@ class ControlPanel(QMainWindow):
         self.force_test_thread_4.stop()
         self.force_test_thread_5.stop()
         self.force_test_thread_6.stop()
-        self.force_test_thread_7.stop()
-        self.force_test_thread_8.stop()
-        self.force_test_thread_9.stop()
+        # self.force_test_thread_7.stop()
+        # self.force_test_thread_8.stop()
+        # self.force_test_thread_9.stop()
 
         self.force_test_thread_1.wait()
         self.force_test_thread_2.wait()
@@ -1259,26 +1712,26 @@ class ControlPanel(QMainWindow):
         self.force_test_thread_4.wait()
         self.force_test_thread_5.wait()
         self.force_test_thread_6.wait()
-        self.force_test_thread_7.wait()
-        self.force_test_thread_8.wait()
-        self.force_test_thread_9.wait()
+        # self.force_test_thread_7.wait()
+        # self.force_test_thread_8.wait()
+        # self.force_test_thread_9.wait()
 
 
 
 '''
     测试
 '''
-class StretchRopeThread(QThread):
+class StretchInsideThread(QThread):
     __start_signal = pyqtSignal()
     __finish_signal = pyqtSignal()
     
     def __init__(self, speed: int, 
-                 motor_1: Motor, 
-                 motor_2: Motor, 
-                 motor_3: Motor, 
-                 motor_4: Motor, 
-                 motor_5: Motor, 
-                 motor_6: Motor, 
+                #  motor_1: Motor, 
+                #  motor_2: Motor, 
+                #  motor_3: Motor, 
+                #  motor_4: Motor, 
+                #  motor_5: Motor, 
+                #  motor_6: Motor, 
                  motor_7: Motor, 
                  motor_8: Motor, 
                  motor_9: Motor, 
@@ -1288,13 +1741,13 @@ class StretchRopeThread(QThread):
 
         self.__is_stop = False
 
-        self.__motor_1 = motor_1
-        self.__motor_2 = motor_2
-        self.__motor_3 = motor_3
+        # self.__motor_1 = motor_1
+        # self.__motor_2 = motor_2
+        # self.__motor_3 = motor_3
 
-        self.__motor_4 = motor_4
-        self.__motor_5 = motor_5
-        self.__motor_6 = motor_6
+        # self.__motor_4 = motor_4
+        # self.__motor_5 = motor_5
+        # self.__motor_6 = motor_6
 
         self.__motor_7 = motor_7
         self.__motor_8 = motor_8
@@ -1309,49 +1762,132 @@ class StretchRopeThread(QThread):
     def run(self):
         self.__start_signal.emit()
 
-        while not self.__motor_1.set_control_mode("speed_control", check=False): time.sleep(0.1)
-        while not self.__motor_2.set_control_mode("speed_control", check=False): time.sleep(0.1)
-        while not self.__motor_3.set_control_mode("speed_control", check=False): time.sleep(0.1)
-        while not self.__motor_4.set_control_mode("speed_control", check=False): time.sleep(0.1)
-        while not self.__motor_5.set_control_mode("speed_control", check=False): time.sleep(0.1)
-        while not self.__motor_6.set_control_mode("speed_control", check=False): time.sleep(0.1)
+        # while not self.__motor_1.set_control_mode("speed_control", check=False): time.sleep(0.1)
+        # while not self.__motor_2.set_control_mode("speed_control", check=False): time.sleep(0.1)
+        # while not self.__motor_3.set_control_mode("speed_control", check=False): time.sleep(0.1)
+        # while not self.__motor_4.set_control_mode("speed_control", check=False): time.sleep(0.1)
+        # while not self.__motor_5.set_control_mode("speed_control", check=False): time.sleep(0.1)
+        # while not self.__motor_6.set_control_mode("speed_control", check=False): time.sleep(0.1)
         while not self.__motor_7.set_control_mode("speed_control", check=False): time.sleep(0.1)
         while not self.__motor_8.set_control_mode("speed_control", check=False): time.sleep(0.1)
         while not self.__motor_9.set_control_mode("speed_control", check=False): time.sleep(0.1)
 
-        self.__motor_1.set_speed(self.__speed, is_pdo=True)
-        self.__motor_2.set_speed(self.__speed, is_pdo=True)
-        self.__motor_3.set_speed(self.__speed, is_pdo=True)
-        self.__motor_4.set_speed(self.__speed, is_pdo=True)
-        self.__motor_5.set_speed(self.__speed, is_pdo=True)
-        self.__motor_6.set_speed(self.__speed, is_pdo=True)
+        # self.__motor_1.set_speed(self.__speed, is_pdo=True)
+        # self.__motor_2.set_speed(self.__speed, is_pdo=True)
+        # self.__motor_3.set_speed(self.__speed, is_pdo=True)
+        # self.__motor_4.set_speed(self.__speed, is_pdo=True)
+        # self.__motor_5.set_speed(self.__speed, is_pdo=True)
+        # self.__motor_6.set_speed(self.__speed, is_pdo=True)
         self.__motor_7.set_speed(self.__speed, is_pdo=True)
         self.__motor_8.set_speed(self.__speed, is_pdo=True)
         self.__motor_9.set_speed(self.__speed, is_pdo=True)
 
-        self.__motor_1.halt(is_pdo=True)
-        self.__motor_2.halt(is_pdo=True)
-        self.__motor_3.halt(is_pdo=True)
-        self.__motor_4.halt(is_pdo=True)
-        self.__motor_5.halt(is_pdo=True)
-        self.__motor_6.halt(is_pdo=True)
+        # self.__motor_1.halt(is_pdo=True)
+        # self.__motor_2.halt(is_pdo=True)
+        # self.__motor_3.halt(is_pdo=True)
+        # self.__motor_4.halt(is_pdo=True)
+        # self.__motor_5.halt(is_pdo=True)
+        # self.__motor_6.halt(is_pdo=True)
         self.__motor_7.halt(is_pdo=True)
         self.__motor_8.halt(is_pdo=True)
         self.__motor_9.halt(is_pdo=True)
         
-
         while not self.__is_stop:
-            self.__motor_1.enable_operation(is_pdo=True)
-            self.__motor_2.enable_operation(is_pdo=True)
-            self.__motor_3.enable_operation(is_pdo=True)
-            self.__motor_4.enable_operation(is_pdo=True)
-            self.__motor_5.enable_operation(is_pdo=True)
-            self.__motor_6.enable_operation(is_pdo=True)
+            # self.__motor_1.enable_operation(is_pdo=True)
+            # self.__motor_2.enable_operation(is_pdo=True)
+            # self.__motor_3.enable_operation(is_pdo=True)
+            # self.__motor_4.enable_operation(is_pdo=True)
+            # self.__motor_5.enable_operation(is_pdo=True)
+            # self.__motor_6.enable_operation(is_pdo=True)
             self.__motor_7.enable_operation(is_pdo=True)
             self.__motor_8.enable_operation(is_pdo=True)
             self.__motor_9.enable_operation(is_pdo=True)
     
+    def stop(self):
+        self.__is_stop = True
 
+        # self.__motor_1.set_speed(0, is_pdo=True)
+        # self.__motor_2.set_speed(0, is_pdo=True)
+        # self.__motor_3.set_speed(0, is_pdo=True)
+        # self.__motor_4.set_speed(0, is_pdo=True)
+        # self.__motor_5.set_speed(0, is_pdo=True)
+        # self.__motor_6.set_speed(0, is_pdo=True)
+        self.__motor_7.set_speed(0, is_pdo=True)
+        self.__motor_8.set_speed(0, is_pdo=True)
+        self.__motor_9.set_speed(0, is_pdo=True)
+
+        # self.__motor_1.disable_operation(is_pdo=True)
+        # self.__motor_2.disable_operation(is_pdo=True)
+        # self.__motor_3.disable_operation(is_pdo=True)
+        # self.__motor_4.disable_operation(is_pdo=True)
+        # self.__motor_5.disable_operation(is_pdo=True)
+        # self.__motor_6.disable_operation(is_pdo=True)
+        self.__motor_7.disable_operation(is_pdo=True)
+        self.__motor_8.disable_operation(is_pdo=True)
+        self.__motor_9.disable_operation(is_pdo=True)
+
+class StretchMidsideThread(QThread):
+    __start_signal = pyqtSignal()
+    __finish_signal = pyqtSignal()
+    
+    def __init__(self, speed: int, 
+                 motor_1: Motor, 
+                 motor_2: Motor, 
+                 motor_3: Motor, 
+                #  motor_4: Motor, 
+                #  motor_5: Motor, 
+                #  motor_6: Motor,
+                 /, *, start_signal=None, finish_signal=None) -> None:
+        
+        super().__init__()
+
+        self.__is_stop = False
+
+        self.__motor_1 = motor_1
+        self.__motor_2 = motor_2
+        self.__motor_3 = motor_3
+
+        # self.__motor_4 = motor_4
+        # self.__motor_5 = motor_5
+        # self.__motor_6 = motor_6
+
+        self.__speed = speed
+
+        if start_signal != None and finish_signal != None:
+            self.__start_signal.connect(start_signal)
+            self.__finish_signal.connect(finish_signal)
+    
+    def run(self):
+        self.__start_signal.emit()
+
+        while not self.__motor_1.set_control_mode("speed_control", check=False): time.sleep(0.1)
+        while not self.__motor_2.set_control_mode("speed_control", check=False): time.sleep(0.1)
+        while not self.__motor_3.set_control_mode("speed_control", check=False): time.sleep(0.1)
+        # while not self.__motor_4.set_control_mode("speed_control", check=False): time.sleep(0.1)
+        # while not self.__motor_5.set_control_mode("speed_control", check=False): time.sleep(0.1)
+        # while not self.__motor_6.set_control_mode("speed_control", check=False): time.sleep(0.1)
+
+        self.__motor_1.set_speed(self.__speed, is_pdo=True)
+        self.__motor_2.set_speed(self.__speed, is_pdo=True)
+        self.__motor_3.set_speed(self.__speed, is_pdo=True)
+        # self.__motor_4.set_speed(self.__speed, is_pdo=True)
+        # self.__motor_5.set_speed(self.__speed, is_pdo=True)
+        # self.__motor_6.set_speed(self.__speed, is_pdo=True)
+
+        self.__motor_1.halt(is_pdo=True)
+        self.__motor_2.halt(is_pdo=True)
+        self.__motor_3.halt(is_pdo=True)
+        # self.__motor_4.halt(is_pdo=True)
+        # self.__motor_5.halt(is_pdo=True)
+        # self.__motor_6.halt(is_pdo=True)
+        
+        while not self.__is_stop:
+            self.__motor_1.enable_operation(is_pdo=True)
+            self.__motor_2.enable_operation(is_pdo=True)
+            self.__motor_3.enable_operation(is_pdo=True)
+            # self.__motor_4.enable_operation(is_pdo=True)
+            # self.__motor_5.enable_operation(is_pdo=True)
+            # self.__motor_6.enable_operation(is_pdo=True)
     
     def stop(self):
         self.__is_stop = True
@@ -1359,61 +1895,80 @@ class StretchRopeThread(QThread):
         self.__motor_1.set_speed(0, is_pdo=True)
         self.__motor_2.set_speed(0, is_pdo=True)
         self.__motor_3.set_speed(0, is_pdo=True)
-        self.__motor_4.set_speed(0, is_pdo=True)
-        self.__motor_5.set_speed(0, is_pdo=True)
-        self.__motor_6.set_speed(0, is_pdo=True)
-        self.__motor_7.set_speed(0, is_pdo=True)
-        self.__motor_8.set_speed(0, is_pdo=True)
-        self.__motor_9.set_speed(0, is_pdo=True)
+        # self.__motor_4.set_speed(0, is_pdo=True)
+        # self.__motor_5.set_speed(0, is_pdo=True)
+        # self.__motor_6.set_speed(0, is_pdo=True)
 
         self.__motor_1.disable_operation(is_pdo=True)
         self.__motor_2.disable_operation(is_pdo=True)
         self.__motor_3.disable_operation(is_pdo=True)
-        self.__motor_4.disable_operation(is_pdo=True)
-        self.__motor_5.disable_operation(is_pdo=True)
-        self.__motor_6.disable_operation(is_pdo=True)
-        self.__motor_7.disable_operation(is_pdo=True)
-        self.__motor_8.disable_operation(is_pdo=True)
-        self.__motor_9.disable_operation(is_pdo=True)
+        # self.__motor_4.disable_operation(is_pdo=True)
+        # self.__motor_5.disable_operation(is_pdo=True)
+        # self.__motor_6.disable_operation(is_pdo=True)
 
-        # self.__motor_1.set_position(self.__distance, velocity=self.__velocity, is_pdo=True)
-        # self.__motor_2.set_position(self.__distance, velocity=self.__velocity, is_pdo=True)
-        # self.__motor_3.set_position(self.__distance, velocity=self.__velocity, is_pdo=True)
+class StretchOutsideThread(QThread):
+    __start_signal = pyqtSignal()
+    __finish_signal = pyqtSignal()
+    
+    def __init__(self, speed: int, 
+                 motor_1: Motor, 
+                 motor_2: Motor, 
+                 motor_3: Motor, 
+                 /, *, start_signal=None, finish_signal=None) -> None:
+        
+        super().__init__()
 
-        # self.__motor_4.set_position(self.__distance, velocity=self.__velocity, is_pdo=True)
-        # self.__motor_5.set_position(self.__distance, velocity=self.__velocity, is_pdo=True)
-        # self.__motor_6.set_position(self.__distance, velocity=self.__velocity, is_pdo=True)
+        self.__is_stop = False
 
-        # self.__motor_7.set_position(self.__distance, velocity=self.__velocity, is_pdo=True)
-        # self.__motor_8.set_position(self.__distance, velocity=self.__velocity, is_pdo=True)
-        # self.__motor_9.set_position(self.__distance, velocity=self.__velocity, is_pdo=True)
+        self.__motor_1 = motor_1
+        self.__motor_2 = motor_2
+        self.__motor_3 = motor_3
 
-        # self.__motor_1.ready(is_pdo=True)
-        # self.__motor_2.ready(is_pdo=True)
-        # self.__motor_3.ready(is_pdo=True)
-        # self.__motor_4.ready(is_pdo=True)
-        # self.__motor_5.ready(is_pdo=True)
-        # self.__motor_6.ready(is_pdo=True)
-        # self.__motor_7.ready(is_pdo=True)
-        # self.__motor_8.ready(is_pdo=True)
-        # self.__motor_9.ready(is_pdo=True)
+        self.__speed = speed
 
-        # self.__motor_1.action(is_immediate=False, is_relative=True, is_pdo=True)
-        # self.__motor_2.action(is_immediate=False, is_relative=True, is_pdo=True)
-        # self.__motor_3.action(is_immediate=False, is_relative=True, is_pdo=True)
-        # self.__motor_4.action(is_immediate=False, is_relative=True, is_pdo=True)
-        # self.__motor_5.action(is_immediate=False, is_relative=True, is_pdo=True)
-        # self.__motor_6.action(is_immediate=False, is_relative=True, is_pdo=True)
-        # self.__motor_7.action(is_immediate=False, is_relative=True, is_pdo=True)
-        # self.__motor_8.action(is_immediate=False, is_relative=True, is_pdo=True)
-        # self.__motor_9.action(is_immediate=False, is_relative=True, is_pdo=True)
+        if start_signal != None and finish_signal != None:
+            self.__start_signal.connect(start_signal)
+            self.__finish_signal.connect(finish_signal)
+    
+    def run(self):
+        self.__start_signal.emit()
+
+        while not self.__motor_1.set_control_mode("speed_control", check=False): time.sleep(0.1)
+        while not self.__motor_2.set_control_mode("speed_control", check=False): time.sleep(0.1)
+        while not self.__motor_3.set_control_mode("speed_control", check=False): time.sleep(0.1)
+
+        self.__motor_1.set_speed(self.__speed, is_pdo=True)
+        self.__motor_2.set_speed(self.__speed, is_pdo=True)
+        self.__motor_3.set_speed(self.__speed, is_pdo=True)
+
+        self.__motor_1.halt(is_pdo=True)
+        self.__motor_2.halt(is_pdo=True)
+        self.__motor_3.halt(is_pdo=True)
+
+        while not self.__is_stop:
+            self.__motor_1.enable_operation(is_pdo=True)
+            self.__motor_2.enable_operation(is_pdo=True)
+            self.__motor_3.enable_operation(is_pdo=True)
+    
+    def stop(self):
+        self.__is_stop = True
+
+        self.__motor_1.set_speed(0, is_pdo=True)
+        self.__motor_2.set_speed(0, is_pdo=True)
+        self.__motor_3.set_speed(0, is_pdo=True)
+
+        self.__motor_1.disable_operation(is_pdo=True)
+        self.__motor_2.disable_operation(is_pdo=True)
+        self.__motor_3.disable_operation(is_pdo=True)
+
+
 
 class JointForceFollow(QThread):
     __start_signal = pyqtSignal()
     __finish_signal = pyqtSignal()
     
     def __init__(self, motor: Motor, sensor: Sensor, 
-                 /, *, force_ref: int, start_signal=None, finish_signal=None) -> None:
+                 /, *, force_ref: int, kp: int, ki: int, kd: int, start_signal=None, finish_signal=None) -> None:
         
         super().__init__()
 
@@ -1423,6 +1978,14 @@ class JointForceFollow(QThread):
         self.__sensor = sensor
 
         self.__force_ref = force_ref
+        
+        self.__kp = kp
+        self.__ki = ki
+        self.__kd = kd
+
+        self.__current_error = 0
+        self.__last_error = 0
+        self.__error_integral = 0
 
         if start_signal != None and finish_signal != None:
             self.__start_signal.connect(start_signal)
@@ -1442,9 +2005,22 @@ class JointForceFollow(QThread):
 
         while not self.__is_stop:
             if self.__sensor.force < 0:
-                speed = (abs(self.__sensor.force) - self.__force_ref) * 10
-                # print("sensor force = {} speed = {}".format(self.__sensor.force, speed))
+                self.__last_error = self.__current_error
+                
+                self.__current_error = abs(self.__sensor.force) - self.__force_ref
+
+                kp_out = self.__current_error * self.__kp
+                
+                self.__error_integral += self.__current_error * self.__ki
+
+                kd_out = (self.__current_error - self.__last_error) * self.__kd
+
+                speed = kp_out + self.__error_integral + kd_out
+
+                print("force = {} speed = {}".format(round(self.__sensor.force, 2), int(speed)))
+
                 self.__motor.set_speed(int(speed), is_pdo=True, log=False)
+                # self.__motor.enable_operation(is_pdo=True)
             
 
     
@@ -1454,3 +2030,28 @@ class JointForceFollow(QThread):
         self.__motor.set_speed(0, is_pdo=True)
 
         self.__motor.disable_operation(is_pdo=True)
+
+class MoveTest(QThread):
+    def __init__(self, motor: Motor, sensor: Sensor, 
+                 /, *, force_ref: int, kp: int, ki: int, kd: int, start_signal=None, finish_signal=None) -> None:
+        
+        super().__init__()
+
+        self.__is_stop = False
+
+        self.__motor = motor
+        self.__sensor = sensor
+
+        self.__force_ref = force_ref
+        
+        self.__kp = kp
+        self.__ki = ki
+        self.__kd = kd
+
+        self.__current_error = 0
+        self.__last_error = 0
+        self.__error_integral = 0
+
+        if start_signal != None and finish_signal != None:
+            self.__start_signal.connect(start_signal)
+            self.__finish_signal.connect(finish_signal)
