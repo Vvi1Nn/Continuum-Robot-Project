@@ -86,6 +86,8 @@ class Motor(CanOpenBusProcessor):
         self.servo_status = "unknown" # 电机状态
         self.servo_is_checked = False # 状态检查
 
+        self.control_mode = "unknown"
+
         self.permission = False
         
         self.target_speed = 0 # 速度模式的目标速度
