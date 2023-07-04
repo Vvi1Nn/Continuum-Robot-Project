@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1442</width>
-    <height>1100</height>
+    <width>1437</width>
+    <height>1108</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -204,7 +204,7 @@ QStackedWidget QTextBrowser {
           <number>0</number>
          </property>
          <widget class="QWidget" name="page_control">
-          <layout class="QVBoxLayout" name="verticalLayout_7" stretch="1,8,6,3,1">
+          <layout class="QVBoxLayout" name="verticalLayout_7" stretch="2,8,8,3">
            <property name="spacing">
             <number>10</number>
            </property>
@@ -279,7 +279,7 @@ QStackedWidget QTextBrowser {
               <bool>true</bool>
              </property>
              <property name="currentIndex">
-              <number>11</number>
+              <number>0</number>
              </property>
              <widget class="QWidget" name="tab_motor_1">
               <property name="enabled">
@@ -6067,6 +6067,9 @@ Reset</string>
                   </property>
                   <item>
                    <widget class="QPushButton" name="set_zero">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -6435,7 +6438,7 @@ Go Zero</string>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
                  </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_85" stretch="1,1,1,1">
+                 <layout class="QVBoxLayout" name="verticalLayout_85" stretch="1,1,1,1,1">
                   <property name="spacing">
                    <number>0</number>
                   </property>
@@ -6455,6 +6458,16 @@ Go Zero</string>
                    <widget class="QLabel" name="status_1">
                     <property name="text">
                      <string>status</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="mode_1">
+                    <property name="text">
+                     <string>mode</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignCenter</set>
@@ -6502,7 +6515,7 @@ Go Zero</string>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
                  </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_86" stretch="1,1,1,1">
+                 <layout class="QVBoxLayout" name="verticalLayout_86" stretch="1,1,1,1,1">
                   <property name="spacing">
                    <number>0</number>
                   </property>
@@ -6522,6 +6535,16 @@ Go Zero</string>
                    <widget class="QLabel" name="status_2">
                     <property name="text">
                      <string>status</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="mode_2">
+                    <property name="text">
+                     <string>mode</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignCenter</set>
@@ -6569,7 +6592,7 @@ Go Zero</string>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
                  </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_87" stretch="1,1,1,1">
+                 <layout class="QVBoxLayout" name="verticalLayout_87" stretch="1,1,1,1,1">
                   <property name="spacing">
                    <number>0</number>
                   </property>
@@ -6589,6 +6612,16 @@ Go Zero</string>
                    <widget class="QLabel" name="status_3">
                     <property name="text">
                      <string>status</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="mode_3">
+                    <property name="text">
+                     <string>mode</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignCenter</set>
@@ -6636,7 +6669,7 @@ Go Zero</string>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
                  </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_88" stretch="1,1,1,1">
+                 <layout class="QVBoxLayout" name="verticalLayout_88" stretch="1,1,1,1,1">
                   <property name="spacing">
                    <number>0</number>
                   </property>
@@ -6656,6 +6689,16 @@ Go Zero</string>
                    <widget class="QLabel" name="status_4">
                     <property name="text">
                      <string>status</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="mode_4">
+                    <property name="text">
+                     <string>mode</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignCenter</set>
@@ -6703,7 +6746,7 @@ Go Zero</string>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
                  </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_89" stretch="1,1,1,1">
+                 <layout class="QVBoxLayout" name="verticalLayout_89" stretch="1,1,1,1,1">
                   <property name="spacing">
                    <number>0</number>
                   </property>
@@ -6723,6 +6766,16 @@ Go Zero</string>
                    <widget class="QLabel" name="status_5">
                     <property name="text">
                      <string>status</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="mode_5">
+                    <property name="text">
+                     <string>mode</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignCenter</set>
@@ -6770,7 +6823,7 @@ Go Zero</string>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
                  </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_90" stretch="1,1,1,1">
+                 <layout class="QVBoxLayout" name="verticalLayout_90" stretch="1,1,1,1,1">
                   <property name="spacing">
                    <number>0</number>
                   </property>
@@ -6790,6 +6843,16 @@ Go Zero</string>
                    <widget class="QLabel" name="status_6">
                     <property name="text">
                      <string>status</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="mode_6">
+                    <property name="text">
+                     <string>mode</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignCenter</set>
@@ -6837,7 +6900,7 @@ Go Zero</string>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
                  </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_91" stretch="1,1,1,1">
+                 <layout class="QVBoxLayout" name="verticalLayout_91" stretch="1,1,1,1,1">
                   <property name="spacing">
                    <number>0</number>
                   </property>
@@ -6857,6 +6920,16 @@ Go Zero</string>
                    <widget class="QLabel" name="status_7">
                     <property name="text">
                      <string>status</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="mode_7">
+                    <property name="text">
+                     <string>mode</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignCenter</set>
@@ -6904,7 +6977,7 @@ Go Zero</string>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
                  </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_92" stretch="1,1,1,1">
+                 <layout class="QVBoxLayout" name="verticalLayout_92" stretch="1,1,1,1,1">
                   <property name="spacing">
                    <number>0</number>
                   </property>
@@ -6924,6 +6997,16 @@ Go Zero</string>
                    <widget class="QLabel" name="status_8">
                     <property name="text">
                      <string>status</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="mode_8">
+                    <property name="text">
+                     <string>mode</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignCenter</set>
@@ -6971,7 +7054,7 @@ Go Zero</string>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
                  </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_93" stretch="1,1,1,1">
+                 <layout class="QVBoxLayout" name="verticalLayout_93" stretch="1,1,1,1,1">
                   <property name="spacing">
                    <number>0</number>
                   </property>
@@ -6991,6 +7074,16 @@ Go Zero</string>
                    <widget class="QLabel" name="status_9">
                     <property name="text">
                      <string>status</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="mode_9">
+                    <property name="text">
+                     <string>mode</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignCenter</set>
@@ -7038,7 +7131,7 @@ Go Zero</string>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
                  </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_94" stretch="1,1,1,1">
+                 <layout class="QVBoxLayout" name="verticalLayout_94" stretch="1,1,1,1,1">
                   <property name="spacing">
                    <number>0</number>
                   </property>
@@ -7058,6 +7151,16 @@ Go Zero</string>
                    <widget class="QLabel" name="status_10">
                     <property name="text">
                      <string>status</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="mode_10">
+                    <property name="text">
+                     <string>mode</string>
                     </property>
                     <property name="alignment">
                      <set>Qt::AlignCenter</set>
@@ -7892,12 +7995,35 @@ Reset</string>
              </layout>
             </widget>
            </item>
+          </layout>
+          <zorder>control</zorder>
+          <zorder>init</zorder>
+          <zorder>status</zorder>
+          <zorder>control_all</zorder>
+         </widget>
+         <widget class="QWidget" name="page_zero">
+          <layout class="QVBoxLayout" name="verticalLayout_21" stretch="2,5">
+           <property name="spacing">
+            <number>10</number>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
            <item>
-            <widget class="QGroupBox" name="param">
+            <widget class="QGroupBox" name="ballscrew_set_zero">
              <property name="title">
-              <string>【Parameters】</string>
+              <string>1. Ballscrew Set Zero</string>
              </property>
-             <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="1,1,1,1">
+             <layout class="QVBoxLayout" name="verticalLayout_20" stretch="1,5">
               <property name="spacing">
                <number>10</number>
               </property>
@@ -7905,7 +8031,7 @@ Reset</string>
                <number>0</number>
               </property>
               <property name="topMargin">
-               <number>5</number>
+               <number>0</number>
               </property>
               <property name="rightMargin">
                <number>0</number>
@@ -7914,174 +8040,193 @@ Reset</string>
                <number>0</number>
               </property>
               <item>
-               <layout class="QVBoxLayout" name="verticalLayout_8">
-                <property name="spacing">
-                 <number>10</number>
+               <widget class="QLabel" name="notice">
+                <property name="text">
+                 <string>【Please make sure the ballscrew is positioned behind the drive device and the claw is open !】</string>
                 </property>
-                <property name="leftMargin">
-                 <number>5</number>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
                 </property>
-                <property name="topMargin">
-                 <number>5</number>
-                </property>
-                <property name="rightMargin">
-                 <number>5</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>5</number>
-                </property>
-                <item>
-                 <widget class="QLabel" name="tx_acc">
-                  <property name="enabled">
-                   <bool>true</bool>
-                  </property>
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="text">
-                   <string>Profile Acceleration</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="le_acc">
-                  <property name="enabled">
-                   <bool>true</bool>
-                  </property>
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                  <property name="placeholderText">
-                   <string>1000</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
+               </widget>
               </item>
               <item>
-               <layout class="QVBoxLayout" name="verticalLayout_9">
+               <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="2,2,2,1">
                 <property name="spacing">
                  <number>10</number>
                 </property>
-                <property name="leftMargin">
-                 <number>5</number>
-                </property>
-                <property name="topMargin">
-                 <number>5</number>
-                </property>
-                <property name="rightMargin">
-                 <number>5</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>5</number>
-                </property>
                 <item>
-                 <widget class="QLabel" name="tx_dec">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
+                 <layout class="QVBoxLayout" name="verticalLayout_115">
+                  <property name="spacing">
+                   <number>10</number>
                   </property>
-                  <property name="text">
-                   <string>Profile Deceleration</string>
+                  <property name="leftMargin">
+                   <number>0</number>
                   </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
+                  <property name="topMargin">
+                   <number>0</number>
                   </property>
-                 </widget>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="tx_position_11">
+                    <property name="enabled">
+                     <bool>true</bool>
+                    </property>
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string>Forward Distance (mm)</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="forward_distance">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                    <property name="placeholderText">
+                     <string>30</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="le_dec">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
+                 <layout class="QVBoxLayout" name="verticalLayout_117">
+                  <property name="spacing">
+                   <number>10</number>
                   </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
+                  <property name="leftMargin">
+                   <number>0</number>
                   </property>
-                  <property name="placeholderText">
-                   <string>10000</string>
+                  <property name="topMargin">
+                   <number>0</number>
                   </property>
-                 </widget>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="tx_position_12">
+                    <property name="enabled">
+                     <bool>true</bool>
+                    </property>
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string>Forward velocity (puu/s)</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="forward_velocity">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                    <property name="placeholderText">
+                     <string>200</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
                 </item>
-               </layout>
-              </item>
-              <item>
-               <layout class="QVBoxLayout" name="verticalLayout_11">
-                <property name="spacing">
-                 <number>10</number>
-                </property>
-                <property name="leftMargin">
-                 <number>5</number>
-                </property>
-                <property name="topMargin">
-                 <number>5</number>
-                </property>
-                <property name="rightMargin">
-                 <number>5</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>5</number>
-                </property>
                 <item>
-                 <widget class="QLabel" name="tx_inhibit">
+                 <layout class="QVBoxLayout" name="verticalLayout_118">
+                  <property name="spacing">
+                   <number>10</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="tx_position_13">
+                    <property name="enabled">
+                     <bool>true</bool>
+                    </property>
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string>Backward speed (puu/s)</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="backward_speed">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                    <property name="placeholderText">
+                     <string>50</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="set_ballscrew_zero">
                   <property name="enabled">
-                   <bool>true</bool>
+                   <bool>false</bool>
                   </property>
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="text">
-                   <string>Inhibit Time</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="le_inhibit">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                  <property name="placeholderText">
-                   <string>500</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <layout class="QVBoxLayout" name="verticalLayout_51">
-                <property name="spacing">
-                 <number>10</number>
-                </property>
-                <item>
-                 <widget class="QPushButton" name="bt_save">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                     <horstretch>0</horstretch>
@@ -8089,20 +8234,7 @@ Reset</string>
                    </sizepolicy>
                   </property>
                   <property name="text">
-                   <string>Save</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="bt_launch">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="text">
-                   <string>Launch</string>
+                   <string>Set Zero</string>
                   </property>
                  </widget>
                 </item>
@@ -8111,14 +8243,1061 @@ Reset</string>
              </layout>
             </widget>
            </item>
+           <item>
+            <widget class="QGroupBox" name="rope_set_zero">
+             <property name="title">
+              <string>2. Rope Set Zero</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_139">
+              <property name="spacing">
+               <number>0</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_138" stretch="1,10">
+                <property name="spacing">
+                 <number>10</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="notice_2">
+                  <property name="text">
+                   <string>【Please make sure all segment continuum robot are straight and compacted, otherwise run adjust program !】</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_51" stretch="6,1">
+                  <property name="spacing">
+                   <number>10</number>
+                  </property>
+                  <item>
+                   <layout class="QVBoxLayout" name="verticalLayout_137" stretch="1,5">
+                    <property name="spacing">
+                     <number>10</number>
+                    </property>
+                    <item>
+                     <widget class="QPushButton" name="open_all_claw">
+                      <property name="enabled">
+                       <bool>false</bool>
+                      </property>
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="text">
+                       <string>Open all small claws</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <layout class="QHBoxLayout" name="horizontalLayout_49" stretch="2,2,2,1">
+                      <property name="spacing">
+                       <number>10</number>
+                      </property>
+                      <item>
+                       <layout class="QVBoxLayout" name="verticalLayout_133" stretch="1,3">
+                        <property name="spacing">
+                         <number>10</number>
+                        </property>
+                        <item>
+                         <layout class="QVBoxLayout" name="verticalLayout_119">
+                          <property name="spacing">
+                           <number>10</number>
+                          </property>
+                          <property name="leftMargin">
+                           <number>0</number>
+                          </property>
+                          <property name="topMargin">
+                           <number>0</number>
+                          </property>
+                          <property name="rightMargin">
+                           <number>0</number>
+                          </property>
+                          <property name="bottomMargin">
+                           <number>0</number>
+                          </property>
+                          <item>
+                           <widget class="QLabel" name="tx_position_14">
+                            <property name="enabled">
+                             <bool>true</bool>
+                            </property>
+                            <property name="sizePolicy">
+                             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                              <horstretch>0</horstretch>
+                              <verstretch>0</verstretch>
+                             </sizepolicy>
+                            </property>
+                            <property name="text">
+                             <string>Inside Force (N)</string>
+                            </property>
+                            <property name="alignment">
+                             <set>Qt::AlignCenter</set>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <widget class="QLineEdit" name="inside_force">
+                            <property name="sizePolicy">
+                             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                              <horstretch>0</horstretch>
+                              <verstretch>0</verstretch>
+                             </sizepolicy>
+                            </property>
+                            <property name="alignment">
+                             <set>Qt::AlignCenter</set>
+                            </property>
+                            <property name="placeholderText">
+                             <string>5</string>
+                            </property>
+                           </widget>
+                          </item>
+                         </layout>
+                        </item>
+                        <item>
+                         <layout class="QVBoxLayout" name="verticalLayout_22">
+                          <property name="spacing">
+                           <number>10</number>
+                          </property>
+                          <item>
+                           <layout class="QVBoxLayout" name="verticalLayout_122">
+                            <property name="spacing">
+                             <number>10</number>
+                            </property>
+                            <property name="leftMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="topMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="rightMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="bottomMargin">
+                             <number>0</number>
+                            </property>
+                            <item>
+                             <widget class="QLabel" name="tx_position_17">
+                              <property name="enabled">
+                               <bool>true</bool>
+                              </property>
+                              <property name="sizePolicy">
+                               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                                <horstretch>0</horstretch>
+                                <verstretch>0</verstretch>
+                               </sizepolicy>
+                              </property>
+                              <property name="text">
+                               <string>Kp</string>
+                              </property>
+                              <property name="alignment">
+                               <set>Qt::AlignCenter</set>
+                              </property>
+                             </widget>
+                            </item>
+                            <item>
+                             <widget class="QLineEdit" name="inside_p">
+                              <property name="sizePolicy">
+                               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                                <horstretch>0</horstretch>
+                                <verstretch>0</verstretch>
+                               </sizepolicy>
+                              </property>
+                              <property name="alignment">
+                               <set>Qt::AlignCenter</set>
+                              </property>
+                              <property name="placeholderText">
+                               <string>10</string>
+                              </property>
+                             </widget>
+                            </item>
+                           </layout>
+                          </item>
+                          <item>
+                           <layout class="QVBoxLayout" name="verticalLayout_123">
+                            <property name="spacing">
+                             <number>10</number>
+                            </property>
+                            <property name="leftMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="topMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="rightMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="bottomMargin">
+                             <number>0</number>
+                            </property>
+                            <item>
+                             <widget class="QLabel" name="tx_position_18">
+                              <property name="enabled">
+                               <bool>true</bool>
+                              </property>
+                              <property name="sizePolicy">
+                               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                                <horstretch>0</horstretch>
+                                <verstretch>0</verstretch>
+                               </sizepolicy>
+                              </property>
+                              <property name="text">
+                               <string>Ki</string>
+                              </property>
+                              <property name="alignment">
+                               <set>Qt::AlignCenter</set>
+                              </property>
+                             </widget>
+                            </item>
+                            <item>
+                             <widget class="QLineEdit" name="inside_i">
+                              <property name="sizePolicy">
+                               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                                <horstretch>0</horstretch>
+                                <verstretch>0</verstretch>
+                               </sizepolicy>
+                              </property>
+                              <property name="alignment">
+                               <set>Qt::AlignCenter</set>
+                              </property>
+                              <property name="placeholderText">
+                               <string>0</string>
+                              </property>
+                             </widget>
+                            </item>
+                           </layout>
+                          </item>
+                          <item>
+                           <layout class="QVBoxLayout" name="verticalLayout_124">
+                            <property name="spacing">
+                             <number>10</number>
+                            </property>
+                            <property name="leftMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="topMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="rightMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="bottomMargin">
+                             <number>0</number>
+                            </property>
+                            <item>
+                             <widget class="QLabel" name="tx_position_19">
+                              <property name="enabled">
+                               <bool>true</bool>
+                              </property>
+                              <property name="sizePolicy">
+                               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                                <horstretch>0</horstretch>
+                                <verstretch>0</verstretch>
+                               </sizepolicy>
+                              </property>
+                              <property name="text">
+                               <string>Kd</string>
+                              </property>
+                              <property name="alignment">
+                               <set>Qt::AlignCenter</set>
+                              </property>
+                             </widget>
+                            </item>
+                            <item>
+                             <widget class="QLineEdit" name="inside_d">
+                              <property name="sizePolicy">
+                               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                                <horstretch>0</horstretch>
+                                <verstretch>0</verstretch>
+                               </sizepolicy>
+                              </property>
+                              <property name="alignment">
+                               <set>Qt::AlignCenter</set>
+                              </property>
+                              <property name="placeholderText">
+                               <string>0</string>
+                              </property>
+                             </widget>
+                            </item>
+                           </layout>
+                          </item>
+                         </layout>
+                        </item>
+                       </layout>
+                      </item>
+                      <item>
+                       <layout class="QVBoxLayout" name="verticalLayout_134" stretch="1,3">
+                        <property name="spacing">
+                         <number>10</number>
+                        </property>
+                        <item>
+                         <layout class="QVBoxLayout" name="verticalLayout_120">
+                          <property name="spacing">
+                           <number>10</number>
+                          </property>
+                          <property name="leftMargin">
+                           <number>0</number>
+                          </property>
+                          <property name="topMargin">
+                           <number>0</number>
+                          </property>
+                          <property name="rightMargin">
+                           <number>0</number>
+                          </property>
+                          <property name="bottomMargin">
+                           <number>0</number>
+                          </property>
+                          <item>
+                           <widget class="QLabel" name="tx_position_15">
+                            <property name="enabled">
+                             <bool>true</bool>
+                            </property>
+                            <property name="sizePolicy">
+                             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                              <horstretch>0</horstretch>
+                              <verstretch>0</verstretch>
+                             </sizepolicy>
+                            </property>
+                            <property name="text">
+                             <string>Midside Force (N)</string>
+                            </property>
+                            <property name="alignment">
+                             <set>Qt::AlignCenter</set>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <widget class="QLineEdit" name="midside_force">
+                            <property name="sizePolicy">
+                             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                              <horstretch>0</horstretch>
+                              <verstretch>0</verstretch>
+                             </sizepolicy>
+                            </property>
+                            <property name="alignment">
+                             <set>Qt::AlignCenter</set>
+                            </property>
+                            <property name="placeholderText">
+                             <string>5</string>
+                            </property>
+                           </widget>
+                          </item>
+                         </layout>
+                        </item>
+                        <item>
+                         <layout class="QVBoxLayout" name="verticalLayout_125">
+                          <property name="spacing">
+                           <number>10</number>
+                          </property>
+                          <item>
+                           <layout class="QVBoxLayout" name="verticalLayout_126">
+                            <property name="spacing">
+                             <number>10</number>
+                            </property>
+                            <property name="leftMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="topMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="rightMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="bottomMargin">
+                             <number>0</number>
+                            </property>
+                            <item>
+                             <widget class="QLabel" name="tx_position_20">
+                              <property name="enabled">
+                               <bool>true</bool>
+                              </property>
+                              <property name="sizePolicy">
+                               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                                <horstretch>0</horstretch>
+                                <verstretch>0</verstretch>
+                               </sizepolicy>
+                              </property>
+                              <property name="text">
+                               <string>Kp</string>
+                              </property>
+                              <property name="alignment">
+                               <set>Qt::AlignCenter</set>
+                              </property>
+                             </widget>
+                            </item>
+                            <item>
+                             <widget class="QLineEdit" name="midside_p">
+                              <property name="sizePolicy">
+                               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                                <horstretch>0</horstretch>
+                                <verstretch>0</verstretch>
+                               </sizepolicy>
+                              </property>
+                              <property name="alignment">
+                               <set>Qt::AlignCenter</set>
+                              </property>
+                              <property name="placeholderText">
+                               <string>10</string>
+                              </property>
+                             </widget>
+                            </item>
+                           </layout>
+                          </item>
+                          <item>
+                           <layout class="QVBoxLayout" name="verticalLayout_127">
+                            <property name="spacing">
+                             <number>10</number>
+                            </property>
+                            <property name="leftMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="topMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="rightMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="bottomMargin">
+                             <number>0</number>
+                            </property>
+                            <item>
+                             <widget class="QLabel" name="tx_position_21">
+                              <property name="enabled">
+                               <bool>true</bool>
+                              </property>
+                              <property name="sizePolicy">
+                               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                                <horstretch>0</horstretch>
+                                <verstretch>0</verstretch>
+                               </sizepolicy>
+                              </property>
+                              <property name="text">
+                               <string>Ki</string>
+                              </property>
+                              <property name="alignment">
+                               <set>Qt::AlignCenter</set>
+                              </property>
+                             </widget>
+                            </item>
+                            <item>
+                             <widget class="QLineEdit" name="midside_i">
+                              <property name="sizePolicy">
+                               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                                <horstretch>0</horstretch>
+                                <verstretch>0</verstretch>
+                               </sizepolicy>
+                              </property>
+                              <property name="alignment">
+                               <set>Qt::AlignCenter</set>
+                              </property>
+                              <property name="placeholderText">
+                               <string>0</string>
+                              </property>
+                             </widget>
+                            </item>
+                           </layout>
+                          </item>
+                          <item>
+                           <layout class="QVBoxLayout" name="verticalLayout_128">
+                            <property name="spacing">
+                             <number>10</number>
+                            </property>
+                            <property name="leftMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="topMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="rightMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="bottomMargin">
+                             <number>0</number>
+                            </property>
+                            <item>
+                             <widget class="QLabel" name="tx_position_22">
+                              <property name="enabled">
+                               <bool>true</bool>
+                              </property>
+                              <property name="sizePolicy">
+                               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                                <horstretch>0</horstretch>
+                                <verstretch>0</verstretch>
+                               </sizepolicy>
+                              </property>
+                              <property name="text">
+                               <string>Kd</string>
+                              </property>
+                              <property name="alignment">
+                               <set>Qt::AlignCenter</set>
+                              </property>
+                             </widget>
+                            </item>
+                            <item>
+                             <widget class="QLineEdit" name="midside_d">
+                              <property name="sizePolicy">
+                               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                                <horstretch>0</horstretch>
+                                <verstretch>0</verstretch>
+                               </sizepolicy>
+                              </property>
+                              <property name="alignment">
+                               <set>Qt::AlignCenter</set>
+                              </property>
+                              <property name="placeholderText">
+                               <string>0</string>
+                              </property>
+                             </widget>
+                            </item>
+                           </layout>
+                          </item>
+                         </layout>
+                        </item>
+                       </layout>
+                      </item>
+                      <item>
+                       <layout class="QVBoxLayout" name="verticalLayout_135" stretch="1,3">
+                        <property name="spacing">
+                         <number>10</number>
+                        </property>
+                        <item>
+                         <layout class="QVBoxLayout" name="verticalLayout_121">
+                          <property name="spacing">
+                           <number>10</number>
+                          </property>
+                          <property name="leftMargin">
+                           <number>0</number>
+                          </property>
+                          <property name="topMargin">
+                           <number>0</number>
+                          </property>
+                          <property name="rightMargin">
+                           <number>0</number>
+                          </property>
+                          <property name="bottomMargin">
+                           <number>0</number>
+                          </property>
+                          <item>
+                           <widget class="QLabel" name="tx_position_16">
+                            <property name="enabled">
+                             <bool>true</bool>
+                            </property>
+                            <property name="sizePolicy">
+                             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                              <horstretch>0</horstretch>
+                              <verstretch>0</verstretch>
+                             </sizepolicy>
+                            </property>
+                            <property name="text">
+                             <string>Outside Force (N)</string>
+                            </property>
+                            <property name="alignment">
+                             <set>Qt::AlignCenter</set>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <widget class="QLineEdit" name="outside_force">
+                            <property name="sizePolicy">
+                             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                              <horstretch>0</horstretch>
+                              <verstretch>0</verstretch>
+                             </sizepolicy>
+                            </property>
+                            <property name="alignment">
+                             <set>Qt::AlignCenter</set>
+                            </property>
+                            <property name="placeholderText">
+                             <string>5</string>
+                            </property>
+                           </widget>
+                          </item>
+                         </layout>
+                        </item>
+                        <item>
+                         <layout class="QVBoxLayout" name="verticalLayout_129">
+                          <property name="spacing">
+                           <number>10</number>
+                          </property>
+                          <item>
+                           <layout class="QVBoxLayout" name="verticalLayout_130">
+                            <property name="spacing">
+                             <number>10</number>
+                            </property>
+                            <property name="leftMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="topMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="rightMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="bottomMargin">
+                             <number>0</number>
+                            </property>
+                            <item>
+                             <widget class="QLabel" name="tx_position_23">
+                              <property name="enabled">
+                               <bool>true</bool>
+                              </property>
+                              <property name="sizePolicy">
+                               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                                <horstretch>0</horstretch>
+                                <verstretch>0</verstretch>
+                               </sizepolicy>
+                              </property>
+                              <property name="text">
+                               <string>Kp</string>
+                              </property>
+                              <property name="alignment">
+                               <set>Qt::AlignCenter</set>
+                              </property>
+                             </widget>
+                            </item>
+                            <item>
+                             <widget class="QLineEdit" name="outside_p">
+                              <property name="sizePolicy">
+                               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                                <horstretch>0</horstretch>
+                                <verstretch>0</verstretch>
+                               </sizepolicy>
+                              </property>
+                              <property name="alignment">
+                               <set>Qt::AlignCenter</set>
+                              </property>
+                              <property name="placeholderText">
+                               <string>10</string>
+                              </property>
+                             </widget>
+                            </item>
+                           </layout>
+                          </item>
+                          <item>
+                           <layout class="QVBoxLayout" name="verticalLayout_131">
+                            <property name="spacing">
+                             <number>10</number>
+                            </property>
+                            <property name="leftMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="topMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="rightMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="bottomMargin">
+                             <number>0</number>
+                            </property>
+                            <item>
+                             <widget class="QLabel" name="tx_position_24">
+                              <property name="enabled">
+                               <bool>true</bool>
+                              </property>
+                              <property name="sizePolicy">
+                               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                                <horstretch>0</horstretch>
+                                <verstretch>0</verstretch>
+                               </sizepolicy>
+                              </property>
+                              <property name="text">
+                               <string>Ki</string>
+                              </property>
+                              <property name="alignment">
+                               <set>Qt::AlignCenter</set>
+                              </property>
+                             </widget>
+                            </item>
+                            <item>
+                             <widget class="QLineEdit" name="outside_i">
+                              <property name="sizePolicy">
+                               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                                <horstretch>0</horstretch>
+                                <verstretch>0</verstretch>
+                               </sizepolicy>
+                              </property>
+                              <property name="alignment">
+                               <set>Qt::AlignCenter</set>
+                              </property>
+                              <property name="placeholderText">
+                               <string>0</string>
+                              </property>
+                             </widget>
+                            </item>
+                           </layout>
+                          </item>
+                          <item>
+                           <layout class="QVBoxLayout" name="verticalLayout_132">
+                            <property name="spacing">
+                             <number>10</number>
+                            </property>
+                            <property name="leftMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="topMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="rightMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="bottomMargin">
+                             <number>0</number>
+                            </property>
+                            <item>
+                             <widget class="QLabel" name="tx_position_25">
+                              <property name="enabled">
+                               <bool>true</bool>
+                              </property>
+                              <property name="sizePolicy">
+                               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                                <horstretch>0</horstretch>
+                                <verstretch>0</verstretch>
+                               </sizepolicy>
+                              </property>
+                              <property name="text">
+                               <string>Kd</string>
+                              </property>
+                              <property name="alignment">
+                               <set>Qt::AlignCenter</set>
+                              </property>
+                             </widget>
+                            </item>
+                            <item>
+                             <widget class="QLineEdit" name="outside_d">
+                              <property name="sizePolicy">
+                               <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                                <horstretch>0</horstretch>
+                                <verstretch>0</verstretch>
+                               </sizepolicy>
+                              </property>
+                              <property name="alignment">
+                               <set>Qt::AlignCenter</set>
+                              </property>
+                              <property name="placeholderText">
+                               <string>0</string>
+                              </property>
+                             </widget>
+                            </item>
+                           </layout>
+                          </item>
+                         </layout>
+                        </item>
+                       </layout>
+                      </item>
+                      <item>
+                       <layout class="QVBoxLayout" name="verticalLayout_136">
+                        <property name="spacing">
+                         <number>10</number>
+                        </property>
+                        <item>
+                         <widget class="QPushButton" name="start_adjust">
+                          <property name="enabled">
+                           <bool>false</bool>
+                          </property>
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                          <property name="text">
+                           <string>Start
+Preload</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="stop_adjust">
+                          <property name="enabled">
+                           <bool>false</bool>
+                          </property>
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                          <property name="text">
+                           <string>Stop
+Preload</string>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </item>
+                     </layout>
+                    </item>
+                   </layout>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="set_rope_zero">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string>Set
+Zero</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
           </layout>
-          <zorder>control</zorder>
-          <zorder>init</zorder>
-          <zorder>status</zorder>
-          <zorder>param</zorder>
-          <zorder>control_all</zorder>
          </widget>
-         <widget class="QWidget" name="page_param"/>
+         <widget class="QWidget" name="page">
+          <widget class="QGroupBox" name="param">
+           <property name="geometry">
+            <rect>
+             <x>270</x>
+             <y>130</y>
+             <width>1011</width>
+             <height>471</height>
+            </rect>
+           </property>
+           <property name="title">
+            <string>【Parameters】</string>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="1,1,1,1">
+            <property name="spacing">
+             <number>10</number>
+            </property>
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>5</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_8">
+              <property name="spacing">
+               <number>10</number>
+              </property>
+              <property name="leftMargin">
+               <number>5</number>
+              </property>
+              <property name="topMargin">
+               <number>5</number>
+              </property>
+              <property name="rightMargin">
+               <number>5</number>
+              </property>
+              <property name="bottomMargin">
+               <number>5</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="tx_acc">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>Profile Acceleration</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="le_acc">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+                <property name="placeholderText">
+                 <string>1000</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_9">
+              <property name="spacing">
+               <number>10</number>
+              </property>
+              <property name="leftMargin">
+               <number>5</number>
+              </property>
+              <property name="topMargin">
+               <number>5</number>
+              </property>
+              <property name="rightMargin">
+               <number>5</number>
+              </property>
+              <property name="bottomMargin">
+               <number>5</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="tx_dec">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>Profile Deceleration</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="le_dec">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+                <property name="placeholderText">
+                 <string>10000</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_11">
+              <property name="spacing">
+               <number>10</number>
+              </property>
+              <property name="leftMargin">
+               <number>5</number>
+              </property>
+              <property name="topMargin">
+               <number>5</number>
+              </property>
+              <property name="rightMargin">
+               <number>5</number>
+              </property>
+              <property name="bottomMargin">
+               <number>5</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="tx_inhibit">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>Inhibit Time</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="le_inhibit">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+                <property name="placeholderText">
+                 <string>500</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_51">
+              <property name="spacing">
+               <number>10</number>
+              </property>
+              <item>
+               <widget class="QPushButton" name="bt_save">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>Save</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="bt_launch">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>Launch</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </widget>
         </widget>
        </item>
       </layout>
@@ -8131,7 +9310,7 @@ Reset</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1442</width>
+     <width>1437</width>
      <height>42</height>
     </rect>
    </property>
@@ -8140,6 +9319,7 @@ Reset</string>
      <string>Panels</string>
     </property>
     <addaction name="control_panel"/>
+    <addaction name="set_zero_panel"/>
     <addaction name="param_panel"/>
    </widget>
    <widget class="QMenu" name="menuJump">
@@ -8158,7 +9338,7 @@ Reset</string>
   </action>
   <action name="control_panel">
    <property name="text">
-    <string>Control Panel</string>
+    <string>Control</string>
    </property>
   </action>
   <action name="jump_control">
@@ -8168,7 +9348,12 @@ Reset</string>
   </action>
   <action name="param_panel">
    <property name="text">
-    <string>Parameter Panel</string>
+    <string>Set Parameter</string>
+   </property>
+  </action>
+  <action name="set_zero_panel">
+   <property name="text">
+    <string>Set Zero</string>
    </property>
   </action>
  </widget>
