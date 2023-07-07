@@ -138,9 +138,9 @@ class CANopenUpdate(QThread):
                         
                         # print("OLD", CanOpenBusProcessor.node_dict[node_id].sdo_feedback)
 
-                        wait_time = 1
-                        time_stamp = time.time()
-                        while CanOpenBusProcessor.node_dict[node_id].sdo_feedback[0] and time.time() - time_stamp < wait_time: time.sleep(0.1)
+                        # wait_time = 1
+                        # time_stamp = time.time()
+                        # while CanOpenBusProcessor.node_dict[node_id].sdo_feedback[0] and time.time() - time_stamp < wait_time: time.sleep(0.1)
                         
                         CanOpenBusProcessor.node_dict[node_id].sdo_feedback = (True, status, label, value_list)
 
@@ -1678,13 +1678,13 @@ class ControlPanel(QMainWindow):
     
     
     def force_test(self):
-        self.force_test_thread_1 = JointForceFollow(self.motor_1, self.sensor_1, force_ref=10, kp=5, ki=0, kd=1)
-        self.force_test_thread_2 = JointForceFollow(self.motor_2, self.sensor_2, force_ref=10, kp=5, ki=0, kd=1)
-        self.force_test_thread_3 = JointForceFollow(self.motor_3, self.sensor_3, force_ref=10, kp=5, ki=0, kd=1)
+        self.force_test_thread_1 = JointForceFollow(self.motor_1, self.sensor_1, force_ref=5, kp=5, ki=0, kd=0)
+        self.force_test_thread_2 = JointForceFollow(self.motor_2, self.sensor_2, force_ref=5, kp=5, ki=0, kd=0)
+        self.force_test_thread_3 = JointForceFollow(self.motor_3, self.sensor_3, force_ref=5, kp=5, ki=0, kd=0)
         
-        self.force_test_thread_4 = JointForceFollow(self.motor_4, self.sensor_4, force_ref=10, kp=5, ki=0, kd=1)
-        self.force_test_thread_5 = JointForceFollow(self.motor_5, self.sensor_5, force_ref=10, kp=5, ki=0, kd=1)
-        self.force_test_thread_6 = JointForceFollow(self.motor_6, self.sensor_6, force_ref=10, kp=5, ki=0, kd=1)
+        self.force_test_thread_4 = JointForceFollow(self.motor_4, self.sensor_4, force_ref=5, kp=5, ki=0, kd=0)
+        self.force_test_thread_5 = JointForceFollow(self.motor_5, self.sensor_5, force_ref=5, kp=5, ki=0, kd=0)
+        self.force_test_thread_6 = JointForceFollow(self.motor_6, self.sensor_6, force_ref=5, kp=5, ki=0, kd=0)
         
         # self.force_test_thread_7 = JointForceFollow(self.motor_7, self.sensor_7, force_ref=10, kp=5, ki=0, kd=1)
         # self.force_test_thread_8 = JointForceFollow(self.motor_8, self.sensor_8, force_ref=10, kp=5, ki=0, kd=1)
@@ -2045,13 +2045,12 @@ class MoveTest(QThread):
     def __init__(self, motor: Motor, io: IoModule, 
                  rope_1: Motor, rope_2: Motor, rope_3: Motor, 
                  rope_4: Motor, rope_5: Motor, rope_6: Motor, 
-                 rope_7: Motor, rope_8: Motor, rope_9: Motor, ) -> None:
+                 rope_7: Motor, rope_8: Motor, rope_9: Motor) -> None:
         
         super().__init__()
 
         self.__is_stop = False
 
-        self.__motor = motor
         self.__io = io
 
         self.__rope_1 = rope_1
@@ -2063,13 +2062,8 @@ class MoveTest(QThread):
         self.__rope_7 = rope_7
         self.__rope_8 = rope_8
         self.__rope_9 = rope_9
-    
-    def run(self):
-        self.__io.open_valve_4()
 
-        self.__io.open_valve_3()
-        self.__io.open_valve_2()
-        time.sleep(1)
+        self.__motor = motor
 
         self.__motor.set_control_mode("position_control", check=False)
         self.__rope_1.set_control_mode("position_control", check=False)
@@ -2082,6 +2076,16 @@ class MoveTest(QThread):
         self.__rope_8.set_control_mode("position_control", check=False)
         self.__rope_9.set_control_mode("position_control", check=False)
 
+        self.__inside_start = 348
+        self.__inside_end = 358
+    
+    def run(self):
+        self.__io.open_valve_4()
+
+        self.__io.open_valve_3()
+        self.__io.open_valve_2()
+        time.sleep(1)
+
         distance_1 = 348
         distance_2 = 358
 
@@ -2090,68 +2094,35 @@ class MoveTest(QThread):
 
         v = 100
 
-        times = 5
+        times = 10
         
         while not self.__is_stop and times != 0:
 
-            
-
             self.__motor.set_position(position_1, velocity=v, is_pdo=True)
-
-            # self.__rope_1.set_position(int(1 * 12536.512440) + self.__rope_1.zero_position, velocity=v, is_pdo=True)
-            # self.__rope_2.set_position(int(1 * 12536.512440) + self.__rope_2.zero_position, velocity=v, is_pdo=True)
-            # self.__rope_3.set_position(int(1 * 12536.512440) + self.__rope_3.zero_position, velocity=v, is_pdo=True)
-            # self.__rope_4.set_position(int(1 * 12536.512440) + self.__rope_4.zero_position, velocity=v, is_pdo=True)
-            # self.__rope_5.set_position(int(1 * 12536.512440) + self.__rope_5.zero_position, velocity=v, is_pdo=True)
-            # self.__rope_6.set_position(int(1 * 12536.512440) + self.__rope_6.zero_position, velocity=v, is_pdo=True)
-            # self.__rope_7.set_position(int(1 * 12536.512440) + self.__rope_7.zero_position, velocity=v, is_pdo=True)
-            # self.__rope_8.set_position(int(1 * 12536.512440) + self.__rope_8.zero_position, velocity=v, is_pdo=True)
-            # self.__rope_9.set_position(int(1 * 12536.512440) + self.__rope_9.zero_position, velocity=v, is_pdo=True)
 
             self.__motor.ready(is_pdo=True)
 
-            # self.__rope_1.ready(is_pdo=True)
-            # self.__rope_2.ready(is_pdo=True)
-            # self.__rope_3.ready(is_pdo=True)
-            # self.__rope_4.ready(is_pdo=True)
-            # self.__rope_5.ready(is_pdo=True)
-            # self.__rope_6.ready(is_pdo=True)
-            # self.__rope_7.ready(is_pdo=True)
-            # self.__rope_8.ready(is_pdo=True)
-            # self.__rope_9.ready(is_pdo=True)
-
             self.__motor.action(is_immediate=False, is_relative=False, is_pdo=True)
-
-            # self.__rope_1.action(is_immediate=False, is_relative=True, is_pdo=True)
-            # self.__rope_2.action(is_immediate=False, is_relative=True, is_pdo=True)
-            # self.__rope_3.action(is_immediate=False, is_relative=True, is_pdo=True)
-            # self.__rope_4.action(is_immediate=False, is_relative=True, is_pdo=True)
-            # self.__rope_5.action(is_immediate=False, is_relative=True, is_pdo=True)
-            # self.__rope_6.action(is_immediate=False, is_relative=True, is_pdo=True)
-            # self.__rope_7.action(is_immediate=False, is_relative=True, is_pdo=True)
-            # self.__rope_8.action(is_immediate=False, is_relative=True, is_pdo=True)
-            # self.__rope_9.action(is_immediate=False, is_relative=True, is_pdo=True)
             
             time.sleep((10 * 5120) / (v * 440)+0.5)
 
             self.__io.close_valve_4()
+            time.sleep(1)
             self.__io.open_valve_1()
             time.sleep(1)
 
             self.__motor.set_position(position_2, velocity=v, is_pdo=True)
-
-            self.__rope_1.set_position(int(10 * 12536.512440) + self.__rope_1.zero_position, velocity=v, is_pdo=True)
-            self.__rope_2.set_position(int(10 * 12536.512440) + self.__rope_2.zero_position, velocity=v, is_pdo=True)
-            self.__rope_3.set_position(int(10 * 12536.512440) + self.__rope_3.zero_position, velocity=v, is_pdo=True)
-            self.__rope_4.set_position(int(10 * 12536.512440) + self.__rope_4.zero_position, velocity=v, is_pdo=True)
-            self.__rope_5.set_position(int(10 * 12536.512440) + self.__rope_5.zero_position, velocity=v, is_pdo=True)
-            self.__rope_6.set_position(int(10 * 12536.512440) + self.__rope_6.zero_position, velocity=v, is_pdo=True)
-            self.__rope_7.set_position(int(10 * 12536.512440) + self.__rope_7.zero_position, velocity=v, is_pdo=True)
-            self.__rope_8.set_position(int(10 * 12536.512440) + self.__rope_8.zero_position, velocity=v, is_pdo=True)
-            self.__rope_9.set_position(int(10 * 12536.512440) + self.__rope_9.zero_position, velocity=v, is_pdo=True)
+            self.__rope_1.set_position(int(10 * 12536.512440), velocity=245, is_pdo=True)
+            self.__rope_2.set_position(int(10 * 12536.512440), velocity=245, is_pdo=True)
+            self.__rope_3.set_position(int(10 * 12536.512440), velocity=245, is_pdo=True)
+            self.__rope_4.set_position(int(10 * 12536.512440), velocity=245, is_pdo=True)
+            self.__rope_5.set_position(int(10 * 12536.512440), velocity=245, is_pdo=True)
+            self.__rope_6.set_position(int(10 * 12536.512440), velocity=245, is_pdo=True)
+            self.__rope_7.set_position(int(10 * 12536.512440), velocity=245, is_pdo=True)
+            self.__rope_8.set_position(int(10 * 12536.512440), velocity=245, is_pdo=True)
+            self.__rope_9.set_position(int(10 * 12536.512440), velocity=245, is_pdo=True)
 
             self.__motor.ready(is_pdo=True)
-
             self.__rope_1.ready(is_pdo=True)
             self.__rope_2.ready(is_pdo=True)
             self.__rope_3.ready(is_pdo=True)
@@ -2163,7 +2134,6 @@ class MoveTest(QThread):
             self.__rope_9.ready(is_pdo=True)
 
             self.__motor.action(is_immediate=False, is_relative=False, is_pdo=True)
-
             self.__rope_1.action(is_immediate=False, is_relative=True, is_pdo=True)
             self.__rope_2.action(is_immediate=False, is_relative=True, is_pdo=True)
             self.__rope_3.action(is_immediate=False, is_relative=True, is_pdo=True)
@@ -2175,9 +2145,10 @@ class MoveTest(QThread):
             self.__rope_9.action(is_immediate=False, is_relative=True, is_pdo=True)
             
             time.sleep((10 * 5120) / (v * 440)+0.5)
-
-            self.__io.open_valve_4()
+            
             self.__io.close_valve_1()
+            time.sleep(1)
+            self.__io.open_valve_4()
             time.sleep(1)
             
             times -= 1
@@ -2185,3 +2156,27 @@ class MoveTest(QThread):
     def stop(self):
         self.__is_stop = True
 
+    def ballscrew_move_abs(self, point: float, /, *, velocity: float):
+        target_position = int(round(self.__motor.zero_position - point * 5120, 0))
+        profile_velocity = int(round(5120 * velocity / 440, 0))
+
+        self.__motor.set_position(target_position, velocity=profile_velocity, is_pdo=True)
+        self.__motor.ready(is_pdo=True)
+        self.__motor.action(is_immediate=True, is_relative=False, is_pdo=True)
+
+        duration_time = abs(target_position - self.__motor.current_position) / (profile_velocity * 440) + 1
+        time.sleep(duration_time)
+    
+    def ballscrew_move_rel(self, distance: float, /, *, velocity: float):
+        target_position = int(round(distance * 5120, 0))
+        profile_velocity = int(round(5120 * velocity / 440, 0))
+
+        self.__motor.set_position(target_position, velocity=profile_velocity, is_pdo=True)
+        self.__motor.ready(is_pdo=True)
+        self.__motor.action(is_immediate=False, is_relative=True, is_pdo=True)
+
+        duration_time = target_position / (profile_velocity * 440) + 1
+        time.sleep(duration_time)
+
+    def rope_move_rel(self, distance: float, /, *, velocity: float):
+        ...
