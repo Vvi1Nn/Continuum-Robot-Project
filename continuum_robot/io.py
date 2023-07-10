@@ -7,7 +7,7 @@
 from PyQt5.QtCore import pyqtSignal, QObject
 
 # 添加模块路径
-import sys, os
+import sys, os, time
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from continuum_robot.processor import CanOpenBusProcessor
@@ -158,29 +158,45 @@ class IoModule(CanOpenBusProcessor, QObject):
     
     ''' 1 '''
     def open_valve_1(self) -> bool:
-        return self.set_output(True, "1")
+        success = self.set_output(True, "1")
+        time.sleep(0.2)
+        return success
     
     def close_valve_1(self) -> bool:
-        return self.set_output(False, "1")
+        success = self.set_output(False, "1")
+        time.sleep(0.2)
+        return success
     
     ''' 2 '''
     def open_valve_2(self) -> bool:
-        return self.set_output(True, "2")
+        success = self.set_output(True, "2")
+        time.sleep(0.2)
+        return success
     
     def close_valve_2(self) -> bool:
-        return self.set_output(False, "2")
+        success = self.set_output(False, "2")
+        time.sleep(0.2)
+        return success
     
     ''' 3 '''
     def open_valve_3(self) -> bool:
-        return self.set_output(True, "3")
+        success = self.set_output(True, "3")
+        time.sleep(0.2)
+        return success
     
     def close_valve_3(self) -> bool:
-        return self.set_output(False, "3")
+        success = self.set_output(False, "3")
+        time.sleep(0.2)
+        return success
     
     ''' 4 '''
     def open_valve_4(self) -> bool:
-        return self.set_output(False, "4")
+        success = self.set_output(False, "4")
+        time.sleep(0.2)
+        return success
     
     def close_valve_4(self) -> bool:
-        return self.set_output(True, "4")
+        success = self.set_output(True, "4")
+        time.sleep(0.2)
+        return success
     
