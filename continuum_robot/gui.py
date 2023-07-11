@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' gui.py GUI v4.3 '''
+''' gui.py GUI v4.4 '''
 
 
 from PyQt5.QtWidgets import QMainWindow
@@ -22,79 +22,6 @@ from continuum_robot.sensor import Sensor
 
 from continuum_robot.robot import ContinuumRobot
 
-
-# class ContinuumRobot():
-#     def __init__(self, /, *, 
-#                  update_output_status_slot_function, 
-#                  pdo_1_slot_function, 
-#                  pdo_2_slot_function, 
-#                  pdo_4_slot_function, 
-#                  status_signal, 
-#                  update_signal, 
-#                  ) -> None:
-#         self.usbcan_0 = UsbCan.set_device_type(type="USBCAN2", index="0").is_show_log(False)("0")
-#         self.usbcan_1 = UsbCan.set_device_type(type="USBCAN2", index="0").is_show_log(False)("1")
-
-#         self.usbcan_0.set_timer("250K")
-#         self.usbcan_1.set_timer("1000K")
-
-#         self.usbcan_0_is_start = False
-#         self.usbcan_1_is_start = False
-
-#         CanOpenBusProcessor.link_device(self.usbcan_0)
-#         Sensor.link_device(self.usbcan_1)
-
-#         self.motor_1 = Motor(1, speed_range=[-400,400])
-#         self.motor_2 = Motor(2, speed_range=[-400,400])
-#         self.motor_3 = Motor(3, speed_range=[-400,400])
-#         self.motor_4 = Motor(4, speed_range=[-400,400])
-#         self.motor_5 = Motor(5, speed_range=[-400,400])
-#         self.motor_6 = Motor(6, speed_range=[-400,400])
-#         self.motor_7 = Motor(7, speed_range=[-400,400])
-#         self.motor_8 = Motor(8, speed_range=[-400,400])
-#         self.motor_9 = Motor(9, speed_range=[-400,400])
-#         self.motor_10 = Motor(10, speed_range=[-400,400])
-
-#         self.sensor_1 = Sensor(1)
-#         self.sensor_2 = Sensor(2)
-#         self.sensor_3 = Sensor(3)
-#         self.sensor_4 = Sensor(4)
-#         self.sensor_5 = Sensor(5)
-#         self.sensor_6 = Sensor(6)
-#         self.sensor_7 = Sensor(7)
-#         self.sensor_8 = Sensor(8)
-#         self.sensor_9 = Sensor(9)
-#         self.sensor_10 = Sensor(10)
-
-#         self.io = IoModule(11, update_output_status_slot_function=update_output_status_slot_function)
-
-#         self.read_canopen_thread = CANopenUpdate(pdo_1_slot_function=pdo_1_slot_function, pdo_2_slot_function=pdo_2_slot_function, pdo_4_slot_function=pdo_4_slot_function, status_signal=status_signal)
-#         self.read_sensor_thread = SensorResolve(update_signal=update_signal)
-
-#     def open_device(self) -> bool:
-#         if UsbCan.open_device():
-            
-#             if not self.usbcan_0_is_start and self.usbcan_0.init_can() and self.usbcan_0.start_can():
-#                 self.read_canopen_thread.start()
-#                 self.usbcan_0_is_start = True
-
-#             if not self.usbcan_1_is_start and self.usbcan_1.init_can() and self.usbcan_1.start_can():
-#                 self.read_sensor_thread.start()
-#                 self.usbcan_1_is_start = True
-        
-#         return self.usbcan_0_is_start and self.usbcan_1_is_start
-    
-#     def initialize_robot(self, times, running_signal, finish_signal) -> None:
-#         self.init_robot_thread = RobotInit(times=times, running_signal=running_signal, finish_signal=finish_signal)
-#         self.send_request_thread = SensorRequest()
-
-#         self.init_robot_thread.start()
-#         self.send_request_thread.start()
-    
-#     def ballscrew_set_zero(self, distance, velocity, speed, start, finish):
-#         self.ballscrew_set_zero_thread = BallScrewSetZero(distance, velocity, speed, robot=self, start_signal=start, finish_signal=finish)
-#         self.ballscrew_set_zero_thread.start()
-    
 
 
 
@@ -340,8 +267,6 @@ from continuum_robot.robot import ContinuumRobot
 #         # 结果
 #         return sign * power * decimal
 
-
-
 # ''' 初始化机器人 '''
 # class RobotInit(QThread):
 #     __running_signal = pyqtSignal(bool)
@@ -443,8 +368,6 @@ from continuum_robot.robot import ContinuumRobot
 
 #         print("Stopping Sensor Request Thread")
 
-
-
 # ''' 滚珠丝杠 调零 '''
 # class BallScrewSetZero(QThread):
 #     __start_signal = pyqtSignal()
@@ -514,7 +437,6 @@ from continuum_robot.robot import ContinuumRobot
 
 #         self.robot.motor_10.set_speed(0, is_pdo=True)
 #         self.robot.motor_10.disable_operation(is_pdo=True)
-
 
 # ''' 连续体 调整 '''
 # class ContinuumAttitudeAdjust(QThread):
@@ -744,49 +666,43 @@ from continuum_robot.robot import ContinuumRobot
 #     def stop(self):
 #         self.__is_stop = True
 
+# ''' 速度模式 '''
+# class JointControlSpeedModeThread(QThread):
+#     def __init__(self, motor, speed: int, /, *, is_forward: bool) -> None:
+#         super().__init__()
 
+#         self.__is_stop = False
 
-''' 速度模式 '''
-class JointControlSpeedModeThread(QThread):
-    def __init__(self, motor, speed: int, /, *, is_forward: bool) -> None:
-        super().__init__()
+#         self.__motor = motor
 
-        self.__is_stop = False
+#         self.__is_forward = is_forward
 
-        self.__motor = motor
-
-        self.__is_forward = is_forward
-
-        if self.__is_forward: self.__speed = speed
-        else: self.__speed = - speed
+#         if self.__is_forward: self.__speed = speed
+#         else: self.__speed = - speed
     
-    def run(self):
-        self.__motor.set_control_mode("speed_control")
+#     def run(self):
+#         self.__motor.set_control_mode("speed_control")
         
-        self.__motor.set_speed(self.__speed, is_pdo=True)
+#         self.__motor.set_speed(self.__speed, is_pdo=True)
 
-        self.__motor.halt(is_pdo=True)
+#         self.__motor.halt(is_pdo=True)
         
-        while not self.__is_stop:
-            if self.__motor.is_in_range():
-                self.__motor.enable_operation(is_pdo=True)
-            else:
-                if self.__motor.current_position > self.__motor.max_position:
-                    if self.__is_forward: self.__motor.halt(is_pdo=True)
-                    else: self.__motor.enable_operation(is_pdo=True)
-                else:
-                    if not self.__is_forward: self.__motor.halt(is_pdo=True)
-                    else: self.__motor.enable_operation(is_pdo=True)
+#         while not self.__is_stop:
+#             if self.__motor.is_in_range():
+#                 self.__motor.enable_operation(is_pdo=True)
+#             else:
+#                 if self.__motor.current_position > self.__motor.max_position:
+#                     if self.__is_forward: self.__motor.halt(is_pdo=True)
+#                     else: self.__motor.enable_operation(is_pdo=True)
+#                 else:
+#                     if not self.__is_forward: self.__motor.halt(is_pdo=True)
+#                     else: self.__motor.enable_operation(is_pdo=True)
     
-    def stop(self):
-        self.__is_stop = True
-        self.__motor.set_speed(0, is_pdo=True)
-        self.__motor.disable_operation(is_pdo=True)
-        self.__motor.set_control_mode("position_control")
-
-
-
-
+#     def stop(self):
+#         self.__is_stop = True
+#         self.__motor.set_speed(0, is_pdo=True)
+#         self.__motor.disable_operation(is_pdo=True)
+#         self.__motor.set_control_mode("position_control")
 
 # ''' 电机10 归零 '''
 # class BallScrewGoZeroThread(QThread):
@@ -838,97 +754,97 @@ class JointControlSpeedModeThread(QThread):
 #         self.__motor.set_speed(0, is_pdo=True)
 #         self.__motor.disable_operation(is_pdo=True)
 
-''' 电机10 移动 '''
-class BallScrewMoveThread(QThread):
-    __start_signal = pyqtSignal()
-    __finish_signal = pyqtSignal()
+# ''' 电机10 移动 '''
+# class BallScrewMoveThread(QThread):
+#     __start_signal = pyqtSignal()
+#     __finish_signal = pyqtSignal()
     
-    def __init__(self, distance: int, /, *, velocity=100, is_relative=False, is_close=False, motor: Motor, io: IoModule, start_signal=None, finish_signal=None) -> None:
-        super().__init__()
+#     def __init__(self, distance: int, /, *, velocity=100, is_relative=False, is_close=False, motor: Motor, io: IoModule, start_signal=None, finish_signal=None) -> None:
+#         super().__init__()
 
-        self.__distance = distance
-        self.__velocity = velocity
-        self.__is_relative = is_relative
-        self.__is_close = is_close
+#         self.__distance = distance
+#         self.__velocity = velocity
+#         self.__is_relative = is_relative
+#         self.__is_close = is_close
 
-        self.__motor = motor
-        self.__io = io
+#         self.__motor = motor
+#         self.__io = io
 
-        if start_signal != None: self.__start_signal.connect(start_signal)
-        if finish_signal != None: self.__finish_signal.connect(finish_signal)
+#         if start_signal != None: self.__start_signal.connect(start_signal)
+#         if finish_signal != None: self.__finish_signal.connect(finish_signal)
     
-    def run(self):
-        self.__start_signal.emit()
+#     def run(self):
+#         self.__start_signal.emit()
         
-        if self.__is_close: self.__io.close_valve_4()
-        else: self.__io.open_valve_4()
-        # time.sleep(0.5)
+#         if self.__is_close: self.__io.close_valve_4()
+#         else: self.__io.open_valve_4()
+#         # time.sleep(0.5)
 
-        self.__motor.set_control_mode("position_control", check=False)
+#         self.__motor.set_control_mode("position_control", check=False)
 
-        if self.__is_relative:
-            position = - self.__distance * 5120
-            self.__motor.set_position(position, velocity=self.__velocity, is_pdo=True)
-        else:
-            if self.__distance > 0:
-                position = self.__motor.zero_position - self.__distance * 5120
-            else: return
+#         if self.__is_relative:
+#             position = - self.__distance * 5120
+#             self.__motor.set_position(position, velocity=self.__velocity, is_pdo=True)
+#         else:
+#             if self.__distance > 0:
+#                 position = self.__motor.zero_position - self.__distance * 5120
+#             else: return
 
-        self.__motor.set_position(position, velocity=self.__velocity, is_pdo=True)
+#         self.__motor.set_position(position, velocity=self.__velocity, is_pdo=True)
         
-        self.__motor.ready(is_pdo=True)
+#         self.__motor.ready(is_pdo=True)
 
-        self.__motor.action(is_immediate=True, is_relative=self.__is_relative, is_pdo=True)
+#         self.__motor.action(is_immediate=True, is_relative=self.__is_relative, is_pdo=True)
 
-        if self.__is_relative: time.sleep(self.__distance * 0.2)
+#         if self.__is_relative: time.sleep(self.__distance * 0.2)
 
-        while not self.__is_relative:
-            time.sleep(0.1)
-            if abs(self.__motor.current_position - position) < 10000: break
+#         while not self.__is_relative:
+#             time.sleep(0.1)
+#             if abs(self.__motor.current_position - position) < 10000: break
             
-        self.__finish_signal.emit()
+#         self.__finish_signal.emit()
 
-''' 电机1-9 移动 '''
-class RopeMoveThread(QThread):
-    RATIO = 12536.512440
+# ''' 电机1-9 移动 '''
+# class RopeMoveThread(QThread):
+#     RATIO = 12536.512440
 
-    def __init__(self, *args: tuple) -> None:
-        super().__init__()
+#     def __init__(self, *args: tuple) -> None:
+#         super().__init__()
 
-        self.__motor_list = []
+#         self.__motor_list = []
 
-        for object in args:
-            self.__motor_list.append(object)
+#         for object in args:
+#             self.__motor_list.append(object)
             
-            motor = object[0]
-            motor.set_control_mode("position_control")
+#             motor = object[0]
+#             motor.set_control_mode("position_control")
     
-    def run(self):
-        for object in self.__motor_list:
-            motor = object[0]
-            is_rel = object[1]
-            p = object[2]
-            v = object[3]
+#     def run(self):
+#         for object in self.__motor_list:
+#             motor = object[0]
+#             is_rel = object[1]
+#             p = object[2]
+#             v = object[3]
 
-            distance = int(p * RopeMoveThread.RATIO) if is_rel else motor.zero_position + int(p * RopeMoveThread.RATIO)
+#             distance = int(p * RopeMoveThread.RATIO) if is_rel else motor.zero_position + int(p * RopeMoveThread.RATIO)
 
-            motor.set_position(distance, velocity=v, is_pdo=True)
+#             motor.set_position(distance, velocity=v, is_pdo=True)
 
-            motor.ready(is_pdo=True)
+#             motor.ready(is_pdo=True)
 
-        for object in self.__motor_list:
-            motor = object[0]
-            is_rel = object[1]
+#         for object in self.__motor_list:
+#             motor = object[0]
+#             is_rel = object[1]
 
-            motor.action(is_immediate=False, is_relative=is_rel, is_pdo=True)
+#             motor.action(is_immediate=False, is_relative=is_rel, is_pdo=True)
 
-        for object in self.__motor_list:
-            motor = object[0]
+#         for object in self.__motor_list:
+#             motor = object[0]
 
-            while True:
-                last_position = motor.current_position
-                time.sleep(0.01)
-                if last_position == motor.current_position: break
+#             while True:
+#                 last_position = motor.current_position
+#                 time.sleep(0.01)
+#                 if last_position == motor.current_position: break
 
 
 
@@ -1042,19 +958,18 @@ class ControlPanel(QMainWindow):
         self.ui.release_outside.pressed.connect(self.release_outside)
         self.ui.release_outside.released.connect(self.stop_outside)
 
-        self.ui.test_4.clicked.connect(lambda: self.ballscrew_move(221, 10))
-        self.ui.test_5.clicked.connect(lambda: self.ballscrew_move(237, 10))
-        self.ui.test_6.clicked.connect(lambda: self.ballscrew_move(348, 10))
-
-        self.ui.test_7.clicked.connect(lambda: self.ballscrew_move(358, 10))
+        self.ui.test_4.clicked.connect(lambda: self.robot.ballscrew_move(221, 10, is_close=False, is_relative=False))
+        self.ui.test_5.clicked.connect(lambda: self.robot.ballscrew_move(237, 10, is_close=False, is_relative=False))
+        self.ui.test_6.clicked.connect(lambda: self.robot.ballscrew_move(348, 10, is_close=False, is_relative=False))
+        self.ui.test_7.clicked.connect(lambda: self.robot.ballscrew_move(358, 10, is_close=False, is_relative=False))
 
         self.ui.test_8.clicked.connect(self.force_test)
         self.ui.test_9.clicked.connect(self.force_test_stop)
 
-        self.ui.test_11.clicked.connect(lambda: self.rope_move(5))
-        self.ui.test_12.clicked.connect(lambda: self.rope_move(-5))
+        self.ui.test_11.clicked.connect(lambda: self.robot.rope_move("1", 3, 1, is_relative=True))
+        self.ui.test_12.clicked.connect(lambda: self.robot.rope_move("1", -3, 1, is_relative=True))
 
-        self.ui.test_13.clicked.connect(self.test_move)
+        self.ui.test_13.clicked.connect(self.robot.test)
         
         self.show() # 显示界面
 
@@ -1343,14 +1258,14 @@ class ControlPanel(QMainWindow):
                 if self.robot.ballscrew_is_set_zero:
                     self.robot.ballscrew_position = (self.robot.motor_10.zero_position - self.robot.motor_10.current_position) / 5120
                     color = "#00ff00" if self.robot.ballscrew_position >=0 else "#ff0000"
-                    self.ui.ballscrew.setText("<span style=\"color:{};\">{}</span>".format(color, round(self.robot.ballscrew_position, 3)))
+                    self.ui.ballscrew.setText("<span style=\"color:{};\">{}</span>".format(color, round(self.robot.ballscrew_position, 2)))
                 else: self.ui.ballscrew.setText("<span style=\"color:#ff0000;\">No Zero</span>")
             else:
                 if self.robot.rope_is_set_zero:
                     value = (getattr(self.robot, f"motor_{node_id}").current_position - getattr(self.robot, f"motor_{node_id}").zero_position) / 12536.512440
                     setattr(self.robot, f"rope_{node_id}_position", value)
                     color = "#00ff00" if value >=0 else "#ff0000"
-                    getattr(self.ui, "rope_{}".format(node_id)).setText("<span style=\"color:{};\">{}</span>".format(color, round(value, 3)))
+                    getattr(self.ui, "rope_{}".format(node_id)).setText("<span style=\"color:{};\">{}</span>".format(color, round(value, 2)))
                 else: getattr(self.ui, "rope_{}".format(node_id)).setText("<span style=\"color:#ff0000;\">No Zero</span>")
             
             # 位置
@@ -1540,14 +1455,10 @@ class ControlPanel(QMainWindow):
     ''' 丝杠 调零 '''
     def ballscrew_set_zero(self):
         def start():
-            self.robot.ballscrew_is_set_zero = False
-
             self.ui.ballscrew_set_zero.setEnabled(False)
             self.show_status("Ballscrew is being setting zero ...")
         
         def finish():
-            self.robot.ballscrew_is_set_zero = True
-
             self.ui.ballscrew_set_zero.setEnabled(True)
             self.show_status("Ballscrew is set zero !")
             self.ui.ballscrew.setText("<span style=\"color:#00ff00;\">Zero</span>")
@@ -1570,13 +1481,11 @@ class ControlPanel(QMainWindow):
     ''' 线 调零 '''
     def rope_force_adapt(self):
         def start():
-            self.rope_is_set_zero = False
             self.ui.start_adjust.setEnabled(False)
             self.ui.set_rope_zero.setEnabled(True)
             self.show_status("All ropes are being adapting force ...")
 
         def finish():
-            self.rope_is_set_zero = True
             self.ui.start_adjust.setEnabled(True)
             self.ui.set_rope_zero.setEnabled(False)
             self.show_status("All ropes are set zero !")
@@ -1625,9 +1534,6 @@ class ControlPanel(QMainWindow):
         # self.rope_force_adapt_thread.wait()
         
 
-
-
-
     # ''' 集体控制 '''
     # def shut_down_all(self):
     #     self.robot.shut_down_all()
@@ -1667,12 +1573,12 @@ class ControlPanel(QMainWindow):
 
     ''' 电机 速度 正 '''
     def speed_forward_factory(self, node_id):
-        # setattr(self, f"joint_{node_id}", JointControlSpeedModeThread(getattr(self, "motor_{}".format(node_id)), int(getattr(self.ui, "speed_adjust_{}".format(node_id)).value()), is_forward=True))
-        
-        getattr(self.robot, f"speed_forward_{node_id}")
-
+        # setattr(self, f"joint_{node_id}", JointControlSpeedModeThread(getattr(self.robot, "motor_{}".format(node_id)), int(getattr(self.ui, "speed_adjust_{}".format(node_id)).value()), is_forward=True))
         getattr(self.ui, f"speed_reverse_{node_id}").setEnabled(False)
         getattr(self.ui, f"speed_adjust_{node_id}").setEnabled(False)
+        
+        speed = int(getattr(self.ui, "speed_adjust_{}".format(node_id)).value())
+        self.robot.joint_speed([node_id], speed)
 
         # getattr(self, f"joint_{node_id}").start()
     for node_id in range(1,11):
@@ -1680,23 +1586,28 @@ class ControlPanel(QMainWindow):
     
     ''' 电机 速度 反 '''
     def speed_reverse_factory(self, node_id):
-        setattr(self, f"joint_{node_id}", JointControlSpeedModeThread(getattr(self, "motor_{}".format(node_id)), int(getattr(self.ui, "speed_adjust_{}".format(node_id)).value()), is_forward=False))
+        # setattr(self, f"joint_{node_id}", JointControlSpeedModeThread(getattr(self.robot, "motor_{}".format(node_id)), int(getattr(self.ui, "speed_adjust_{}".format(node_id)).value()), is_forward=False))
         
         getattr(self.ui, f"speed_forward_{node_id}").setEnabled(False)
         getattr(self.ui, f"speed_adjust_{node_id}").setEnabled(False)
 
-        getattr(self, f"joint_{node_id}").start()
+        speed = - int(getattr(self.ui, "speed_adjust_{}".format(node_id)).value())
+        self.robot.joint_speed([node_id], speed)
+
+        # getattr(self, f"joint_{node_id}").start()
     for node_id in range(1,11):
         exec(f"def speed_reverse_{node_id}(self): self.speed_reverse_factory({node_id})")
 
     ''' 电机 速度 停 '''
     def speed_stop_factory(self, node_id):
-        getattr(self, f"joint_{node_id}").stop()
-        getattr(self, f"joint_{node_id}").wait()
+        # getattr(self, f"joint_{node_id}").stop()
+        # getattr(self, f"joint_{node_id}").wait()
 
         getattr(self.ui, f"speed_reverse_{node_id}").setEnabled(True)
         getattr(self.ui, f"speed_forward_{node_id}").setEnabled(True)
         getattr(self.ui, f"speed_adjust_{node_id}").setEnabled(True)
+
+        self.robot.joint_speed_stop()
     for node_id in range(1,11):
         exec(f"def speed_stop_{node_id}(self): self.speed_stop_factory({node_id})")
 
@@ -1714,39 +1625,34 @@ class ControlPanel(QMainWindow):
         
         self.robot.ballscrew_go_zero(300, start, finish)
     
-    ''' 丝杠 移动 '''
-    def ballscrew_move(self, distance, velocity, /, *, is_close=False, is_relative=False) -> bool:
-        self.robot.ballscrew_move(distance, velocity, is_close=False, is_relative=False)
-        # if not self.ballscrew_is_set_zero:
-        #     self.show_status("Ballscrew is not set zero.")
-        #     return False
+    # ''' 丝杠 移动 '''
+    # def ballscrew_move(self, distance, velocity, /, *, is_close=False, is_relative=False) -> bool:
+    #     self.robot.ballscrew_move(distance, velocity, is_close=False, is_relative=False)
+    #     if not self.ballscrew_is_set_zero:
+    #         self.show_status("Ballscrew is not set zero.")
+    #         return False
 
-        # while self.ballscrew_is_moving:
-        #     self.show_status("Ballscrew is moving, you cannot move it now.")
-        #     time.sleep(1)
+    #     while self.ballscrew_is_moving:
+    #         self.show_status("Ballscrew is moving, you cannot move it now.")
+    #         time.sleep(1)
         
-        # def start():
-        #     self.ballscrew_is_moving = True
+    #     def start():
+    #         self.ballscrew_is_moving = True
         
-        # def finish():
-        #     self.ballscrew_is_moving = False
+    #     def finish():
+    #         self.ballscrew_is_moving = False
         
-        # self.ballscrew_move_thread = BallScrewMoveThread(distance, velocity=velocity, 
-        #                                                 is_close=is_close, is_relative=is_relative, 
-        #                                                 motor=self.motor_10, io=self.io, 
-        #                                                 start_signal=start, finish_signal=finish)
-        # self.ballscrew_move_thread.start()
-        # return True
+    #     self.ballscrew_move_thread = BallScrewMoveThread(distance, velocity=velocity, 
+    #                                                     is_close=is_close, is_relative=is_relative, 
+    #                                                     motor=self.motor_10, io=self.io, 
+    #                                                     start_signal=start, finish_signal=finish)
+    #     self.ballscrew_move_thread.start()
+    #     return True
 
-
-    ''' 线 移动 '''
-    def rope_move(self, dis):
-        self.rope_move_thread = RopeMoveThread((self.motor_1, True, dis, 100))
-        self.rope_move_thread.start()
-
-    def move_test(self):
-        ...
-
+    # ''' 线 移动 '''
+    # # def rope_move(self, dis):
+    #     self.rope_move_thread = RopeMoveThread((self.motor_1, True, dis, 100))
+    #     self.rope_move_thread.start()
 
 
 
