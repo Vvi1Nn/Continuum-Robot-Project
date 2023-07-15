@@ -69,9 +69,12 @@ class ContinuumRobot():
         self.io = IoModule(11, update_output_status_slot_function=update_output_status_slot_function)
 
         self.ballscrew_is_set_zero = False
+
         self.ballscrew_position = None # mm
+        self.ballscrew_velocity = None # mm/s
 
         self.rope_is_set_zero = False
+
         self.rope_1_position = None # mm
         self.rope_2_position = None
         self.rope_3_position = None
@@ -82,18 +85,28 @@ class ContinuumRobot():
         self.rope_8_position = None
         self.rope_9_position = None
 
-        self.read_canopen_thread = CANopenUpdate(pdo_1_slot_function=pdo_1_slot_function, pdo_2_slot_function=pdo_2_slot_function, pdo_4_slot_function=pdo_4_slot_function, status_signal=status_signal)
-        self.read_sensor_thread = SensorResolve(update_signal=update_signal)
+        self.rope_1_velocity = None # mm/s
+        self.rope_2_velocity = None
+        self.rope_3_velocity = None
+        self.rope_4_velocity = None
+        self.rope_5_velocity = None
+        self.rope_6_velocity = None
+        self.rope_7_velocity = None
+        self.rope_8_velocity = None
+        self.rope_9_velocity = None
+
+        self.__read_canopen_thread = CANopenUpdate(pdo_1_slot_function=pdo_1_slot_function, pdo_2_slot_function=pdo_2_slot_function, pdo_4_slot_function=pdo_4_slot_function, status_signal=status_signal)
+        self.__read_sensor_thread = SensorResolve(update_signal=update_signal)
 
     def open_device(self) -> bool:
         if UsbCan.open_device():
             
             if not self.usbcan_0_is_start and self.usbcan_0.init_can() and self.usbcan_0.start_can():
-                self.read_canopen_thread.start()
+                self.__read_canopen_thread.start()
                 self.usbcan_0_is_start = True
 
             if not self.usbcan_1_is_start and self.usbcan_1.init_can() and self.usbcan_1.start_can():
-                self.read_sensor_thread.start()
+                self.__read_sensor_thread.start()
                 self.usbcan_1_is_start = True
         
         return self.usbcan_0_is_start and self.usbcan_1_is_start
@@ -230,6 +243,10 @@ class ContinuumRobot():
         self.test_thread = Test(self)
         self.test_thread.start()
 
+    def force_zero_test(self):
+        self.force_zero_thread = ForceSetZero(100, robot=self)
+        self.force_zero_thread.start()
+
 
 ''' CANopen 接收 数据处理 '''
 class CANopenUpdate(QThread):
@@ -354,7 +371,8 @@ class CANopenUpdate(QThread):
                         
                         CanOpenBusProcessor.node_dict[node_id].sdo_feedback = (True, status, label, value_list)
 
-                        print("[SDO NEW {}] ".format(node_id), CanOpenBusProcessor.node_dict[node_id].sdo_feedback)
+                        # print("[SDO NEW {}] ".format(node_id), CanOpenBusProcessor.node_dict[node_id].sdo_feedback)
+                        print("\033[0;34m[SDO {}] {}\033[0m".format(node_id, CanOpenBusProcessor.node_dict[node_id].sdo_feedback))
                         self.__status_signal.emit("[Node {}] Get SDO response, object is {}, status is {}, value is {}".format(node_id, label, status, hex(self.__hex_list_to_int(value_list))))
                     
                     # NMT
@@ -372,7 +390,8 @@ class CANopenUpdate(QThread):
                         
                         CanOpenBusProcessor.node_dict[node_id].nmt_feedback = (True, label)
                         
-                        print("[NMT NEW {}] ".format(node_id), CanOpenBusProcessor.node_dict[node_id].nmt_feedback)
+                        # print("[NMT NEW {}] ".format(node_id), CanOpenBusProcessor.node_dict[node_id].nmt_feedback)
+                        print("\033[0;34m[NMT {}] {}\033[0m".format(node_id, CanOpenBusProcessor.node_dict[node_id].nmt_feedback))
                         self.__status_signal.emit("[Node {}] Get NMT response, bus status is {}".format(node_id, label))
                     
                     # 其他
@@ -980,6 +999,60 @@ class JointSpeed(QThread):
                 getattr(self.robot, f"motor_{node_id}").set_speed(0, is_pdo=True)
                 getattr(self.robot, f"motor_{node_id}").disable_operation(is_pdo=True)
                 getattr(self.robot, f"motor_{node_id}").set_control_mode("position_control", check=False)
+
+''' 传感器 调零 '''
+class ForceSetZero(QThread):
+    def __init__(self, num=100, /, *, robot: ContinuumRobot) -> None:
+        super().__init__()
+
+        self.__is_stop = False
+
+        self.robot = robot
+
+        self.__num = num
+    
+    def run(self):
+        self.robot.motor_1.set_control_mode("speed_control", check=False)
+        self.robot.motor_1.set_speed(0, is_pdo=True)
+        self.robot.motor_1.enable_operation(is_pdo=True)
+
+        print("拉")
+        while True:
+            self.robot.motor_1.set_speed(int((-7 - self.robot.sensor_1.force) * 20), is_pdo=True, log=False)
+            
+            if abs(self.robot.sensor_1.force - (-7)) < 0.01:
+                self.robot.motor_1.halt(is_pdo=True)
+                break
+        
+        self.robot.motor_1.set_speed(20, is_pdo=True)
+        self.robot.motor_1.enable_operation(is_pdo=True)
+        
+        print("调")
+        while True:
+            last_force = self.robot.sensor_1.force
+            time.sleep(2)
+            current_force = self.robot.sensor_1.force
+            if abs(last_force - current_force) < 0.1:
+                self.robot.motor_1.halt(is_pdo=True)
+                break
+        
+        self.robot.sensor_1.set_zero(self.__num)
+        print(self.robot.sensor_1.zero)
+
+        print("再拉")
+        self.robot.motor_1.enable_operation(is_pdo=True)
+        while True:
+            self.robot.motor_1.set_speed(int((-5 - self.robot.sensor_1.force) * 20), is_pdo=True, log=False)
+            
+            if abs(self.robot.sensor_1.force - (-5)) < 0.01:
+                self.robot.motor_1.disable_operation(is_pdo=True)
+                self.robot.motor_1.set_speed(0, is_pdo=True)
+                break
+        
+        print("finish")
+        print(self.robot.sensor_1.original_data, self.robot.sensor_1.force)
+
+
 
 
 class Test(QThread):
