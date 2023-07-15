@@ -37,5 +37,10 @@ class Sensor():
         return self.device.send(self.__node_id, [Sensor.msg], data_len="sensor")
 
     ''' 调零 '''
-    def set_zero(self):
-        ...
+    def set_zero(self, num=100):
+        count = num
+        value = 0
+        while count != 0:
+            value += self.original_data
+            count -= 1
+        self.zero = value / num
