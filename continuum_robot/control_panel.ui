@@ -279,7 +279,7 @@ QStackedWidget QTextBrowser {
               <bool>true</bool>
              </property>
              <property name="currentIndex">
-              <number>0</number>
+              <number>11</number>
              </property>
              <widget class="QWidget" name="tab_motor_1">
               <property name="enabled">
@@ -580,6 +580,9 @@ Reset</string>
                  </item>
                  <item>
                   <widget class="QGroupBox" name="groupBox">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
                    <property name="title">
                     <string>【Position Mode Adjusting】</string>
                    </property>
@@ -648,7 +651,7 @@ Reset</string>
                       <item>
                        <widget class="QLabel" name="tx_position_1">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -702,7 +705,7 @@ Reset</string>
                       <item>
                        <widget class="QLabel" name="tx_velocity_1">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -751,7 +754,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="relative_1">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="layoutDirection">
                           <enum>Qt::LeftToRight</enum>
@@ -770,7 +773,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="absolute_1">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="text">
                           <string>Absolute</string>
@@ -798,7 +801,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="interrupt_1">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="layoutDirection">
                           <enum>Qt::LeftToRight</enum>
@@ -817,7 +820,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="finish_1">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="text">
                           <string>Finish</string>
@@ -1130,6 +1133,9 @@ Reset</string>
                  </item>
                  <item>
                   <widget class="QGroupBox" name="groupBox_4">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
                    <property name="title">
                     <string>【Position Mode Adjusting】</string>
                    </property>
@@ -1198,7 +1204,7 @@ Reset</string>
                       <item>
                        <widget class="QLabel" name="tx_position_2">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -1252,7 +1258,7 @@ Reset</string>
                       <item>
                        <widget class="QLabel" name="tx_velocity_2">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -1301,7 +1307,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="relative_2">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="layoutDirection">
                           <enum>Qt::LeftToRight</enum>
@@ -1320,7 +1326,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="absolute_2">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="text">
                           <string>Absolute</string>
@@ -1348,7 +1354,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="interrupt_2">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="layoutDirection">
                           <enum>Qt::LeftToRight</enum>
@@ -1367,7 +1373,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="finish_2">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="text">
                           <string>Finish</string>
@@ -1680,6 +1686,9 @@ Reset</string>
                  </item>
                  <item>
                   <widget class="QGroupBox" name="groupBox_6">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
                    <property name="title">
                     <string>【Position Mode Adjusting】</string>
                    </property>
@@ -1748,7 +1757,7 @@ Reset</string>
                       <item>
                        <widget class="QLabel" name="tx_position_3">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -1802,7 +1811,7 @@ Reset</string>
                       <item>
                        <widget class="QLabel" name="tx_velocity_3">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -1851,7 +1860,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="relative_3">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="layoutDirection">
                           <enum>Qt::LeftToRight</enum>
@@ -1870,7 +1879,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="absolute_3">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="text">
                           <string>Absolute</string>
@@ -1898,7 +1907,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="interrupt_3">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="layoutDirection">
                           <enum>Qt::LeftToRight</enum>
@@ -1917,7 +1926,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="finish_3">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="text">
                           <string>Finish</string>
@@ -2230,6 +2239,9 @@ Reset</string>
                  </item>
                  <item>
                   <widget class="QGroupBox" name="groupBox_8">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
                    <property name="title">
                     <string>【Position Mode Adjusting】</string>
                    </property>
@@ -2298,7 +2310,7 @@ Reset</string>
                       <item>
                        <widget class="QLabel" name="tx_position_4">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -2352,7 +2364,7 @@ Reset</string>
                       <item>
                        <widget class="QLabel" name="tx_velocity_4">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -2401,7 +2413,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="relative_4">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="layoutDirection">
                           <enum>Qt::LeftToRight</enum>
@@ -2420,7 +2432,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="absolute_4">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="text">
                           <string>Absolute</string>
@@ -2448,7 +2460,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="interrupt_4">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="layoutDirection">
                           <enum>Qt::LeftToRight</enum>
@@ -2467,7 +2479,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="finish_4">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="text">
                           <string>Finish</string>
@@ -2780,6 +2792,9 @@ Reset</string>
                  </item>
                  <item>
                   <widget class="QGroupBox" name="groupBox_15">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
                    <property name="title">
                     <string>【Position Mode Adjusting】</string>
                    </property>
@@ -2848,7 +2863,7 @@ Reset</string>
                       <item>
                        <widget class="QLabel" name="tx_position_5">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -2902,7 +2917,7 @@ Reset</string>
                       <item>
                        <widget class="QLabel" name="tx_velocity_5">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -2951,7 +2966,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="relative_5">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="layoutDirection">
                           <enum>Qt::LeftToRight</enum>
@@ -2970,7 +2985,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="absolute_5">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="text">
                           <string>Absolute</string>
@@ -2998,7 +3013,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="interrupt_5">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="layoutDirection">
                           <enum>Qt::LeftToRight</enum>
@@ -3017,7 +3032,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="finish_5">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="text">
                           <string>Finish</string>
@@ -3330,6 +3345,9 @@ Reset</string>
                  </item>
                  <item>
                   <widget class="QGroupBox" name="groupBox_18">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
                    <property name="title">
                     <string>【Position Mode Adjusting】</string>
                    </property>
@@ -3398,7 +3416,7 @@ Reset</string>
                       <item>
                        <widget class="QLabel" name="tx_position_6">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -3452,7 +3470,7 @@ Reset</string>
                       <item>
                        <widget class="QLabel" name="tx_velocity_6">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -3501,7 +3519,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="relative_6">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="layoutDirection">
                           <enum>Qt::LeftToRight</enum>
@@ -3520,7 +3538,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="absolute_6">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="text">
                           <string>Absolute</string>
@@ -3548,7 +3566,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="interrupt_6">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="layoutDirection">
                           <enum>Qt::LeftToRight</enum>
@@ -3567,7 +3585,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="finish_6">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="text">
                           <string>Finish</string>
@@ -3880,6 +3898,9 @@ Reset</string>
                  </item>
                  <item>
                   <widget class="QGroupBox" name="groupBox_21">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
                    <property name="title">
                     <string>【Position Mode Adjusting】</string>
                    </property>
@@ -3948,7 +3969,7 @@ Reset</string>
                       <item>
                        <widget class="QLabel" name="tx_position_7">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -4002,7 +4023,7 @@ Reset</string>
                       <item>
                        <widget class="QLabel" name="tx_velocity_7">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -4051,7 +4072,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="relative_7">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="layoutDirection">
                           <enum>Qt::LeftToRight</enum>
@@ -4070,7 +4091,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="absolute_7">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="text">
                           <string>Absolute</string>
@@ -4098,7 +4119,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="interrupt_7">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="layoutDirection">
                           <enum>Qt::LeftToRight</enum>
@@ -4117,7 +4138,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="finish_7">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="text">
                           <string>Finish</string>
@@ -4430,6 +4451,9 @@ Reset</string>
                  </item>
                  <item>
                   <widget class="QGroupBox" name="groupBox_24">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
                    <property name="title">
                     <string>【Position Mode Adjusting】</string>
                    </property>
@@ -4498,7 +4522,7 @@ Reset</string>
                       <item>
                        <widget class="QLabel" name="tx_position_8">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -4552,7 +4576,7 @@ Reset</string>
                       <item>
                        <widget class="QLabel" name="tx_velocity_8">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -4601,7 +4625,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="relative_8">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="layoutDirection">
                           <enum>Qt::LeftToRight</enum>
@@ -4620,7 +4644,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="absolute_8">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="text">
                           <string>Absolute</string>
@@ -4648,7 +4672,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="interrupt_8">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="layoutDirection">
                           <enum>Qt::LeftToRight</enum>
@@ -4667,7 +4691,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="finish_8">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="text">
                           <string>Finish</string>
@@ -4980,6 +5004,9 @@ Reset</string>
                  </item>
                  <item>
                   <widget class="QGroupBox" name="groupBox_26">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
                    <property name="title">
                     <string>【Position Mode Adjusting】</string>
                    </property>
@@ -5048,7 +5075,7 @@ Reset</string>
                       <item>
                        <widget class="QLabel" name="tx_position_9">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -5102,7 +5129,7 @@ Reset</string>
                       <item>
                        <widget class="QLabel" name="tx_velocity_9">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -5151,7 +5178,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="relative_9">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="layoutDirection">
                           <enum>Qt::LeftToRight</enum>
@@ -5170,7 +5197,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="absolute_9">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="text">
                           <string>Absolute</string>
@@ -5198,7 +5225,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="interrupt_9">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="layoutDirection">
                           <enum>Qt::LeftToRight</enum>
@@ -5217,7 +5244,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="finish_9">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="text">
                           <string>Finish</string>
@@ -5530,6 +5557,9 @@ Reset</string>
                  </item>
                  <item>
                   <widget class="QGroupBox" name="groupBox_30">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
                    <property name="title">
                     <string>【Position Mode Adjusting】</string>
                    </property>
@@ -5598,7 +5628,7 @@ Reset</string>
                       <item>
                        <widget class="QLabel" name="tx_position_10">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -5652,7 +5682,7 @@ Reset</string>
                       <item>
                        <widget class="QLabel" name="tx_velocity_10">
                         <property name="enabled">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -5701,7 +5731,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="relative_10">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="layoutDirection">
                           <enum>Qt::LeftToRight</enum>
@@ -5720,7 +5750,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="absolute_10">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="text">
                           <string>Absolute</string>
@@ -5748,7 +5778,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="interrupt_10">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="layoutDirection">
                           <enum>Qt::LeftToRight</enum>
@@ -5767,7 +5797,7 @@ Reset</string>
                        <item>
                         <widget class="QRadioButton" name="finish_10">
                          <property name="enabled">
-                          <bool>true</bool>
+                          <bool>false</bool>
                          </property>
                          <property name="text">
                           <string>Finish</string>
@@ -6408,7 +6438,7 @@ Go Zero</string>
            <item>
             <widget class="QTabWidget" name="status">
              <property name="currentIndex">
-              <number>2</number>
+              <number>0</number>
              </property>
              <widget class="QWidget" name="tab_joint_status">
               <attribute name="title">
@@ -7459,7 +7489,7 @@ Go Zero</string>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
                  </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_106" stretch="0">
+                 <layout class="QVBoxLayout" name="verticalLayout_106" stretch="0,0">
                   <property name="spacing">
                    <number>0</number>
                   </property>
@@ -7485,6 +7515,16 @@ Go Zero</string>
                     </property>
                    </widget>
                   </item>
+                  <item>
+                   <widget class="QLabel" name="rope_v_1">
+                    <property name="text">
+                     <string>None</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
                  </layout>
                 </widget>
                </item>
@@ -7496,7 +7536,7 @@ Go Zero</string>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
                  </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_107" stretch="0">
+                 <layout class="QVBoxLayout" name="verticalLayout_107" stretch="0,0">
                   <property name="spacing">
                    <number>0</number>
                   </property>
@@ -7522,6 +7562,16 @@ Go Zero</string>
                     </property>
                    </widget>
                   </item>
+                  <item>
+                   <widget class="QLabel" name="rope_v_2">
+                    <property name="text">
+                     <string>None</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
                  </layout>
                 </widget>
                </item>
@@ -7533,7 +7583,7 @@ Go Zero</string>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
                  </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_108" stretch="0">
+                 <layout class="QVBoxLayout" name="verticalLayout_108" stretch="0,0">
                   <property name="spacing">
                    <number>0</number>
                   </property>
@@ -7559,6 +7609,16 @@ Go Zero</string>
                     </property>
                    </widget>
                   </item>
+                  <item>
+                   <widget class="QLabel" name="rope_v_3">
+                    <property name="text">
+                     <string>None</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
                  </layout>
                 </widget>
                </item>
@@ -7570,7 +7630,7 @@ Go Zero</string>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
                  </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_109" stretch="0">
+                 <layout class="QVBoxLayout" name="verticalLayout_109" stretch="0,0">
                   <property name="spacing">
                    <number>0</number>
                   </property>
@@ -7596,6 +7656,16 @@ Go Zero</string>
                     </property>
                    </widget>
                   </item>
+                  <item>
+                   <widget class="QLabel" name="rope_v_4">
+                    <property name="text">
+                     <string>None</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
                  </layout>
                 </widget>
                </item>
@@ -7607,7 +7677,7 @@ Go Zero</string>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
                  </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_110" stretch="0">
+                 <layout class="QVBoxLayout" name="verticalLayout_110" stretch="0,0">
                   <property name="spacing">
                    <number>0</number>
                   </property>
@@ -7633,6 +7703,16 @@ Go Zero</string>
                     </property>
                    </widget>
                   </item>
+                  <item>
+                   <widget class="QLabel" name="rope_v_5">
+                    <property name="text">
+                     <string>None</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
                  </layout>
                 </widget>
                </item>
@@ -7644,7 +7724,7 @@ Go Zero</string>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
                  </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_111" stretch="0">
+                 <layout class="QVBoxLayout" name="verticalLayout_111" stretch="0,0">
                   <property name="spacing">
                    <number>0</number>
                   </property>
@@ -7670,6 +7750,16 @@ Go Zero</string>
                     </property>
                    </widget>
                   </item>
+                  <item>
+                   <widget class="QLabel" name="rope_v_6">
+                    <property name="text">
+                     <string>None</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
                  </layout>
                 </widget>
                </item>
@@ -7681,7 +7771,7 @@ Go Zero</string>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
                  </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_112" stretch="0">
+                 <layout class="QVBoxLayout" name="verticalLayout_112" stretch="0,0">
                   <property name="spacing">
                    <number>0</number>
                   </property>
@@ -7707,6 +7797,16 @@ Go Zero</string>
                     </property>
                    </widget>
                   </item>
+                  <item>
+                   <widget class="QLabel" name="rope_v_7">
+                    <property name="text">
+                     <string>None</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
                  </layout>
                 </widget>
                </item>
@@ -7718,7 +7818,7 @@ Go Zero</string>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
                  </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_113" stretch="0">
+                 <layout class="QVBoxLayout" name="verticalLayout_113" stretch="0,0">
                   <property name="spacing">
                    <number>0</number>
                   </property>
@@ -7744,6 +7844,16 @@ Go Zero</string>
                     </property>
                    </widget>
                   </item>
+                  <item>
+                   <widget class="QLabel" name="rope_v_8">
+                    <property name="text">
+                     <string>None</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
                  </layout>
                 </widget>
                </item>
@@ -7755,7 +7865,7 @@ Go Zero</string>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
                  </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_114" stretch="0">
+                 <layout class="QVBoxLayout" name="verticalLayout_114" stretch="0,0">
                   <property name="spacing">
                    <number>0</number>
                   </property>
@@ -7781,6 +7891,16 @@ Go Zero</string>
                     </property>
                    </widget>
                   </item>
+                  <item>
+                   <widget class="QLabel" name="rope_v_9">
+                    <property name="text">
+                     <string>None</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
                  </layout>
                 </widget>
                </item>
@@ -7792,7 +7912,7 @@ Go Zero</string>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
                  </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_105" stretch="0">
+                 <layout class="QVBoxLayout" name="verticalLayout_105" stretch="0,0">
                   <property name="spacing">
                    <number>0</number>
                   </property>
@@ -7810,6 +7930,16 @@ Go Zero</string>
                   </property>
                   <item>
                    <widget class="QLabel" name="ballscrew">
+                    <property name="text">
+                     <string>None</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="ballscrew_v">
                     <property name="text">
                      <string>None</string>
                     </property>
@@ -7975,7 +8105,7 @@ Stop</string>
                  <item>
                   <widget class="QPushButton" name="fault_reset_11">
                    <property name="enabled">
-                    <bool>true</bool>
+                    <bool>false</bool>
                    </property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
