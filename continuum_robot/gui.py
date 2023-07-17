@@ -700,48 +700,83 @@ class ControlPanel(QMainWindow):
    
     ''' 缩放 内段 线 '''
     def stretch_inside(self):
-        self.stretch_inside_thread = StretchInsideThread(-50, 
-            # self.motor_1, self.motor_2, self.motor_3, 
-            # self.motor_4, self.motor_5, self.motor_6, 
-            self.motor_7, self.motor_8, self.motor_9)
+        self.stretch_inside_thread = StretchInsideThread(-50, self.robot.motor_7, self.robot.motor_8, self.robot.motor_9)
+
+        self.force_test_thread_1 = JointForceFollow(self.robot.motor_1, self.robot.sensor_1, force_ref=5, kp=10, ki=0, kd=0)
+        self.force_test_thread_2 = JointForceFollow(self.robot.motor_2, self.robot.sensor_2, force_ref=5, kp=10, ki=0, kd=0)
+        self.force_test_thread_3 = JointForceFollow(self.robot.motor_3, self.robot.sensor_3, force_ref=5, kp=10, ki=0, kd=0)
+        
+        self.force_test_thread_4 = JointForceFollow(self.robot.motor_4, self.robot.sensor_4, force_ref=5, kp=10, ki=0, kd=0)
+        self.force_test_thread_5 = JointForceFollow(self.robot.motor_5, self.robot.sensor_5, force_ref=5, kp=10, ki=0, kd=0)
+        self.force_test_thread_6 = JointForceFollow(self.robot.motor_6, self.robot.sensor_6, force_ref=5, kp=10, ki=0, kd=0)
+
         self.stretch_inside_thread.start()
+        self.force_test_thread_1.start()
+        self.force_test_thread_2.start()
+        self.force_test_thread_3.start()
+        self.force_test_thread_4.start()
+        self.force_test_thread_5.start()
+        self.force_test_thread_6.start()
     def release_inside(self):
-        self.stretch_inside_thread = StretchInsideThread(50, 
-            # self.motor_1, self.motor_2, self.motor_3, 
-            # self.motor_4, self.motor_5, self.motor_6, 
-            self.motor_7, self.motor_8, self.motor_9)
+        self.stretch_inside_thread = StretchInsideThread(50, self.robot.motor_7, self.robot.motor_8, self.robot.motor_9)
         self.stretch_inside_thread.start()
     def stop_inside(self):
         self.stretch_inside_thread.stop()
+        self.force_test_thread_1.stop()
+        self.force_test_thread_2.stop()
+        self.force_test_thread_3.stop()
+        self.force_test_thread_4.stop()
+        self.force_test_thread_5.stop()
+        self.force_test_thread_6.stop()
         self.stretch_inside_thread.wait()
+        self.force_test_thread_1.wait()
+        self.force_test_thread_2.wait()
+        self.force_test_thread_3.wait()
+        self.force_test_thread_4.wait()
+        self.force_test_thread_5.wait()
+        self.force_test_thread_6.wait()
+
 
     ''' 缩放 中段 线 '''
     def stretch_midside(self):
-        self.stretch_midside_thread = StretchMidsideThread(-50, 
-            # self.motor_1, self.motor_2, self.motor_3, 
-            self.motor_4, self.motor_5, self.motor_6)
+        self.stretch_midside_thread = StretchMidsideThread(-50, self.robot.motor_4, self.robot.motor_5, self.robot.motor_6)
+        
+        self.force_test_thread_1 = JointForceFollow(self.robot.motor_1, self.robot.sensor_1, force_ref=5, kp=10, ki=0, kd=0)
+        self.force_test_thread_2 = JointForceFollow(self.robot.motor_2, self.robot.sensor_2, force_ref=5, kp=10, ki=0, kd=0)
+        self.force_test_thread_3 = JointForceFollow(self.robot.motor_3, self.robot.sensor_3, force_ref=5, kp=10, ki=0, kd=0)
+        
         self.stretch_midside_thread.start()
+        self.force_test_thread_1.start()
+        self.force_test_thread_2.start()
+        self.force_test_thread_3.start()
     def release_midside(self):
-        self.stretch_midside_thread = StretchMidsideThread(50, 
-            # self.motor_1, self.motor_2, self.motor_3, 
-            self.motor_4, self.motor_5, self.motor_6)
+        self.stretch_midside_thread = StretchMidsideThread(50, self.robot.motor_4, self.robot.motor_5, self.robot.motor_6)
+        
         self.stretch_midside_thread.start()
     def stop_midside(self):
         self.stretch_midside_thread.stop()
+        self.force_test_thread_1.stop()
+        self.force_test_thread_2.stop()
+        self.force_test_thread_3.stop()
         self.stretch_midside_thread.wait()
+        self.force_test_thread_1.wait()
+        self.force_test_thread_2.wait()
+        self.force_test_thread_3.wait()
     
     ''' 缩放 外段 线 '''
     def stretch_outside(self):
         self.stretch_outide_thread = StretchOutsideThread(-50, 
-            self.motor_1, self.motor_2, self.motor_3)
+            self.robot.motor_1, self.robot.motor_2, self.robot.motor_3)
         self.stretch_outide_thread.start()
     def release_outside(self):
         self.stretch_outide_thread = StretchOutsideThread(50, 
-            self.motor_1, self.motor_2, self.motor_3)
+            self.robot.motor_1, self.robot.motor_2, self.robot.motor_3)
         self.stretch_outide_thread.start()
     def stop_outside(self):
         self.stretch_outide_thread.stop()
+        
         self.stretch_outide_thread.wait()
+        
     
     
     
