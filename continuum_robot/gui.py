@@ -63,10 +63,11 @@ class ControlPanel(QMainWindow):
         self.ui.test_8.clicked.connect(self.force_test)
         self.ui.test_9.clicked.connect(self.force_test_stop)
 
-        self.ui.test_10.clicked.connect(self.robot.force_zero_test)
+        self.ui.test_10.clicked.connect(self.force_set_zero)
 
-        self.ui.test_11.clicked.connect(lambda: self.robot.rope_move("1", 3, 1, is_relative=True))
-        self.ui.test_12.clicked.connect(lambda: self.robot.rope_move("1", -3, 1, is_relative=True))
+        # self.ui.test_11.clicked.connect(lambda: self.robot.rope_move("1", 3, 1, is_relative=True))
+        # self.ui.test_12.clicked.connect(lambda: self.robot.rope_move("1", -3, 1, is_relative=True))
+        self.ui.test_11.clicked.connect(self.robot.back)
 
         self.ui.test_13.clicked.connect(self.robot.test)
         
@@ -218,6 +219,9 @@ class ControlPanel(QMainWindow):
         ''' 线 适应 调0 '''
         self.ui.start_adjust.clicked.connect(self.rope_force_adapt)
         self.ui.set_rope_zero.clicked.connect(self.rope_set_zero)
+
+        ''' 力 调0 '''
+        self.ui.set_sensor_zero.clicked.connect(self.force_set_zero)
 
         # self.ui.set_zero.clicked.connect(self.ballscrew_set_zero)
         self.ui.go_zero.clicked.connect(self.ballscrew_go_zero)
@@ -556,14 +560,9 @@ class ControlPanel(QMainWindow):
 
             self.ui.set_ballscrew_zero.setEnabled(True) # 调零
             self.ui.start_adjust.setEnabled(True) # 调零
+            self.ui.set_sensor_zero.setEnabled(True)
         
         self.robot.initialize_robot(1, change, next)
-
-        # self.robot.init_robot_thread = RobotInit(times=1, running_signal=change, finish_signal=next)
-        # self.robot.send_request_thread = SensorRequest()
-
-        # self.robot.init_robot_thread.start()
-        # self.robot.send_request_thread.start()
 
     ''' 丝杠 调零 '''
     def ballscrew_set_zero(self):
@@ -584,12 +583,6 @@ class ControlPanel(QMainWindow):
             else int(self.ui.backward_speed.placeholderText())
         
         self.robot.ballscrew_set_zero(distance, velocity, speed, start, finish)
-        
-        # self.ballscrew_set_zero_thread = BallScrewSetZero(distance, velocity, speed, 
-        #                                                   robot=self.robot, 
-        #                                                   start_signal=start, finish_signal=finish)
-
-        # self.ballscrew_set_zero_thread.start()
     
     ''' 线 调零 '''
     def rope_force_adapt(self):
@@ -633,19 +626,20 @@ class ControlPanel(QMainWindow):
                     else float(self.ui.outside_d.placeholderText()))
         
         self.robot.rope_force_adapt(i_f, m_f, o_f, i_pid, m_pid, o_pid, start, finish)
-        # self.rope_force_adapt_thread = ContinuumAttitudeAdjust(self.motor_1, self.motor_2, self.motor_3, self.motor_4, self.motor_5, self.motor_6, self.motor_7, self.motor_8, self.motor_9, 
-        #                                                        self.sensor_1, self.sensor_2, self.sensor_3, self.sensor_4, self.sensor_5, self.sensor_6, self.sensor_7, self.sensor_8, self.sensor_9, 
-        #                                                        self.io, 
-        #                                                        i_f=i_f, m_f=m_f, o_f=o_f, 
-        #                                                        i_pid=i_pid, m_pid=m_pid, o_pid=o_pid, 
-        #                                                        start_signal=start, finish_signal=finish)
-
-        # self.rope_force_adapt_thread.start()
     def rope_set_zero(self):
         self.robot.rope_set_zero()
-        # self.rope_force_adapt_thread.stop()
-        # self.rope_force_adapt_thread.wait()
+    
+    ''' 力 调零 '''
+    def force_set_zero(self):
+        force_list = []
+
+        for i in range(1,10):
+            box = getattr(self.ui, f"force_ref_{i}")
+            force_list.append(float(box.text()) if box.text() != "" else float(box.placeholderText()))
         
+        self.robot.force_set_zero(force_list, 100)
+
+
     ''' 电机 速度 正 '''
     def speed_forward_factory(self, node_id):
         # setattr(self, f"joint_{node_id}", JointControlSpeedModeThread(getattr(self.robot, "motor_{}".format(node_id)), int(getattr(self.ui, "speed_adjust_{}".format(node_id)).value()), is_forward=True))
@@ -698,6 +692,7 @@ class ControlPanel(QMainWindow):
         
         self.robot.ballscrew_go_zero(300, start, finish)
    
+    
     ''' 缩放 内段 线 '''
     def stretch_inside(self):
         self.stretch_inside_thread = StretchInsideThread(-50, self.robot.motor_7, self.robot.motor_8, self.robot.motor_9)
