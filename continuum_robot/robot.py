@@ -210,7 +210,7 @@ class ContinuumRobot():
             getattr(self, f"motor_{node_id}").set_position(target_position, velocity=profile_velocity, is_pdo=True)
             getattr(self, f"motor_{node_id}").ready(is_pdo=True)
             
-            t = abs(target_position - getattr(self, f"motor_{node_id}").current_position) / (profile_velocity * self.VELOCITY_RATIO) + 1
+            t = abs(target_position - getattr(self, f"motor_{node_id}").current_position) / (profile_velocity * self.VELOCITY_RATIO) + 0.1
             duration_time.append(t)
 
         duration_time.sort(reverse=True)
@@ -232,7 +232,7 @@ class ContinuumRobot():
         for node_id in rope:
             getattr(self, f"motor_{node_id}").action(is_immediate=False, is_relative=True, is_pdo=True)
 
-        duration_time = abs(target_position) / (profile_velocity * self.VELOCITY_RATIO) + 1
+        duration_time = abs(target_position) / (profile_velocity * self.VELOCITY_RATIO) + 0.1
         time.sleep(duration_time)
 
     def rope_move(self, rope: str, distance: float, velocity: float, /, *, is_relative: bool) -> None:
@@ -243,9 +243,13 @@ class ContinuumRobot():
         self.test_thread = Test(self)
         self.test_thread.start()
 
-    def force_zero_test(self):
-        self.force_zero_thread = ForceSetZero(100, robot=self)
+    def force_set_zero(self, force_list: list, num=100):
+        self.force_zero_thread = ForceSetZero(force_list, num=num, robot=self)
         self.force_zero_thread.start()
+    
+    def back(self):
+        self.back_thread = Back(robot=self)
+        self.back_thread.start()
 
 
 ''' CANopen 接收 数据处理 '''
@@ -1002,55 +1006,130 @@ class JointSpeed(QThread):
 
 ''' 传感器 调零 '''
 class ForceSetZero(QThread):
-    def __init__(self, num=100, /, *, robot: ContinuumRobot) -> None:
+    def __init__(self, force_ref_list: list, /, *, num=100, robot: ContinuumRobot) -> None:
         super().__init__()
 
         self.__is_stop = False
 
         self.robot = robot
+        
+        self.ref_1 = - abs(force_ref_list[0])
+        self.ref_2 = - abs(force_ref_list[1])
+        self.ref_3 = - abs(force_ref_list[2])
+        self.ref_4 = - abs(force_ref_list[3])
+        self.ref_5 = - abs(force_ref_list[4])
+        self.ref_6 = - abs(force_ref_list[5])
+        self.ref_7 = - abs(force_ref_list[6])
+        self.ref_8 = - abs(force_ref_list[7])
+        self.ref_9 = - abs(force_ref_list[8])
 
         self.__num = num
     
     def run(self):
         self.robot.motor_1.set_control_mode("speed_control", check=False)
+        self.robot.motor_2.set_control_mode("speed_control", check=False)
+        self.robot.motor_3.set_control_mode("speed_control", check=False)
+        self.robot.motor_4.set_control_mode("speed_control", check=False)
+        self.robot.motor_5.set_control_mode("speed_control", check=False)
+        self.robot.motor_6.set_control_mode("speed_control", check=False)
+        self.robot.motor_7.set_control_mode("speed_control", check=False)
+        self.robot.motor_8.set_control_mode("speed_control", check=False)
+        self.robot.motor_9.set_control_mode("speed_control", check=False)
+
         self.robot.motor_1.set_speed(0, is_pdo=True)
-        self.robot.motor_1.enable_operation(is_pdo=True)
+        self.robot.motor_2.set_speed(0, is_pdo=True)
+        self.robot.motor_3.set_speed(0, is_pdo=True)
+        self.robot.motor_4.set_speed(0, is_pdo=True)
+        self.robot.motor_5.set_speed(0, is_pdo=True)
+        self.robot.motor_6.set_speed(0, is_pdo=True)
+        self.robot.motor_7.set_speed(0, is_pdo=True)
+        self.robot.motor_8.set_speed(0, is_pdo=True)
+        self.robot.motor_9.set_speed(0, is_pdo=True)
 
-        print("拉")
-        while True:
-            self.robot.motor_1.set_speed(int((-7 - self.robot.sensor_1.force) * 20), is_pdo=True, log=False)
-            
-            if abs(self.robot.sensor_1.force - (-7)) < 0.01:
-                self.robot.motor_1.halt(is_pdo=True)
-                break
-        
-        self.robot.motor_1.set_speed(20, is_pdo=True)
-        self.robot.motor_1.enable_operation(is_pdo=True)
-        
-        print("调")
-        while True:
-            last_force = self.robot.sensor_1.force
-            time.sleep(2)
-            current_force = self.robot.sensor_1.force
-            if abs(last_force - current_force) < 0.1:
-                self.robot.motor_1.halt(is_pdo=True)
-                break
-        
-        self.robot.sensor_1.set_zero(self.__num)
-        print(self.robot.sensor_1.zero)
+        for i in range(1,10):
+            motor = getattr(self.robot, f"motor_{i}")
+            sensor = getattr(self.robot, f"sensor_{i}")
+            force_ref = getattr(self, f"ref_{i}")
 
-        print("再拉")
-        self.robot.motor_1.enable_operation(is_pdo=True)
-        while True:
-            self.robot.motor_1.set_speed(int((-5 - self.robot.sensor_1.force) * 20), is_pdo=True, log=False)
+            motor.enable_operation(is_pdo=True)
+
+            while True:
+                force_error = force_ref - sensor.force
+                if abs(force_error) < 0.01:
+                    motor.halt(is_pdo=True)
+                    break
+                elif abs(force_error) < 0.1: motor.set_speed(- 10 if force_error < 0 else 10, is_pdo=True, log=False)
+                elif abs(force_error) < 2: motor.set_speed(int(force_error * 20), is_pdo=True, log=False)
+                elif abs(force_error) < 4: motor.set_speed(int(force_error * 25), is_pdo=True, log=False)
+                else: motor.set_speed(- 100 if force_error < 0 else 100, is_pdo=True, log=False)
             
-            if abs(self.robot.sensor_1.force - (-5)) < 0.01:
-                self.robot.motor_1.disable_operation(is_pdo=True)
-                self.robot.motor_1.set_speed(0, is_pdo=True)
-                break
+            motor.set_speed(10, is_pdo=True)
+            motor.enable_operation(is_pdo=True)
+
+            while True:
+                last_force = sensor.original_data
+                time.sleep(1)
+                current_force = sensor.original_data
+                if abs(last_force - current_force) < 0.1:
+                    motor.halt(is_pdo=True)
+                    motor.set_speed(0, is_pdo=True)
+                    break
+            
+            sensor.set_zero(self.__num)
+
+            motor.enable_operation(is_pdo=True)
+            while True:
+                force_error = -5 - sensor.force
+
+                if abs(force_error) < 0.01:
+                    motor.disable_operation(is_pdo=True)
+                    motor.set_speed(0, is_pdo=True)
+                    break
+                elif abs(force_error) < 0.1: motor.set_speed(- 10 if force_error < 0 else 10, is_pdo=True, log=False)
+                elif abs(force_error) < 2: motor.set_speed(int(force_error * 20), is_pdo=True, log=False)
+                elif abs(force_error) < 4: motor.set_speed(int(force_error * 25), is_pdo=True, log=False)
+                else: motor.set_speed(- 100 if force_error < 0 else 100, is_pdo=True, log=False)
+
+
+        # self.robot.motor_3.enable_operation(is_pdo=True)
+
+        # print("拉")
+        # while True:
+        #     force_error = -7 - self.robot.sensor_3.force
+        #     if abs(force_error) < 0.01:
+        #         self.robot.motor_3.halt(is_pdo=True)
+        #         break
+        #     elif abs(force_error) < 0.1: self.robot.motor_3.set_speed(- 10 if force_error < 0 else 10, is_pdo=True, log=False)
+        #     elif abs(force_error) < 2: self.robot.motor_3.set_speed(int(force_error * 20), is_pdo=True, log=False)
+        #     elif abs(force_error) < 4: self.robot.motor_3.set_speed(int(force_error * 25), is_pdo=True, log=False)
+        #     else: self.robot.motor_3.set_speed(- 100 if force_error < 0 else 100, is_pdo=True, log=False)
         
-        print("finish")
-        print(self.robot.sensor_1.original_data, self.robot.sensor_1.force)
+        # self.robot.motor_3.set_speed(10, is_pdo=True)
+        # self.robot.motor_3.enable_operation(is_pdo=True)
+        
+        # while True:
+        #     last_force = self.robot.sensor_3.original_data
+        #     time.sleep(1)
+        #     current_force = self.robot.sensor_3.original_data
+        #     if abs(last_force - current_force) < 0.1:
+        #         self.robot.motor_3.halt(is_pdo=True)
+        #         self.robot.motor_3.set_speed(0, is_pdo=True)
+        #         break
+        
+        # self.robot.sensor_3.set_zero(self.__num)
+
+        # self.robot.motor_3.enable_operation(is_pdo=True)
+        # while True:
+        #     force_error = -5 - self.robot.sensor_3.force
+
+        #     if abs(force_error) < 0.01:
+        #         self.robot.motor_3.disable_operation(is_pdo=True)
+        #         self.robot.motor_3.set_speed(0, is_pdo=True)
+        #         break
+        #     elif abs(force_error) < 0.1: self.robot.motor_3.set_speed(- 10 if force_error < 0 else 10, is_pdo=True, log=False)
+        #     elif abs(force_error) < 2: self.robot.motor_3.set_speed(int(force_error * 20), is_pdo=True, log=False)
+        #     elif abs(force_error) < 4: self.robot.motor_3.set_speed(int(force_error * 25), is_pdo=True, log=False)
+        #     else: self.robot.motor_3.set_speed(- 100 if force_error < 0 else 100, is_pdo=True, log=False)
 
 
 
@@ -1073,10 +1152,322 @@ class Test(QThread):
         self.__outside_start = 100
         self.__midside_end = 110
     
+    # def run(self):
+    #     self.robot.io.open_valve_4()
+    #     self.robot.io.open_valve_3()
+    #     self.robot.io.open_valve_2()
+        
+    #     self.robot.motor_1.set_control_mode("speed_control", check=False)
+    #     self.robot.motor_2.set_control_mode("speed_control", check=False)
+    #     self.robot.motor_3.set_control_mode("speed_control", check=False)
+    #     self.robot.motor_4.set_control_mode("speed_control", check=False)
+    #     self.robot.motor_5.set_control_mode("speed_control", check=False)
+    #     self.robot.motor_6.set_control_mode("speed_control", check=False)
+    #     self.robot.motor_7.set_control_mode("speed_control", check=False)
+    #     self.robot.motor_8.set_control_mode("speed_control", check=False)
+    #     self.robot.motor_9.set_control_mode("speed_control", check=False)
+    #     self.robot.motor_10.set_control_mode("position_control", check=False)
+
+    #     self.robot.motor_1.set_speed(0, is_pdo=True)
+    #     self.robot.motor_2.set_speed(0, is_pdo=True)
+    #     self.robot.motor_3.set_speed(0, is_pdo=True)
+    #     self.robot.motor_4.set_speed(0, is_pdo=True)
+    #     self.robot.motor_5.set_speed(0, is_pdo=True)
+    #     self.robot.motor_6.set_speed(0, is_pdo=True)
+    #     self.robot.motor_7.set_speed(0, is_pdo=True)
+    #     self.robot.motor_8.set_speed(0, is_pdo=True)
+    #     self.robot.motor_9.set_speed(0, is_pdo=True)
+
+    #     self.robot.motor_1.enable_operation(is_pdo=True)
+    #     self.robot.motor_2.enable_operation(is_pdo=True)
+    #     self.robot.motor_3.enable_operation(is_pdo=True)
+    #     self.robot.motor_4.enable_operation(is_pdo=True)
+    #     self.robot.motor_5.enable_operation(is_pdo=True)
+    #     self.robot.motor_6.enable_operation(is_pdo=True)
+    #     self.robot.motor_7.enable_operation(is_pdo=True)
+    #     self.robot.motor_8.enable_operation(is_pdo=True)
+    #     self.robot.motor_9.enable_operation(is_pdo=True)
+
+    #     self.robot.ballscrew_move_abs(348, velocity=20)
+
+    #     times = 13
+    #     while not self.__is_stop and times != 0:
+    #         self.robot.ballscrew_move_abs(348, velocity=10)
+
+    #         self.robot.io.close_valve_4()
+    #         self.robot.io.open_valve_1()
+
+    #         self.robot.ballscrew_move_abs(358, velocity=2.5, is_wait=False)
+    #         time.sleep(0.5)
+
+    #         self.robot.motor_1.enable_operation(is_pdo=True)
+    #         self.robot.motor_2.enable_operation(is_pdo=True)
+    #         self.robot.motor_3.enable_operation(is_pdo=True)
+    #         self.robot.motor_4.enable_operation(is_pdo=True)
+    #         self.robot.motor_5.enable_operation(is_pdo=True)
+    #         self.robot.motor_6.enable_operation(is_pdo=True)
+    #         self.robot.motor_7.enable_operation(is_pdo=True)
+    #         self.robot.motor_8.enable_operation(is_pdo=True)
+    #         self.robot.motor_9.enable_operation(is_pdo=True)
+
+    #         o_f = -7
+    #         m_f = -6
+    #         i_f = -5
+
+    #         kp = 100
+            
+    #         while True:
+    #             self.robot.motor_1.set_speed(int((o_f - self.robot.sensor_1.force) * kp), is_pdo=True)
+    #             self.robot.motor_2.set_speed(int((o_f - self.robot.sensor_2.force) * kp), is_pdo=True)
+    #             self.robot.motor_3.set_speed(int((o_f - self.robot.sensor_3.force) * kp), is_pdo=True)
+    #             self.robot.motor_4.set_speed(int((m_f - self.robot.sensor_4.force) * kp), is_pdo=True)
+    #             self.robot.motor_5.set_speed(int((m_f - self.robot.sensor_5.force) * kp), is_pdo=True)
+    #             self.robot.motor_6.set_speed(int((m_f - self.robot.sensor_6.force) * kp), is_pdo=True)
+    #             self.robot.motor_7.set_speed(int((i_f - self.robot.sensor_7.force) * kp), is_pdo=True)
+    #             self.robot.motor_8.set_speed(int((i_f - self.robot.sensor_8.force) * kp), is_pdo=True)
+    #             self.robot.motor_9.set_speed(int((i_f - self.robot.sensor_9.force) * kp), is_pdo=True)
+
+    #             if abs(self.robot.ballscrew_position - 358) < 0.01:
+    #                 self.robot.motor_1.set_speed(0, is_pdo=True)
+    #                 self.robot.motor_2.set_speed(0, is_pdo=True)
+    #                 self.robot.motor_3.set_speed(0, is_pdo=True)
+    #                 self.robot.motor_4.set_speed(0, is_pdo=True)
+    #                 self.robot.motor_5.set_speed(0, is_pdo=True)
+    #                 self.robot.motor_6.set_speed(0, is_pdo=True)
+    #                 self.robot.motor_7.set_speed(0, is_pdo=True)
+    #                 self.robot.motor_8.set_speed(0, is_pdo=True)
+    #                 self.robot.motor_9.set_speed(0, is_pdo=True)
+    #                 break
+                
+    #         self.robot.motor_1.halt(is_pdo=True)
+    #         self.robot.motor_2.halt(is_pdo=True)
+    #         self.robot.motor_3.halt(is_pdo=True)
+    #         self.robot.motor_4.halt(is_pdo=True)
+    #         self.robot.motor_5.halt(is_pdo=True)
+    #         self.robot.motor_6.halt(is_pdo=True)
+    #         self.robot.motor_7.halt(is_pdo=True)
+    #         self.robot.motor_8.halt(is_pdo=True)
+    #         self.robot.motor_9.halt(is_pdo=True)
+
+    #         self.robot.io.close_valve_1()
+    #         self.robot.io.open_valve_4()
+            
+    #         times -= 1
+        
+    #     self.robot.motor_1.disable_operation(is_pdo=True)
+    #     self.robot.motor_2.disable_operation(is_pdo=True)
+    #     self.robot.motor_3.disable_operation(is_pdo=True)
+    #     self.robot.motor_4.disable_operation(is_pdo=True)
+    #     self.robot.motor_5.disable_operation(is_pdo=True)
+    #     self.robot.motor_6.disable_operation(is_pdo=True)
+    #     self.robot.motor_7.disable_operation(is_pdo=True)
+    #     self.robot.motor_8.disable_operation(is_pdo=True)
+    #     self.robot.motor_9.disable_operation(is_pdo=True)
+
+    #     self.robot.ballscrew_move_abs(227, velocity=20)
+    #     self.robot.io.open_valve_1()
+
+    #     times = 13
+    #     while not self.__is_stop and times != 0:
+    #         self.robot.ballscrew_move_abs(227, velocity=10)
+
+    #         self.robot.io.close_valve_4()
+    #         self.robot.io.open_valve_2()
+
+    #         self.robot.ballscrew_move_abs(237, velocity=2.5, is_wait=False)
+    #         time.sleep(0.1)
+
+    #         self.robot.motor_1.enable_operation(is_pdo=True)
+    #         self.robot.motor_2.enable_operation(is_pdo=True)
+    #         self.robot.motor_3.enable_operation(is_pdo=True)
+    #         self.robot.motor_4.enable_operation(is_pdo=True)
+    #         self.robot.motor_5.enable_operation(is_pdo=True)
+    #         self.robot.motor_6.enable_operation(is_pdo=True)
+
+    #         o_f = -4
+    #         m_f = -4
+    #         i_f = -4
+
+    #         kp = 100
+            
+    #         while True:
+    #             self.robot.motor_1.set_speed(int((o_f - self.robot.sensor_1.force) * kp), is_pdo=True)
+    #             self.robot.motor_2.set_speed(int((o_f - self.robot.sensor_2.force) * kp), is_pdo=True)
+    #             self.robot.motor_3.set_speed(int((o_f - self.robot.sensor_3.force) * kp), is_pdo=True)
+    #             self.robot.motor_4.set_speed(int((m_f - self.robot.sensor_4.force) * kp), is_pdo=True)
+    #             self.robot.motor_5.set_speed(int((m_f - self.robot.sensor_5.force) * kp), is_pdo=True)
+    #             self.robot.motor_6.set_speed(int((m_f - self.robot.sensor_6.force) * kp), is_pdo=True)
+
+    #             if abs(self.robot.ballscrew_position - 237) < 0.01: break
+                
+    #         self.robot.motor_1.halt(is_pdo=True)
+    #         self.robot.motor_2.halt(is_pdo=True)
+    #         self.robot.motor_3.halt(is_pdo=True)
+    #         self.robot.motor_4.halt(is_pdo=True)
+    #         self.robot.motor_5.halt(is_pdo=True)
+    #         self.robot.motor_6.halt(is_pdo=True)
+
+    #         self.robot.io.close_valve_2()
+    #         self.robot.io.open_valve_4()
+            
+    #         times -= 1
+
+    #     self.robot.motor_1.disable_operation(is_pdo=True)
+    #     self.robot.motor_2.disable_operation(is_pdo=True)
+    #     self.robot.motor_3.disable_operation(is_pdo=True)
+    #     self.robot.motor_4.disable_operation(is_pdo=True)
+    #     self.robot.motor_5.disable_operation(is_pdo=True)
+    #     self.robot.motor_6.disable_operation(is_pdo=True)
+
+    #     self.robot.ballscrew_move_abs(100, velocity=20)
+    #     self.robot.io.open_valve_2()
+
+    #     times = 0
+    #     while not self.__is_stop and times != 0:
+    #         self.robot.ballscrew_move_abs(100, velocity=10)
+
+    #         self.robot.io.close_valve_4()
+    #         self.robot.io.open_valve_3()
+
+    #         self.robot.ballscrew_move_abs(110, velocity=2.5, is_wait=False)
+    #         time.sleep(0.5)
+
+    #         self.robot.motor_1.enable_operation(is_pdo=True)
+    #         self.robot.motor_2.enable_operation(is_pdo=True)
+    #         self.robot.motor_3.enable_operation(is_pdo=True)
+
+    #         o_f = -4
+    #         m_f = -4
+    #         i_f = -4
+
+    #         kp = 100
+            
+    #         while True:
+    #             self.robot.motor_1.set_speed(int((o_f - self.robot.sensor_1.force) * kp), is_pdo=True)
+    #             self.robot.motor_2.set_speed(int((o_f - self.robot.sensor_2.force) * kp), is_pdo=True)
+    #             self.robot.motor_3.set_speed(int((o_f - self.robot.sensor_3.force) * kp), is_pdo=True)
+
+    #             if abs(self.robot.ballscrew_position - 110) < 0.01: break
+                
+    #         self.robot.motor_1.halt(is_pdo=True)
+    #         self.robot.motor_2.halt(is_pdo=True)
+    #         self.robot.motor_3.halt(is_pdo=True)
+
+    #         self.robot.io.close_valve_3()
+    #         self.robot.io.open_valve_4()
+            
+    #         times -= 1
+
+    #     self.robot.motor_1.disable_operation(is_pdo=True)
+    #     self.robot.motor_2.disable_operation(is_pdo=True)
+    #     self.robot.motor_3.disable_operation(is_pdo=True)
+
     def run(self):
         self.robot.io.open_valve_4()
+        
+        self.robot.motor_1.set_control_mode("position_control", check=False)
+        self.robot.motor_2.set_control_mode("position_control", check=False)
+        self.robot.motor_3.set_control_mode("position_control", check=False)
+        self.robot.motor_4.set_control_mode("position_control", check=False)
+        self.robot.motor_5.set_control_mode("position_control", check=False)
+        self.robot.motor_6.set_control_mode("position_control", check=False)
+        self.robot.motor_7.set_control_mode("position_control", check=False)
+        self.robot.motor_8.set_control_mode("position_control", check=False)
+        self.robot.motor_9.set_control_mode("position_control", check=False)
+        self.robot.motor_10.set_control_mode("position_control", check=False)
+
+        self.robot.ballscrew_move_abs(348, velocity=20)
         self.robot.io.open_valve_3()
         self.robot.io.open_valve_2()
+
+        times = 14
+        while not self.__is_stop and times != 0:
+            self.robot.io.close_valve_4()
+            self.robot.io.open_valve_1()
+
+            self.robot.ballscrew_move_abs(358, velocity=2.5, is_wait=False)
+
+            self.robot.rope_move_rel("123456789", distance=10, velocity=2.5)
+
+            self.robot.io.close_valve_1()
+            self.robot.io.open_valve_4()
+
+            for i in range(1,10):
+                while getattr(self.robot, f"sensor_{i}").force > -2:
+                    self.robot.rope_move_rel(str(i), distance=-0.2, velocity=1)
+
+            self.robot.ballscrew_move_abs(348, velocity=10)
+
+            times -= 1
+        
+        self.robot.ballscrew_move_abs(227, velocity=20)
+
+        times = 14
+        while not self.__is_stop and times != 0:
+            self.robot.io.close_valve_4()
+            self.robot.io.open_valve_1()
+            self.robot.io.open_valve_2()
+
+            self.robot.ballscrew_move_abs(237, velocity=2.5, is_wait=False)
+
+            self.robot.rope_move_rel("123456", distance=10, velocity=2.5)
+
+            self.robot.io.close_valve_1()
+            self.robot.io.close_valve_2()
+            self.robot.io.open_valve_4()
+
+            for i in range(1,10):
+                while getattr(self.robot, f"sensor_{i}").force > -2:
+                    self.robot.rope_move_rel(str(i), distance=-0.2, velocity=1)
+
+            self.robot.ballscrew_move_abs(227, velocity=10)
+
+            times -= 1
+        
+        self.robot.ballscrew_move_abs(100, velocity=20)
+
+        times = 14
+        while not self.__is_stop and times != 0:
+            self.robot.io.close_valve_4()
+            self.robot.io.open_valve_1()
+            self.robot.io.open_valve_2()
+            self.robot.io.open_valve_3()
+
+            self.robot.ballscrew_move_abs(110, velocity=2.5, is_wait=False)
+
+            self.robot.rope_move_rel("123", distance=10, velocity=2.5)
+
+            self.robot.io.close_valve_1()
+            self.robot.io.close_valve_2()
+            self.robot.io.close_valve_3()
+            self.robot.io.open_valve_4()
+
+            for i in range(1,10):
+                while getattr(self.robot, f"sensor_{i}").force > -2:
+                    self.robot.rope_move_rel(str(i), distance=-0.2, velocity=1)
+
+            self.robot.ballscrew_move_abs(100, velocity=10)
+
+            times -= 1
+
+
+    def stop(self):
+        self.__is_stop = True
+
+class Back(QThread):
+    def __init__(self, robot: ContinuumRobot) -> None:
+        super().__init__()
+
+        self.__is_stop = False
+
+        self.robot = robot
+    
+    def run(self):
+        self.robot.io.open_valve_4()
+
+        # self.robot.io.open_valve_3()
+        # self.robot.io.open_valve_2()
+        # self.robot.io.open_valve_1()
         
         self.robot.motor_1.set_control_mode("speed_control", check=False)
         self.robot.motor_2.set_control_mode("speed_control", check=False)
@@ -1087,7 +1478,6 @@ class Test(QThread):
         self.robot.motor_7.set_control_mode("speed_control", check=False)
         self.robot.motor_8.set_control_mode("speed_control", check=False)
         self.robot.motor_9.set_control_mode("speed_control", check=False)
-        self.robot.motor_10.set_control_mode("position_control", check=False)
 
         self.robot.motor_1.set_speed(0, is_pdo=True)
         self.robot.motor_2.set_speed(0, is_pdo=True)
@@ -1102,72 +1492,99 @@ class Test(QThread):
         self.robot.motor_1.enable_operation(is_pdo=True)
         self.robot.motor_2.enable_operation(is_pdo=True)
         self.robot.motor_3.enable_operation(is_pdo=True)
+        self.robot.io.open_valve_3()
+        
+        flag_1, flag_2, flag_3 = False, False, False
+        self.robot.motor_1.set_speed(-100, is_pdo=True)
+        self.robot.motor_2.set_speed(-100, is_pdo=True)
+        self.robot.motor_3.set_speed(-100, is_pdo=True)
+        time.sleep(0.5)
+        while True:
+            if self.robot.sensor_1.force < -7:
+                self.robot.motor_1.set_speed(0, is_pdo=True)
+                flag_1 = True
+
+            if self.robot.sensor_2.force < -7:
+                self.robot.motor_2.set_speed(0, is_pdo=True)
+                flag_2 = True
+            
+            if self.robot.sensor_3.force < -7:
+                self.robot.motor_3.set_speed(0, is_pdo=True)
+                flag_3 = True
+            
+            if flag_1 and flag_2 and flag_3: break
+        
         self.robot.motor_4.enable_operation(is_pdo=True)
         self.robot.motor_5.enable_operation(is_pdo=True)
         self.robot.motor_6.enable_operation(is_pdo=True)
+        self.robot.io.open_valve_2()
+        
+        flag_4, flag_5, flag_6 = False, False, False
+        self.robot.motor_4.set_speed(-100, is_pdo=True)
+        self.robot.motor_5.set_speed(-100, is_pdo=True)
+        self.robot.motor_6.set_speed(-100, is_pdo=True)
+        time.sleep(0.5)
+        while True:
+            if self.robot.sensor_4.force < -7:
+                self.robot.motor_4.set_speed(0, is_pdo=True)
+                flag_4 = True
+
+            if self.robot.sensor_5.force < -7:
+                self.robot.motor_5.set_speed(0, is_pdo=True)
+                flag_5 = True
+
+            if self.robot.sensor_6.force < -7:
+                self.robot.motor_6.set_speed(0, is_pdo=True)
+                flag_6 = True
+
+            self.robot.motor_1.set_speed(int((-4 - self.robot.sensor_1.force) * 50), is_pdo=True)
+            self.robot.motor_2.set_speed(int((-4 - self.robot.sensor_2.force) * 50), is_pdo=True)
+            self.robot.motor_3.set_speed(int((-4 - self.robot.sensor_3.force) * 50), is_pdo=True)
+
+            if flag_4 and flag_5 and flag_6:
+                self.robot.motor_1.set_speed(0, is_pdo=True)
+                self.robot.motor_2.set_speed(0, is_pdo=True)
+                self.robot.motor_3.set_speed(0, is_pdo=True)
+                break
+        
         self.robot.motor_7.enable_operation(is_pdo=True)
         self.robot.motor_8.enable_operation(is_pdo=True)
         self.robot.motor_9.enable_operation(is_pdo=True)
+        self.robot.io.open_valve_1()
 
-        self.robot.ballscrew_move_abs(348, velocity=20)
+        flag_7, flag_8, flag_9 = False, False, False
+        self.robot.motor_7.set_speed(-100, is_pdo=True)
+        self.robot.motor_8.set_speed(-100, is_pdo=True)
+        self.robot.motor_9.set_speed(-100, is_pdo=True)
+        time.sleep(0.5)
+        while True:
+            if self.robot.sensor_7.force < -7:
+                self.robot.motor_7.set_speed(0, is_pdo=True)
+                flag_7 = True
 
-        times = 11
-        while not self.__is_stop and times != 0:
-            self.robot.ballscrew_move_abs(348, velocity=10)
+            if self.robot.sensor_8.force < -7:
+                self.robot.motor_8.set_speed(0, is_pdo=True)
+                flag_8 = True
 
-            self.robot.io.close_valve_4()
-            self.robot.io.open_valve_1()
+            if self.robot.sensor_9.force < -7:
+                self.robot.motor_9.set_speed(0, is_pdo=True)
+                flag_9 = True
 
-            self.robot.ballscrew_move_abs(358, velocity=2.5, is_wait=False)
+            self.robot.motor_1.set_speed(int((-4 - self.robot.sensor_1.force) * 50), is_pdo=True)
+            self.robot.motor_2.set_speed(int((-4 - self.robot.sensor_2.force) * 50), is_pdo=True)
+            self.robot.motor_3.set_speed(int((-4 - self.robot.sensor_3.force) * 50), is_pdo=True)
+            self.robot.motor_4.set_speed(int((-4 - self.robot.sensor_4.force) * 50), is_pdo=True)
+            self.robot.motor_5.set_speed(int((-4 - self.robot.sensor_5.force) * 50), is_pdo=True)
+            self.robot.motor_6.set_speed(int((-4 - self.robot.sensor_6.force) * 50), is_pdo=True)
 
-            # self.robot.motor_10.set_position(self.robot.motor_10.zero_position - 358 * 5120, velocity=10, is_pdo=True)
-            # self.robot.motor_10.ready(is_pdo=True)
-            # self.robot.motor_10.action(is_immediate=False, is_relative=False, is_pdo=True)
-            time.sleep(0.5)
-
-            self.robot.motor_1.enable_operation(is_pdo=True)
-            self.robot.motor_2.enable_operation(is_pdo=True)
-            self.robot.motor_3.enable_operation(is_pdo=True)
-            self.robot.motor_4.enable_operation(is_pdo=True)
-            self.robot.motor_5.enable_operation(is_pdo=True)
-            self.robot.motor_6.enable_operation(is_pdo=True)
-            self.robot.motor_7.enable_operation(is_pdo=True)
-            self.robot.motor_8.enable_operation(is_pdo=True)
-            self.robot.motor_9.enable_operation(is_pdo=True)
-
-            o_f = -4
-            m_f = -4
-            i_f = -4
-
-            kp = 100
-            
-            while True:
-                self.robot.motor_1.set_speed(int((o_f - self.robot.sensor_1.force) * kp), is_pdo=True)
-                self.robot.motor_2.set_speed(int((o_f - self.robot.sensor_2.force) * kp), is_pdo=True)
-                self.robot.motor_3.set_speed(int((o_f - self.robot.sensor_3.force) * kp), is_pdo=True)
-                self.robot.motor_4.set_speed(int((m_f - self.robot.sensor_4.force) * kp), is_pdo=True)
-                self.robot.motor_5.set_speed(int((m_f - self.robot.sensor_5.force) * kp), is_pdo=True)
-                self.robot.motor_6.set_speed(int((m_f - self.robot.sensor_6.force) * kp), is_pdo=True)
-                self.robot.motor_7.set_speed(int((i_f - self.robot.sensor_7.force) * kp), is_pdo=True)
-                self.robot.motor_8.set_speed(int((i_f - self.robot.sensor_8.force) * kp), is_pdo=True)
-                self.robot.motor_9.set_speed(int((i_f - self.robot.sensor_9.force) * kp), is_pdo=True)
-
-                if abs(self.robot.ballscrew_position - 358) < 0.01: break
-                
-            self.robot.motor_1.halt(is_pdo=True)
-            self.robot.motor_2.halt(is_pdo=True)
-            self.robot.motor_3.halt(is_pdo=True)
-            self.robot.motor_4.halt(is_pdo=True)
-            self.robot.motor_5.halt(is_pdo=True)
-            self.robot.motor_6.halt(is_pdo=True)
-            self.robot.motor_7.halt(is_pdo=True)
-            self.robot.motor_8.halt(is_pdo=True)
-            self.robot.motor_9.halt(is_pdo=True)
-
-            self.robot.io.close_valve_1()
-            self.robot.io.open_valve_4()
-            
-            times -= 1
+            if flag_7 and flag_8 and flag_9:
+                self.robot.motor_1.set_speed(0, is_pdo=True)
+                self.robot.motor_2.set_speed(0, is_pdo=True)
+                self.robot.motor_3.set_speed(0, is_pdo=True)
+                self.robot.motor_4.set_speed(0, is_pdo=True)
+                self.robot.motor_5.set_speed(0, is_pdo=True)
+                self.robot.motor_6.set_speed(0, is_pdo=True)
+                break
         
         self.robot.motor_1.disable_operation(is_pdo=True)
         self.robot.motor_2.disable_operation(is_pdo=True)
@@ -1179,102 +1596,9 @@ class Test(QThread):
         self.robot.motor_8.disable_operation(is_pdo=True)
         self.robot.motor_9.disable_operation(is_pdo=True)
 
-        self.robot.ballscrew_move_abs(227, velocity=20)
-
-        times = 11
-        while not self.__is_stop and times != 0:
-            self.robot.ballscrew_move_abs(227, velocity=10)
-
-            self.robot.io.close_valve_4()
-            self.robot.io.open_valve_2()
-
-            self.robot.ballscrew_move_abs(237, velocity=2.5, is_wait=False)
-            time.sleep(0.5)
-
-            self.robot.motor_1.enable_operation(is_pdo=True)
-            self.robot.motor_2.enable_operation(is_pdo=True)
-            self.robot.motor_3.enable_operation(is_pdo=True)
-            self.robot.motor_4.enable_operation(is_pdo=True)
-            self.robot.motor_5.enable_operation(is_pdo=True)
-            self.robot.motor_6.enable_operation(is_pdo=True)
-
-            o_f = -4
-            m_f = -4
-            i_f = -4
-
-            kp = 100
-            
-            while True:
-                self.robot.motor_1.set_speed(int((o_f - self.robot.sensor_1.force) * kp), is_pdo=True)
-                self.robot.motor_2.set_speed(int((o_f - self.robot.sensor_2.force) * kp), is_pdo=True)
-                self.robot.motor_3.set_speed(int((o_f - self.robot.sensor_3.force) * kp), is_pdo=True)
-                self.robot.motor_4.set_speed(int((m_f - self.robot.sensor_4.force) * kp), is_pdo=True)
-                self.robot.motor_5.set_speed(int((m_f - self.robot.sensor_5.force) * kp), is_pdo=True)
-                self.robot.motor_6.set_speed(int((m_f - self.robot.sensor_6.force) * kp), is_pdo=True)
-
-                if abs(self.robot.ballscrew_position - 237) < 0.01: break
-                
-            self.robot.motor_1.halt(is_pdo=True)
-            self.robot.motor_2.halt(is_pdo=True)
-            self.robot.motor_3.halt(is_pdo=True)
-            self.robot.motor_4.halt(is_pdo=True)
-            self.robot.motor_5.halt(is_pdo=True)
-            self.robot.motor_6.halt(is_pdo=True)
-
-            self.robot.io.close_valve_2()
-            self.robot.io.open_valve_4()
-            
-            times -= 1
-
-        self.robot.motor_1.disable_operation(is_pdo=True)
-        self.robot.motor_2.disable_operation(is_pdo=True)
-        self.robot.motor_3.disable_operation(is_pdo=True)
-        self.robot.motor_4.disable_operation(is_pdo=True)
-        self.robot.motor_5.disable_operation(is_pdo=True)
-        self.robot.motor_6.disable_operation(is_pdo=True)
-
-        self.robot.ballscrew_move_abs(100, velocity=20)
-
-        times = 11
-        while not self.__is_stop and times != 0:
-            self.robot.ballscrew_move_abs(100, velocity=10)
-
-            self.robot.io.close_valve_4()
-            self.robot.io.open_valve_3()
-
-            self.robot.ballscrew_move_abs(110, velocity=2.5, is_wait=False)
-            time.sleep(0.5)
-
-            self.robot.motor_1.enable_operation(is_pdo=True)
-            self.robot.motor_2.enable_operation(is_pdo=True)
-            self.robot.motor_3.enable_operation(is_pdo=True)
-
-            o_f = -4
-            m_f = -4
-            i_f = -4
-
-            kp = 100
-            
-            while True:
-                self.robot.motor_1.set_speed(int((o_f - self.robot.sensor_1.force) * kp), is_pdo=True)
-                self.robot.motor_2.set_speed(int((o_f - self.robot.sensor_2.force) * kp), is_pdo=True)
-                self.robot.motor_3.set_speed(int((o_f - self.robot.sensor_3.force) * kp), is_pdo=True)
-
-                if abs(self.robot.ballscrew_position - 110) < 0.01: break
-                
-            self.robot.motor_1.halt(is_pdo=True)
-            self.robot.motor_2.halt(is_pdo=True)
-            self.robot.motor_3.halt(is_pdo=True)
-
-            self.robot.io.close_valve_3()
-            self.robot.io.open_valve_4()
-            
-            times -= 1
-
-        self.robot.motor_1.disable_operation(is_pdo=True)
-        self.robot.motor_2.disable_operation(is_pdo=True)
-        self.robot.motor_3.disable_operation(is_pdo=True)
-
+        self.robot.io.close_valve_1()
+        self.robot.io.close_valve_2()
+        self.robot.io.close_valve_3()
+    
     def stop(self):
         self.__is_stop = True
-    
