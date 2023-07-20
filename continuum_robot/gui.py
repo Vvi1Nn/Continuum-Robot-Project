@@ -63,13 +63,15 @@ class ControlPanel(QMainWindow):
         self.ui.test_8.clicked.connect(self.force_test)
         self.ui.test_9.clicked.connect(self.force_test_stop)
 
-        self.ui.test_10.clicked.connect(self.force_set_zero)
+        # self.ui.test_10.clicked.connect(self.force_set_zero)
 
         # self.ui.test_11.clicked.connect(lambda: self.robot.rope_move("1", 3, 1, is_relative=True))
         # self.ui.test_12.clicked.connect(lambda: self.robot.rope_move("1", -3, 1, is_relative=True))
-        self.ui.test_11.clicked.connect(self.robot.back)
+        # self.ui.test_11.clicked.connect(self.robot.back)
 
-        self.ui.test_13.clicked.connect(self.robot.test)
+        self.ui.test_12.clicked.connect(self.robot.kinematics_test)
+
+        # self.ui.test_13.clicked.connect(self.robot.forward)
         
         self.show() # 显示界面
 
@@ -215,6 +217,7 @@ class ControlPanel(QMainWindow):
 
         ''' 滚珠 调0 归0 '''
         self.ui.set_ballscrew_zero.clicked.connect(self.ballscrew_set_zero)
+        self.ui.go_zero.clicked.connect(self.ballscrew_go_zero)
 
         ''' 线 适应 调0 '''
         self.ui.start_adjust.clicked.connect(self.rope_force_adapt)
@@ -223,8 +226,9 @@ class ControlPanel(QMainWindow):
         ''' 力 调0 '''
         self.ui.set_sensor_zero.clicked.connect(self.force_set_zero)
 
-        # self.ui.set_zero.clicked.connect(self.ballscrew_set_zero)
-        self.ui.go_zero.clicked.connect(self.ballscrew_go_zero)
+        ''' 伸 缩 '''
+        self.ui.extension.clicked.connect(self.robot.back)
+        self.ui.retraction.clicked.connect(self.robot.forward)
 
 
     ''' 显示 TPDO1 '''
@@ -631,13 +635,20 @@ class ControlPanel(QMainWindow):
     
     ''' 力 调零 '''
     def force_set_zero(self):
-        force_list = []
+        def start():
+            self.ui.set_sensor_zero.setEnabled(False)
+            self.show_status("All sensors are being adapting force ...")
 
+        def finish():
+            self.ui.set_sensor_zero.setEnabled(True)
+            self.show_status("All sensors are set zero !")
+        
+        force_list = []
         for i in range(1,10):
             box = getattr(self.ui, f"force_ref_{i}")
             force_list.append(float(box.text()) if box.text() != "" else float(box.placeholderText()))
         
-        self.robot.force_set_zero(force_list, 100)
+        self.robot.force_set_zero(force_list, 100, start, finish)
 
 
     ''' 电机 速度 正 '''
