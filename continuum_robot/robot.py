@@ -6,6 +6,7 @@
 
 from PyQt5.QtCore import QThread, pyqtSignal
 
+from math import *
 
 # 添加模块路径
 import sys, os, time
@@ -206,7 +207,7 @@ class ContinuumRobot():
 
         for node_id in rope:
             target_position = int(round(getattr(self, f"motor_{node_id}").zero_position + abs(point) * self.ROPE_RATIO, 0))
-            profile_velocity = int(round(self.ROPE_RATIO * velocity / self.VELOCITY_RATIO, 0))
+            profile_velocity = int(round(self.ROPE_RATIO * abs(velocity) / self.VELOCITY_RATIO, 0))
             getattr(self, f"motor_{node_id}").set_position(target_position, velocity=profile_velocity, is_pdo=True)
             getattr(self, f"motor_{node_id}").ready(is_pdo=True)
             
@@ -221,9 +222,9 @@ class ContinuumRobot():
         
         time.sleep(delay)
     
-    def rope_move_rel(self, rope: str, /, *, distance: float, velocity: float) -> None:
+    def rope_move_rel(self, rope: str, /, *, distance: float, velocity: float, is_wait=True) -> None:
         target_position = int(round(distance * self.ROPE_RATIO, 0))
-        profile_velocity = int(round(self.ROPE_RATIO * velocity / self.VELOCITY_RATIO, 0))
+        profile_velocity = int(round(self.ROPE_RATIO * abs(velocity) / self.VELOCITY_RATIO, 0))
         
         for node_id in rope:
             getattr(self, f"motor_{node_id}").set_position(target_position, velocity=profile_velocity, is_pdo=True)
@@ -232,24 +233,29 @@ class ContinuumRobot():
         for node_id in rope:
             getattr(self, f"motor_{node_id}").action(is_immediate=False, is_relative=True, is_pdo=True)
 
-        duration_time = abs(target_position) / (profile_velocity * self.VELOCITY_RATIO) + 0.1
-        time.sleep(duration_time)
+        if is_wait:
+            duration_time = abs(target_position) / (profile_velocity * self.VELOCITY_RATIO) + 0.1
+            time.sleep(duration_time)
 
     def rope_move(self, rope: str, distance: float, velocity: float, /, *, is_relative: bool) -> None:
         self.rope_move_thread = RopeMove(rope, distance, velocity, is_relative=is_relative, robot=self)
         self.rope_move_thread.start()
 
-    def test(self):
-        self.test_thread = Test(self)
+    def forward(self):
+        self.test_thread = Forward(self)
         self.test_thread.start()
 
-    def force_set_zero(self, force_list: list, num=100):
-        self.force_zero_thread = ForceSetZero(force_list, num=num, robot=self)
+    def force_set_zero(self, force_list: list, num, start, finish):
+        self.force_zero_thread = ForceSetZero(force_list, num=num, robot=self, start_signal=start, finish_signal=finish)
         self.force_zero_thread.start()
     
     def back(self):
         self.back_thread = Back(robot=self)
         self.back_thread.start()
+
+    def kinematics_test(self):
+        self.kinematics_thread = Kinematics(self)
+        self.kinematics_thread.start()
 
 
 ''' CANopen 接收 数据处理 '''
@@ -1006,12 +1012,18 @@ class JointSpeed(QThread):
 
 ''' 传感器 调零 '''
 class ForceSetZero(QThread):
-    def __init__(self, force_ref_list: list, /, *, num=100, robot: ContinuumRobot) -> None:
+    __start_signal = pyqtSignal()
+    __finish_signal = pyqtSignal()
+
+    def __init__(self, force_ref_list: list, /, *, num=100, robot: ContinuumRobot, start_signal, finish_signal) -> None:
         super().__init__()
 
         self.__is_stop = False
 
         self.robot = robot
+
+        self.__start_signal.connect(start_signal)
+        self.__finish_signal.connect(finish_signal)
         
         self.ref_1 = - abs(force_ref_list[0])
         self.ref_2 = - abs(force_ref_list[1])
@@ -1046,7 +1058,9 @@ class ForceSetZero(QThread):
         self.robot.motor_8.set_speed(0, is_pdo=True)
         self.robot.motor_9.set_speed(0, is_pdo=True)
 
-        for i in range(1,10):
+        self.__start_signal.emit()
+
+        for i in range(9,0,-1):
             motor = getattr(self.robot, f"motor_{i}")
             sensor = getattr(self.robot, f"sensor_{i}")
             force_ref = getattr(self, f"ref_{i}")
@@ -1089,52 +1103,12 @@ class ForceSetZero(QThread):
                 elif abs(force_error) < 2: motor.set_speed(int(force_error * 20), is_pdo=True, log=False)
                 elif abs(force_error) < 4: motor.set_speed(int(force_error * 25), is_pdo=True, log=False)
                 else: motor.set_speed(- 100 if force_error < 0 else 100, is_pdo=True, log=False)
-
-
-        # self.robot.motor_3.enable_operation(is_pdo=True)
-
-        # print("拉")
-        # while True:
-        #     force_error = -7 - self.robot.sensor_3.force
-        #     if abs(force_error) < 0.01:
-        #         self.robot.motor_3.halt(is_pdo=True)
-        #         break
-        #     elif abs(force_error) < 0.1: self.robot.motor_3.set_speed(- 10 if force_error < 0 else 10, is_pdo=True, log=False)
-        #     elif abs(force_error) < 2: self.robot.motor_3.set_speed(int(force_error * 20), is_pdo=True, log=False)
-        #     elif abs(force_error) < 4: self.robot.motor_3.set_speed(int(force_error * 25), is_pdo=True, log=False)
-        #     else: self.robot.motor_3.set_speed(- 100 if force_error < 0 else 100, is_pdo=True, log=False)
         
-        # self.robot.motor_3.set_speed(10, is_pdo=True)
-        # self.robot.motor_3.enable_operation(is_pdo=True)
-        
-        # while True:
-        #     last_force = self.robot.sensor_3.original_data
-        #     time.sleep(1)
-        #     current_force = self.robot.sensor_3.original_data
-        #     if abs(last_force - current_force) < 0.1:
-        #         self.robot.motor_3.halt(is_pdo=True)
-        #         self.robot.motor_3.set_speed(0, is_pdo=True)
-        #         break
-        
-        # self.robot.sensor_3.set_zero(self.__num)
-
-        # self.robot.motor_3.enable_operation(is_pdo=True)
-        # while True:
-        #     force_error = -5 - self.robot.sensor_3.force
-
-        #     if abs(force_error) < 0.01:
-        #         self.robot.motor_3.disable_operation(is_pdo=True)
-        #         self.robot.motor_3.set_speed(0, is_pdo=True)
-        #         break
-        #     elif abs(force_error) < 0.1: self.robot.motor_3.set_speed(- 10 if force_error < 0 else 10, is_pdo=True, log=False)
-        #     elif abs(force_error) < 2: self.robot.motor_3.set_speed(int(force_error * 20), is_pdo=True, log=False)
-        #     elif abs(force_error) < 4: self.robot.motor_3.set_speed(int(force_error * 25), is_pdo=True, log=False)
-        #     else: self.robot.motor_3.set_speed(- 100 if force_error < 0 else 100, is_pdo=True, log=False)
+        self.__finish_signal.emit()
 
 
-
-
-class Test(QThread):
+''' 伸 '''
+class Forward(QThread):
     def __init__(self, robot: ContinuumRobot) -> None:
         
         super().__init__()
@@ -1380,80 +1354,83 @@ class Test(QThread):
         self.robot.io.open_valve_3()
         self.robot.io.open_valve_2()
 
-        times = 14
+        times = 15
         while not self.__is_stop and times != 0:
             self.robot.io.close_valve_4()
             self.robot.io.open_valve_1()
 
-            self.robot.ballscrew_move_abs(358, velocity=2.5, is_wait=False)
+            self.robot.ballscrew_move_abs(358, velocity=5, is_wait=False)
 
-            self.robot.rope_move_rel("123456789", distance=10, velocity=2.5)
+            self.robot.rope_move_rel("123456789", distance=10, velocity=5)
 
             self.robot.io.close_valve_1()
             self.robot.io.open_valve_4()
 
-            for i in range(1,10):
-                while getattr(self.robot, f"sensor_{i}").force > -2:
-                    self.robot.rope_move_rel(str(i), distance=-0.2, velocity=1)
+            for i in range(9,0,-1):
+                while getattr(self.robot, f"sensor_{i}").force > - 1.5:
+                    self.robot.rope_move_rel(str(i), distance=-0.5, velocity=10)
 
             self.robot.ballscrew_move_abs(348, velocity=10)
 
             times -= 1
+        
+        self.robot.io.open_valve_1()
         
         self.robot.ballscrew_move_abs(227, velocity=20)
 
         times = 14
         while not self.__is_stop and times != 0:
             self.robot.io.close_valve_4()
-            self.robot.io.open_valve_1()
             self.robot.io.open_valve_2()
 
-            self.robot.ballscrew_move_abs(237, velocity=2.5, is_wait=False)
+            self.robot.ballscrew_move_abs(237, velocity=5, is_wait=False)
 
-            self.robot.rope_move_rel("123456", distance=10, velocity=2.5)
+            self.robot.rope_move_rel("123456", distance=10, velocity=5)
 
-            self.robot.io.close_valve_1()
             self.robot.io.close_valve_2()
             self.robot.io.open_valve_4()
 
-            for i in range(1,10):
-                while getattr(self.robot, f"sensor_{i}").force > -2:
-                    self.robot.rope_move_rel(str(i), distance=-0.2, velocity=1)
+            for i in range(6,0,-1):
+                while getattr(self.robot, f"sensor_{i}").force > - 1.5:
+                    self.robot.rope_move_rel(str(i), distance=-0.5, velocity=10)
 
             self.robot.ballscrew_move_abs(227, velocity=10)
 
             times -= 1
         
+        self.robot.io.open_valve_2()
+
         self.robot.ballscrew_move_abs(100, velocity=20)
 
-        times = 14
+        times = 13
         while not self.__is_stop and times != 0:
             self.robot.io.close_valve_4()
-            self.robot.io.open_valve_1()
-            self.robot.io.open_valve_2()
             self.robot.io.open_valve_3()
 
-            self.robot.ballscrew_move_abs(110, velocity=2.5, is_wait=False)
+            self.robot.ballscrew_move_abs(110, velocity=5, is_wait=False)
 
-            self.robot.rope_move_rel("123", distance=10, velocity=2.5)
+            self.robot.rope_move_rel("123", distance=10, velocity=5)
 
-            self.robot.io.close_valve_1()
-            self.robot.io.close_valve_2()
             self.robot.io.close_valve_3()
             self.robot.io.open_valve_4()
 
-            for i in range(1,10):
-                while getattr(self.robot, f"sensor_{i}").force > -2:
-                    self.robot.rope_move_rel(str(i), distance=-0.2, velocity=1)
+            for i in range(3,0,-1):
+                while getattr(self.robot, f"sensor_{i}").force > - 1.5:
+                    self.robot.rope_move_rel(str(i), distance=-0.5, velocity=10)
 
             self.robot.ballscrew_move_abs(100, velocity=10)
 
             times -= 1
+        
+        self.robot.io.close_valve_1()
+        self.robot.io.close_valve_2()
+        self.robot.io.close_valve_3()
 
 
     def stop(self):
         self.__is_stop = True
 
+''' 缩 '''
 class Back(QThread):
     def __init__(self, robot: ContinuumRobot) -> None:
         super().__init__()
@@ -1464,10 +1441,6 @@ class Back(QThread):
     
     def run(self):
         self.robot.io.open_valve_4()
-
-        # self.robot.io.open_valve_3()
-        # self.robot.io.open_valve_2()
-        # self.robot.io.open_valve_1()
         
         self.robot.motor_1.set_control_mode("speed_control", check=False)
         self.robot.motor_2.set_control_mode("speed_control", check=False)
@@ -1602,3 +1575,61 @@ class Back(QThread):
     
     def stop(self):
         self.__is_stop = True
+
+class Kinematics(QThread):
+    def __init__(self, robot: ContinuumRobot) -> None:
+        super().__init__()
+
+        self.robot = robot
+
+        self.n = 10
+        self.d = 17 # mm
+        self.l = 170 # mmm
+    
+    def config_space_single(self, coordinate: tuple):
+        x, y, z = coordinate
+
+        if x == 0:
+            if y > 0: phi = pi / 2
+            elif y < 0: phi = - pi / 2
+            else: phi = 0
+        else: phi = atan(y / x)
+
+        kappa = 2 * sqrt(pow(x,2)+pow(y,2)) / (pow(x,2)+pow(y,2)+pow(z,2))
+
+        theta = acos(1 - kappa * sqrt(pow(x,2)+pow(y,2))) if z > 0 else 2*pi - acos(1 - kappa * sqrt(pow(x,2)+pow(y,2)))
+
+        # print(phi)
+        # print(kappa)
+
+        l_1 = 2*self.n * sin( (kappa*self.l / 2*self.n) * (1/kappa - self.d*sin(phi)) )
+        l_2 = 2*self.n * sin( (kappa*self.l / 2*self.n) * (1/kappa + self.d*sin(phi + pi/3)) )
+        l_3 = 2*self.n * sin( (kappa*self.l / 2*self.n) * (1/kappa - self.d*cos(phi + pi/6)) )
+
+        print(l_1, l_2, l_3)
+
+        return l_1, l_2, l_3
+    
+    def run(self):
+        rope_1_zero = self.robot.motor_1.current_position
+        rope_2_zero = self.robot.motor_2.current_position
+        rope_3_zero = self.robot.motor_3.current_position
+
+        target_coordinate = (30,20,160)
+        rope_1, rope_2, rope_3 = self.config_space_single(target_coordinate)
+
+        self.robot.rope_move_rel("1", distance=rope_1, velocity=5, is_wait=False)
+        self.robot.rope_move_rel("2", distance=rope_2, velocity=5*rope_2/rope_1, is_wait=False)
+        self.robot.rope_move_rel("3", distance=rope_3, velocity=5*rope_3/rope_1, is_wait=False)
+
+        time.sleep(5)
+
+        self.robot.rope_move_rel("1", distance=-rope_1, velocity=5, is_wait=False)
+        self.robot.rope_move_rel("2", distance=-rope_2, velocity=5*rope_2/rope_1, is_wait=False)
+        self.robot.rope_move_rel("3", distance=-rope_3, velocity=5*rope_3/rope_1, is_wait=False)
+
+
+    
+if __name__ == "__main__":
+    kin = Kinematics(None)
+    kin.config_space_single((30,20,160))
