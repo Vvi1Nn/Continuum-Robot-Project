@@ -7,6 +7,7 @@
 from PyQt5.QtCore import QThread, pyqtSignal
 
 from math import *
+import numpy as np
 
 # 添加模块路径
 import sys, os, time
@@ -1583,53 +1584,103 @@ class Kinematics(QThread):
         self.robot = robot
 
         self.n = 10
-        self.d = 17 # mm
-        self.l = 170 # mmm
+        self.d = 2.5 # mm
+        self.l = 172 # mm
+
+        self.test = (50, 50, 150)
+    
+    def config_to_task(self, kappa, length, phi):
+        transform = np.array([
+            [cos(phi)*cos(phi*length), -sin(phi), cos(phi)*sin(kappa*length), cos(phi)*(1-cos(kappa*length))/kappa], 
+            [sin(phi)*cos(phi*length), cos(phi),  sin(phi)*sin(kappa*length), sin(phi)*(1-cos(kappa*length))/kappa],
+            [-sin(kappa*length),       0,         cos(kappa*length),          sin(kappa*length)/kappa],
+            [0,                        0,         0,                          1]
+            ])
+        
+        coordinate = np.array([[0], [0], [0], [1]])
+        
+        # print(transform)
+        print(np.matmul(transform, coordinate))
     
     def config_space_single(self, coordinate: tuple):
         x, y, z = coordinate
 
-        if x == 0:
-            if y > 0: phi = pi / 2
-            elif y < 0: phi = - pi / 2
-            else: phi = 0
-        else: phi = atan(y / x)
+        if z > self.l or z <= 0: return
+
+        if x > 0 and y == 0: phi = 0
+        elif x > 0 and y > 0: phi = atan(y / x)
+        elif x == 0 and y > 0: phi = pi / 2
+        elif x < 0 and y > 0: phi = atan(y / x) + pi
+        elif x < 0 and y == 0: phi = pi
+        elif x < 0 and y < 0: phi = atan(y / x) + pi
+        elif x == 0 and y < 0: phi = 1.5 * pi
+        elif x > 0 and y < 0: phi = atan(y / x) + 2 * pi
+        else: phi = None
 
         kappa = 2 * sqrt(pow(x,2)+pow(y,2)) / (pow(x,2)+pow(y,2)+pow(z,2))
 
-        theta = acos(1 - kappa * sqrt(pow(x,2)+pow(y,2))) if z > 0 else 2*pi - acos(1 - kappa * sqrt(pow(x,2)+pow(y,2)))
+        # theta = acos(1 - kappa * sqrt(pow(x,2)+pow(y,2))) if z > 0 else 2*pi - acos(1 - kappa * sqrt(pow(x,2)+pow(y,2)))
 
-        # print(phi)
-        # print(kappa)
+        print("phi =", phi)
+        print("kappa =", kappa)
 
-        l_1 = 2*self.n * sin( (kappa*self.l / 2*self.n) * (1/kappa - self.d*sin(phi)) )
-        l_2 = 2*self.n * sin( (kappa*self.l / 2*self.n) * (1/kappa + self.d*sin(phi + pi/3)) )
-        l_3 = 2*self.n * sin( (kappa*self.l / 2*self.n) * (1/kappa - self.d*cos(phi + pi/6)) )
+        if kappa != 0:
+            l_1 = 2 * self.n * sin(kappa * self.l / 2 / self.n) * (1 / kappa - self.d * sin(phi))
+            l_2 = 2 * self.n * sin(kappa * self.l / 2 / self.n) * (1 / kappa + self.d * sin(phi + pi/3))
+            l_3 = 2 * self.n * sin(kappa * self.l / 2 / self.n) * (1 / kappa - self.d * cos(phi + pi/6))
+        else:
+            l_1 = z
+            l_2 = z
+            l_3 = z
 
-        print(l_1, l_2, l_3)
+        print("l_1 =", l_1, "delta =", l_1-self.l)
+        print("l_2 =", l_2, "delta =", l_2-self.l)
+        print("l_3 =", l_3, "delta =", l_3-self.l)
 
         return l_1, l_2, l_3
     
     def run(self):
-        rope_1_zero = self.robot.motor_1.current_position
-        rope_2_zero = self.robot.motor_2.current_position
-        rope_3_zero = self.robot.motor_3.current_position
+        rope_1_current = self.l
+        rope_2_current = self.l
+        rope_3_current = self.l
 
-        target_coordinate = (30,20,160)
+        print("========== MOVE ==========")
+        target_coordinate = self.test
         rope_1, rope_2, rope_3 = self.config_space_single(target_coordinate)
 
-        self.robot.rope_move_rel("1", distance=rope_1, velocity=5, is_wait=False)
-        self.robot.rope_move_rel("2", distance=rope_2, velocity=5*rope_2/rope_1, is_wait=False)
-        self.robot.rope_move_rel("3", distance=rope_3, velocity=5*rope_3/rope_1, is_wait=False)
+        delta_1 = rope_1 - rope_1_current
+        delta_2 = rope_2 - rope_2_current
+        delta_3 = rope_3 - rope_3_current
 
-        time.sleep(5)
+        self.robot.rope_move_rel("1", distance=delta_1, velocity=1, is_wait=False)
+        self.robot.rope_move_rel("2", distance=delta_2, velocity=1*rope_2/rope_1, is_wait=False)
+        self.robot.rope_move_rel("3", distance=delta_3, velocity=1*rope_3/rope_1, is_wait=False)
 
-        self.robot.rope_move_rel("1", distance=-rope_1, velocity=5, is_wait=False)
-        self.robot.rope_move_rel("2", distance=-rope_2, velocity=5*rope_2/rope_1, is_wait=False)
-        self.robot.rope_move_rel("3", distance=-rope_3, velocity=5*rope_3/rope_1, is_wait=False)
+        rope_1_current = rope_1
+        rope_2_current = rope_2
+        rope_3_current = rope_3
+
+        time.sleep(1)
+
+        print("========== ZERO ==========")
+        rope_1, rope_2, rope_3 = self.l, self.l, self.l
+
+        delta_1 = rope_1 - rope_1_current
+        delta_2 = rope_2 - rope_2_current
+        delta_3 = rope_3 - rope_3_current
+
+        self.robot.rope_move_rel("1", distance=delta_1, velocity=1, is_wait=False)
+        self.robot.rope_move_rel("2", distance=delta_2, velocity=1*rope_2/rope_1, is_wait=False)
+        self.robot.rope_move_rel("3", distance=delta_3, velocity=1*rope_3/rope_1, is_wait=False)
+
+        rope_1_current = rope_1
+        rope_2_current = rope_2
+        rope_3_current = rope_3
 
 
     
 if __name__ == "__main__":
     kin = Kinematics(None)
-    kin.config_space_single((30,20,160))
+    kin.config_space_single(kin.test)
+
+    kin.config_to_task(0.00514259,172,0.78539816)
