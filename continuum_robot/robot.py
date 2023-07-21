@@ -100,6 +100,10 @@ class ContinuumRobot():
         self.__read_canopen_thread = CANopenUpdate(pdo_1_slot_function=pdo_1_slot_function, pdo_2_slot_function=pdo_2_slot_function, pdo_4_slot_function=pdo_4_slot_function, status_signal=status_signal)
         self.__read_sensor_thread = SensorResolve(update_signal=update_signal)
 
+        self.backbone_length = [168, 170, 172]
+        self.backbone_curvature = [0, 0, 0]
+        self.backbone_rotation_angle = [0, 0, 0]
+
     def open_device(self) -> bool:
         if UsbCan.open_device():
             
