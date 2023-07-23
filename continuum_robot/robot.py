@@ -104,6 +104,14 @@ class ContinuumRobot():
         self.backbone_curvature = [0, 0, 0]
         self.backbone_rotation_angle = [0, 0, 0]
 
+        self.outside_calibration = [None, None, None] # 1 2 3
+        self.midside_calibration = [None, None, None] # 4 5 6
+        self.inside_calibration = [None, None, None] # 7 8 9
+
+        self.outside_length = [None, None, None] # 1 2 3
+        self.midside_length = [None, None, None] # 4 5 6
+        self.inside_length = [None, None, None] # 7 8 9
+
     def open_device(self) -> bool:
         if UsbCan.open_device():
             
@@ -1599,12 +1607,45 @@ class Kinematics(QThread):
             [sin(phi)*cos(phi*length), cos(phi),  sin(phi)*sin(kappa*length), sin(phi)*(1-cos(kappa*length))/kappa],
             [-sin(kappa*length),       0,         cos(kappa*length),          sin(kappa*length)/kappa],
             [0,                        0,         0,                          1]
-            ])
+        ])
         
         coordinate = np.array([[0], [0], [0], [1]])
         
         # print(transform)
         print(np.matmul(transform, coordinate))
+    
+    def config_to_actuator(self, kappa_dot, phi_dot, l_dot):
+        # 第3节
+        # l = self.robot.backbone_length[2]
+        # kappa = self.robot.backbone_curvature[2]
+        # phi = self.robot.backbone_rotation_angle[2]
+
+        l = 172
+        kappa = 0.005
+        phi = 0
+        
+        param_1 = cos((kappa * l) / (2 * self.n))
+        param_2 = sin((kappa * l) / (2 * self.n))
+        param_3 = 2 * self.n / pow(kappa, 2)
+        param_4 = 2 * self.n * self.d
+        param_5 = 1 / kappa - self.d * sin(phi)
+        param_6 = 1 / kappa + self.d * sin(pi/3 + phi)
+        param_7 = 1 / kappa - self.d * cos(pi/6 + phi)
+        
+        transform = np.array([
+            [l*param_1*param_5 - param_3*param_2, -param_4*param_2*cos(phi),     kappa*param_1*param_5],
+            [l*param_1*param_6 - param_3*param_2, param_4*param_2*cos(pi/3+phi), kappa*param_1*param_6],
+            [l*param_1*param_7 - param_3*param_2, param_4*param_2*sin(pi/6+phi), kappa*param_1*param_7]
+        ])
+
+        config_dot = np.array([[kappa_dot, phi_dot, l_dot]]).T
+
+        actuator_dot = np.matmul(transform, config_dot)
+        print("l_1_dot =", actuator_dot[0, 0])
+        print("l_2_dot =", actuator_dot[1, 0])
+        print("l_3_dot =", actuator_dot[2, 0])
+
+        return actuator_dot
     
     def config_space_single(self, coordinate: tuple):
         x, y, z = coordinate
@@ -1688,3 +1729,5 @@ if __name__ == "__main__":
     kin.config_space_single(kin.test)
 
     kin.config_to_task(0.00514259,172,0.78539816)
+
+    kin.config_to_actuator(0, 1, 0)
