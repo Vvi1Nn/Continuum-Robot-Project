@@ -12,7 +12,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 
 
-class JoystickThread(QThread):
+class Joystick(QThread):
     button_signal_0 = pyqtSignal(int)
     button_signal_1 = pyqtSignal(int)
     button_signal_2 = pyqtSignal(int)
