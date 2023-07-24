@@ -64,14 +64,18 @@ class ControlPanel(QMainWindow):
         self.ui.test_9.clicked.connect(self.force_test_stop)
 
         # self.ui.test_10.clicked.connect(self.force_set_zero)
+        self.ui.test_10.clicked.connect(self.robot.compute_test)
 
         # self.ui.test_11.clicked.connect(lambda: self.robot.rope_move("1", 3, 1, is_relative=True))
         # self.ui.test_12.clicked.connect(lambda: self.robot.rope_move("1", -3, 1, is_relative=True))
         # self.ui.test_11.clicked.connect(self.robot.back)
 
-        self.ui.test_12.clicked.connect(self.robot.kinematics_test)
+        self.ui.test_12.pressed.connect(self.robot.kinematics_test)
+        self.ui.test_12.released.connect(self.robot.kinematics_test_stop)
 
         # self.ui.test_13.clicked.connect(self.robot.forward)
+
+        self.ui.bt_cali.clicked.connect(self.calibration)
         
         self.show() # 显示界面
 
@@ -81,6 +85,7 @@ class ControlPanel(QMainWindow):
         ''' 菜单 '''
         self.ui.control_panel.triggered.connect(lambda: self.ui.stackedWidget.setCurrentIndex(0))
         self.ui.set_zero_panel.triggered.connect(lambda: self.ui.stackedWidget.setCurrentIndex(1))
+        self.ui.kinematics_panel.triggered.connect(lambda: self.ui.stackedWidget.setCurrentIndex(3))
 
         self.ui.statusBar.setSizeGripEnabled(False)
         self.ui.statusBar.showMessage("Welcome to Continnum Robot Control Panel", 10000)
@@ -388,6 +393,10 @@ class ControlPanel(QMainWindow):
                 else:
                     getattr(self.ui, "rope_{}".format(node_id)).setText("<span style=\"color:#ff0000;\">No Zero</span>")
                     getattr(self.ui, "rope_v_{}".format(node_id)).setText("<span style=\"color:#ff0000;\">No Zero</span>")
+
+                if self.robot.is_calibration:
+                    ...
+                else: ...
             
             # 位置
             position = getattr(self.robot, f"motor_{node_id}").current_position
@@ -782,7 +791,27 @@ class ControlPanel(QMainWindow):
         self.stretch_outide_thread.stop()
         
         self.stretch_outide_thread.wait()
+    
+    def calibration(self):
+        bl_o = float(self.ui.outside_length.text()) if self.ui.outside_length.text() != "" else float(self.ui.outside_length.placeholderText())
+        bl_m = float(self.ui.midside_length.text()) if self.ui.midside_length.text() != "" else float(self.ui.midside_length.placeholderText())
+        bl_i = float(self.ui.inside_length.text()) if self.ui.inside_length.text() != "" else float(self.ui.inside_length.placeholderText())
+        self.robot.calibration(bl_o, bl_m, bl_i)
+
+        def show():
+            self.ui.length_1.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_length[0], 2)))
+            self.ui.length_2.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_length[1], 2)))
+            self.ui.length_3.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_length[2], 2)))
+
+            self.ui.length_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_length[2], 2)))
+            self.ui.curvature_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_curvature[2], 6)))
+            self.ui.radius_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_rotation_angle[2], 2)))
+            
+            self.ui.x_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_coordinate[0], 2)))
+            self.ui.y_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_coordinate[1], 2)))
+            self.ui.z_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_coordinate[2], 2)))
         
+        self.robot.compute_test(show)
     
     
     
