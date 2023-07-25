@@ -14,17 +14,15 @@ from continuum_robot.processor import CanOpenBusProcessor
 
 
 class IoModule(CanOpenBusProcessor, QObject):
-    __update_signal = pyqtSignal()
+    show_valve = pyqtSignal()
 
     io_dict = {}
     
-    def __init__(self, node_id, /, *, update_output_status_slot_function) -> None:
+    def __init__(self, node_id) -> None:
         CanOpenBusProcessor.__init__(self, node_id)
         QObject.__init__(self)
 
         self.io_dict[node_id] = self
-
-        self.__update_signal.connect(update_output_status_slot_function)
 
         self.__is_initialized = False
 
@@ -136,7 +134,7 @@ class IoModule(CanOpenBusProcessor, QObject):
             
             while times != 0:
                 if self.rpdo("1", int(value_str, 2), format=8):
-                    self.__update_signal.emit() # 向外发送信号 提示更新状态显示
+                    self.show_valve.emit() # 向外发送信号 提示更新状态显示
 
                     if log: print("\033[0;32m[IO {}] OUTPUT STATUS: {}\033[0m".format(self.node_id, value_str))
                     else: pass
