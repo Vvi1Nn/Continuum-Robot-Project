@@ -26,14 +26,7 @@ class ContinuumRobot():
     ROPE_RATIO = 12536.512440
     VELOCITY_RATIO = 440
     
-    def __init__(self, /, *, 
-                 update_output_status_slot_function, 
-                 pdo_1_slot_function, 
-                 pdo_2_slot_function, 
-                 pdo_4_slot_function, 
-                 status_signal, 
-                 update_signal, 
-                 ) -> None:
+    def __init__(self) -> None:
         self.usbcan_0 = UsbCan.set_device_type(type="USBCAN2", index="0").is_show_log(False)("0")
         self.usbcan_1 = UsbCan.set_device_type(type="USBCAN2", index="0").is_show_log(False)("1")
 
@@ -68,7 +61,7 @@ class ContinuumRobot():
         self.sensor_9 = Sensor(9)
         self.sensor_10 = Sensor(10)
 
-        self.io = IoModule(11, update_output_status_slot_function=update_output_status_slot_function)
+        self.io = IoModule(11)
 
         self.ballscrew_is_set_zero = False
 
@@ -97,10 +90,11 @@ class ContinuumRobot():
         self.rope_8_velocity = None
         self.rope_9_velocity = None
 
-        self.__read_canopen_thread = CANopenUpdate(pdo_1_slot_function=pdo_1_slot_function, pdo_2_slot_function=pdo_2_slot_function, pdo_4_slot_function=pdo_4_slot_function, status_signal=status_signal)
-        self.__read_sensor_thread = SensorResolve(update_signal=update_signal)
+        self.read_canopen_thread = CANopenUpdate(self)
+        
+        self.read_sensor_thread = SensorResolve()
 
-        self.__joystick_thread = Joystick()
+        self.joystick_thread = Joystick()
 
         self.backbone_length = [168, 170, 172]
         self.backbone_length_d = [0, 0, 0]
@@ -124,16 +118,18 @@ class ContinuumRobot():
         self.inside_length = [None, None, None] # 7 8 9
 
         self.outside_coordinate = (None, None, None)
+        self.midside_coordinate = (None, None, None)
+        self.inside_coordinate = (None, None, None)
 
     def open_device(self) -> bool:
         if UsbCan.open_device():
             
             if not self.usbcan_0_is_start and self.usbcan_0.init_can() and self.usbcan_0.start_can():
-                self.__read_canopen_thread.start()
+                self.read_canopen_thread.start()
                 self.usbcan_0_is_start = True
 
             if not self.usbcan_1_is_start and self.usbcan_1.init_can() and self.usbcan_1.start_can():
-                self.__read_sensor_thread.start()
+                self.read_sensor_thread.start()
                 self.usbcan_1_is_start = True
         
         return self.usbcan_0_is_start and self.usbcan_1_is_start
@@ -292,10 +288,6 @@ class ContinuumRobot():
         self.kinematics_thread.stop()
         self.kinematics_thread.wait()
 
-    def compute_test(self, slot_func):
-        self.compute_test_thread = ComputeKinematicsParam(self, slot_func)
-        self.compute_test_thread.start()
-
     ''' 标定 初始状态 曲率0 长度已知 '''
     def calibration(self, bl_o: float, bl_m: float, bl_i: float):
         self.backbone_length[0] = bl_i
@@ -305,6 +297,14 @@ class ContinuumRobot():
         self.outside_calibration[0] = self.motor_1.current_position
         self.outside_calibration[1] = self.motor_2.current_position
         self.outside_calibration[2] = self.motor_3.current_position
+
+        self.midside_calibration[0] = self.motor_4.current_position
+        self.midside_calibration[1] = self.motor_5.current_position
+        self.midside_calibration[2] = self.motor_6.current_position
+
+        self.inside_calibration[0] = self.motor_7.current_position
+        self.inside_calibration[1] = self.motor_8.current_position
+        self.inside_calibration[2] = self.motor_9.current_position
 
         self.is_calibration = True
 
@@ -321,7 +321,9 @@ class ContinuumRobot():
             if param_3 > 0: phi = pi/2
             elif param_3 == 0: phi = 0
             elif param_3 < 0: phi = 3*pi/2
-        elif param_4 > 0: phi = atan(1/sqrt(3)*param_3/param_4)
+        elif param_4 > 0:
+            if param_3 >= 0: phi = atan(1/sqrt(3)*param_3/param_4)
+            else: phi = atan(1/sqrt(3)*param_3/param_4) + 2*pi
         elif param_4 < 0: phi = atan(1/sqrt(3)*param_3/param_4) + pi
 
         if param_1 == 0: s = param_2 / 3
@@ -404,19 +406,26 @@ class ContinuumRobot():
         kappa = self.backbone_curvature[2]
         phi = self.backbone_rotation_angle[2]
         
-        param_1 = cos((kappa * s) / (2 * n))
-        param_2 = sin((kappa * s) / (2 * n))
-        param_3 = 2 * n / pow(kappa, 2)
-        param_4 = 2 * n * d
-        param_5 = 1 / kappa - d * sin(phi)
-        param_6 = 1 / kappa + d * sin(pi/3 + phi)
-        param_7 = 1 / kappa - d * cos(pi/6 + phi)
-        
-        transform = np.array([
-            [s*param_1*param_5 - param_3*param_2, -param_4*param_2*cos(phi),     kappa*param_1*param_5],
-            [s*param_1*param_6 - param_3*param_2, param_4*param_2*cos(pi/3+phi), kappa*param_1*param_6],
-            [s*param_1*param_7 - param_3*param_2, param_4*param_2*sin(pi/6+phi), kappa*param_1*param_7]
-        ])
+        if kappa != 0:
+            param_1 = cos((kappa * s) / (2 * n))
+            param_2 = sin((kappa * s) / (2 * n))
+            param_3 = 2 * n / pow(kappa, 2)
+            param_4 = 2 * n * d
+            param_5 = 1 / kappa - d * sin(phi)
+            param_6 = 1 / kappa + d * sin(pi/3 + phi)
+            param_7 = 1 / kappa - d * sin(pi/6 + phi)
+            
+            transform = np.array([
+                [s*param_1*param_5 - param_3*param_2, -param_4*param_2*cos(phi),      kappa*param_1*param_5],
+                [s*param_1*param_6 - param_3*param_2, param_4*param_2*cos(pi/3+phi),  kappa*param_1*param_6],
+                [s*param_1*param_7 - param_3*param_2, -param_4*param_2*cos(pi/6+phi), kappa*param_1*param_7],
+            ])
+        else:
+            transform = np.array([
+                [-s*d*sin(phi),      0, 1],
+                [s*d*sin(pi/3+phi),  0, 1],
+                [-s*d*sin(pi/6+phi), 0, 1],
+            ])
 
         config_d = np.array([[kappa_d, phi_d, s_d]]).T
 
@@ -460,39 +469,59 @@ class ContinuumRobot():
 
         return kappa_d, phi_d, s_d
 
-
-
+    '''  '''
+    def outside_curve(self):
+        self.outside_curvature_thread = SingleSectionKinematics(self, section="outside", config_d=(0, 0.001, 0))
+        self.outside_curvature_thread.start()
+    def outside_straighten(self):
+        self.outside_curvature_thread = SingleSectionKinematics(self, section="outside", config_d=(0, -0.001, 0))
+        self.outside_curvature_thread.start()
+    def outside_curvature_stop(self):
+        self.outside_curvature_thread.stop()
+        self.outside_curvature_thread.wait()
+    def outside_rotate_forward(self):
+        self.outside_rotate_thread = SingleSectionKinematics(self, section="outside", config_d=(0, 0, 0.5))
+        self.outside_rotate_thread.start()
+    def outside_rotate_reverse(self):
+        self.outside_rotate_thread = SingleSectionKinematics(self, section="outside", config_d=(0, 0, -0.5))
+        self.outside_rotate_thread.start()
+    def outside_rotate_stop(self):
+        self.outside_rotate_thread.stop()
+        self.outside_rotate_thread.wait()
 
 
 
 ''' CANopen 接收 数据处理 '''
 class CANopenUpdate(QThread):
-    __pdo_1_update_signal = pyqtSignal(int)
-    __pdo_2_update_signal = pyqtSignal(int)
-    __pdo_4_update_signal = pyqtSignal(int)
+    show_motor_status = pyqtSignal(int)
+    show_motor_original = pyqtSignal(int)
+    show_motor_mode = pyqtSignal(int)
 
-    __status_signal = pyqtSignal(str)
+    show_switch = pyqtSignal()
+
+    status_signal = pyqtSignal(str)
+
+    show_ballscrew = pyqtSignal(bool)
+    show_rope = pyqtSignal(bool, int)
+
+    show_kinematics = pyqtSignal()
     
-    def __init__(self, /, *, pdo_1_slot_function=None, pdo_2_slot_function=None, pdo_4_slot_function=None, status_signal=None) -> None:
+    def __init__(self, robot: ContinuumRobot) -> None:
         super().__init__()
+
+        self.robot = robot
+
         self.__is_stop = False
-
-        if pdo_1_slot_function != None: self.__pdo_1_update_signal.connect(pdo_1_slot_function)
-        if pdo_2_slot_function != None: self.__pdo_2_update_signal.connect(pdo_2_slot_function)
-        if pdo_4_slot_function != None: self.__pdo_4_update_signal.connect(pdo_4_slot_function)
-
-        if status_signal != None: self.__status_signal.connect(status_signal)
     
     def run(self):
         print("CANopen Update Thread Started")
-        self.__status_signal.emit("CANopen Update Thread Started !")
+        self.status_signal.emit("CANopen Update Thread Started !")
         
         while not self.__is_stop:
             ret = CanOpenBusProcessor.device.read_buffer(1, wait_time=0)
             
             if ret != None:
                 [num, msg] = ret
-                
                 for i in range(num):
                     # TPDO1
                     if msg[i].ID > 0x180 and msg[i].ID < 0x200:
@@ -507,6 +536,8 @@ class CANopenUpdate(QThread):
                                     if status == r:
                                         Motor.motor_dict[node_id].servo_status = key # 更新电机的伺服状态
                                         break
+                            
+                            self.show_motor_status.emit(node_id)
                         
                         # IO模块的ID
                         elif node_id in IoModule.io_dict.keys():
@@ -520,33 +551,43 @@ class CANopenUpdate(QThread):
 
                             for i, c in enumerate(data):
                                 setattr(IoModule.io_dict[node_id], f"input_{16-i}", False if c == "0" else True)
-                        # 其他的ID
-                        else: pass
 
-                        self.__pdo_1_update_signal.emit(node_id)
+                            self.show_switch.emit()
                     
                     # TPDO2
                     elif msg[i].ID > 0x280 and msg[i].ID < 0x300:
                         node_id = msg[i].ID - 0x280
                         
-                        # 电机的ID
                         if node_id in Motor.motor_dict.keys():
                             position = self.__hex_list_to_int([msg[i].Data[j] for j in range(0,4)]) # 当前位置
                             speed = self.__hex_list_to_int([msg[i].Data[j] for j in range(4,8)]) # 当前速度
 
                             Motor.motor_dict[node_id].current_position = position
                             Motor.motor_dict[node_id].current_speed = speed
-                        
-                        # 其他的ID
-                        else: pass
 
-                        self.__pdo_2_update_signal.emit(node_id)
-                    
+                            self.show_motor_original.emit(node_id)
+
+                            if node_id == 10:
+                                if self.robot.ballscrew_is_set_zero:
+                                    self.robot.ballscrew_position = (self.robot.motor_10.zero_position - self.robot.motor_10.current_position) / 5120
+                                    self.robot.ballscrew_velocity = self.robot.motor_10.current_speed * 440 / 5120
+
+                                self.show_ballscrew.emit(self.robot.ballscrew_is_set_zero)
+                            
+                            else:
+                                if self.robot.rope_is_set_zero:
+                                    position = (getattr(self.robot, f"motor_{node_id}").current_position - getattr(self.robot, f"motor_{node_id}").zero_position) / 12536.512440
+                                    setattr(self.robot, f"rope_{node_id}_position", position)
+
+                                    velocity = getattr(self.robot, f"motor_{node_id}").current_speed * 440 / 12536.512440
+                                    setattr(self.robot, f"rope_{node_id}_velocity", velocity)
+                                
+                                self.show_rope.emit(self.robot.rope_is_set_zero, node_id)
+
                     # TPDO4
                     elif msg[i].ID > 0x480 and msg[i].ID < 0x500:
                         node_id = msg[i].ID - 0x480
                         
-                        # 电机的ID
                         if node_id in Motor.motor_dict.keys():
                             control_mode = self.__hex_list_to_int([msg[i].Data[0]])
 
@@ -554,11 +595,8 @@ class CANopenUpdate(QThread):
                                 if control_mode == Motor.CONTROL_MODE[key]:
                                     Motor.motor_dict[node_id].control_mode = key
                                     break
-                        
-                        # 其他的ID
-                        else: pass
 
-                        self.__pdo_4_update_signal.emit(node_id)
+                            self.show_motor_mode.emit(node_id)
                     
                     # SDO
                     elif msg[i].ID > 0x580 and msg[i].ID < 0x600:
@@ -575,7 +613,6 @@ class CANopenUpdate(QThread):
                             if index == CanOpenBusProcessor.OD[key]: # 在每一个关键字对应的列表中 核对数值
                                 label = key
                                 break
-                            else: pass
                         else: label = ""
                         
                         value_list = [msg[i].Data[j] for j in range(4,8)]
@@ -590,7 +627,7 @@ class CANopenUpdate(QThread):
 
                         # print("[SDO NEW {}] ".format(node_id), CanOpenBusProcessor.node_dict[node_id].sdo_feedback)
                         print("\033[0;34m[SDO {}] {}\033[0m".format(node_id, CanOpenBusProcessor.node_dict[node_id].sdo_feedback))
-                        self.__status_signal.emit("[Node {}] Get SDO response, object is {}, status is {}, value is {}".format(node_id, label, status, hex(self.__hex_list_to_int(value_list))))
+                        self.status_signal.emit("[Node {}] Get SDO response, object is {}, status is {}, value is {}".format(node_id, label, status, hex(self.__hex_list_to_int(value_list))))
                     
                     # NMT
                     elif msg[i].ID > 0x700 and msg[i].ID < 0x780:
@@ -600,7 +637,6 @@ class CANopenUpdate(QThread):
                             if msg[0].Data[0] & 0b01111111 == CanOpenBusProcessor.NMT_STATUS[key]:
                                 label = key
                                 break
-                            else: pass
                         else: label = ""
 
                         # print("old  ", CanOpenBusProcessor.node_dict[node_id].nmt_feedback)
@@ -609,13 +645,25 @@ class CANopenUpdate(QThread):
                         
                         # print("[NMT NEW {}] ".format(node_id), CanOpenBusProcessor.node_dict[node_id].nmt_feedback)
                         print("\033[0;34m[NMT {}] {}\033[0m".format(node_id, CanOpenBusProcessor.node_dict[node_id].nmt_feedback))
-                        self.__status_signal.emit("[Node {}] Get NMT response, bus status is {}".format(node_id, label))
-                    
-                    # 其他
-                    else: pass
+                        self.status_signal.emit("[Node {}] Get NMT response, bus status is {}".format(node_id, label))
+                   
+            if self.robot.is_calibration:
+                self.robot.outside_length[0] = self.robot.backbone_length[2] + (self.robot.motor_1.current_position - self.robot.outside_calibration[0]) / self.robot.ROPE_RATIO
+                self.robot.outside_length[1] = self.robot.backbone_length[2] + (self.robot.motor_2.current_position - self.robot.outside_calibration[1]) / self.robot.ROPE_RATIO
+                self.robot.outside_length[2] = self.robot.backbone_length[2] + (self.robot.motor_3.current_position - self.robot.outside_calibration[2]) / self.robot.ROPE_RATIO
+
+                s, kappa, phi = self.robot.actuator_to_config(self.robot.outside_length[0], self.robot.outside_length[1], self.robot.outside_length[2])
+                # self.robot.backbone_length[2] = s
+                self.robot.backbone_curvature[2] = kappa
+                self.robot.backbone_rotation_angle[2] = phi
+
+                self.robot.outside_coordinate = self.robot.config_to_task(s, kappa, phi)
+
+                self.show_kinematics.emit()
+                
 
         print("CANopen Update Thread Stopped")
-        self.__status_signal.emit("CANopen Update Thread Stopped.")
+        self.status_signal.emit("CANopen Update Thread Stopped.")
     
     def stop(self):
         self.__is_stop = True
@@ -650,14 +698,12 @@ class CANopenUpdate(QThread):
 
 ''' 传感器 解析数据 '''
 class SensorResolve(QThread):
-    __update_signal = pyqtSignal(int)
+    show_force = pyqtSignal(int)
     
-    def __init__(self, /, *, update_signal=None) -> None:
+    def __init__(self) -> None:
         super().__init__()
 
         self.__is_stop = False
-
-        if update_signal != None: self.__update_signal.connect(update_signal)
     
     def run(self):
         print("Sensor Resolve Thread Started")
@@ -680,7 +726,7 @@ class SensorResolve(QThread):
 
                             Sensor.sensor_dict[msg[i].ID].force = (self.__hex_list_to_float([msg[i].Data[j] for j in range(2, 6)]) - Sensor.sensor_dict[msg[i].ID].zero) / 2
                         
-                            self.__update_signal.emit(msg[i].ID)
+                            self.show_force.emit(msg[i].ID)
         
         print("Sensor Resolve Thread Stopped")
 
@@ -1788,7 +1834,57 @@ class Back(QThread):
 
 
 
+class SingleSectionKinematics(QThread):
+    def __init__(self, robot: ContinuumRobot, /, *, section=None, config_d=None) -> None:
+        super().__init__()
 
+        self.robot = robot
+        self.__section = section
+
+        if config_d != None:
+            self.__s_d = config_d[0]
+            self.__kappa_d = config_d[1]
+            self.__phi_d = config_d[2]
+            self.__mode = "config_d"
+        else: self.__mode = None
+
+        self.__is_stop = False
+    
+    def run(self):
+        if self.__section == "outside":
+            self.robot.motor_1.set_control_mode("speed_control")
+            self.robot.motor_2.set_control_mode("speed_control")
+            self.robot.motor_3.set_control_mode("speed_control")
+
+            self.robot.motor_1.set_speed(0, is_pdo=True)
+            self.robot.motor_2.set_speed(0, is_pdo=True)
+            self.robot.motor_3.set_speed(0, is_pdo=True)
+
+            self.robot.motor_1.enable_operation(is_pdo=True)
+            self.robot.motor_2.enable_operation(is_pdo=True)
+            self.robot.motor_3.enable_operation(is_pdo=True)
+
+            while not self.__is_stop:
+                if self.__mode == "config_d":
+                    l_1_d, l_2_d, l_3_d = self.robot.config_to_actuator_jacobian(self.__s_d, self.__kappa_d, self.__phi_d)
+
+                    self.robot.rope_move_speed(("1", l_1_d), ("2", l_2_d), ("3", l_3_d))
+            
+            self.robot.motor_1.disable_operation(is_pdo=True)
+            self.robot.motor_2.disable_operation(is_pdo=True)
+            self.robot.motor_3.disable_operation(is_pdo=True)
+
+            self.robot.motor_1.set_speed(0, is_pdo=True)
+            self.robot.motor_2.set_speed(0, is_pdo=True)
+            self.robot.motor_3.set_speed(0, is_pdo=True)
+        
+        elif self.__section == "midside":
+            ...
+        elif self.__section == "inside":
+            ...
+    
+    def stop(self):
+        self.__is_stop = True
 
 class Kinematics(QThread):
     def __init__(self, robot: ContinuumRobot) -> None:
@@ -1930,20 +2026,27 @@ class Kinematics(QThread):
         s = 172
         kappa = 0.005
         phi = pi/2
-        
-        param_1 = cos((kappa * s) / (2 * n))
-        param_2 = sin((kappa * s) / (2 * n))
-        param_3 = 2 * n / pow(kappa, 2)
-        param_4 = 2 * n * d
-        param_5 = 1 / kappa - d * sin(phi)
-        param_6 = 1 / kappa + d * sin(pi/3 + phi)
-        param_7 = 1 / kappa - d * cos(pi/6 + phi)
-        
-        transform = np.array([
-            [s*param_1*param_5 - param_3*param_2, -param_4*param_2*cos(phi),     kappa*param_1*param_5],
-            [s*param_1*param_6 - param_3*param_2, param_4*param_2*cos(pi/3+phi), kappa*param_1*param_6],
-            [s*param_1*param_7 - param_3*param_2, param_4*param_2*sin(pi/6+phi), kappa*param_1*param_7]
-        ])
+
+        if kappa != 0:
+            param_1 = cos((kappa * s) / (2 * n))
+            param_2 = sin((kappa * s) / (2 * n))
+            param_3 = 2 * n / pow(kappa, 2)
+            param_4 = 2 * n * d
+            param_5 = 1 / kappa - d * sin(phi)
+            param_6 = 1 / kappa + d * sin(pi/3 + phi)
+            param_7 = 1 / kappa - d * cos(pi/6 + phi)
+            
+            transform = np.array([
+                [s*param_1*param_5 - param_3*param_2, -param_4*param_2*cos(phi),     kappa*param_1*param_5],
+                [s*param_1*param_6 - param_3*param_2, param_4*param_2*cos(pi/3+phi), kappa*param_1*param_6],
+                [s*param_1*param_7 - param_3*param_2, param_4*param_2*sin(pi/6+phi), kappa*param_1*param_7]
+            ])
+        else:
+            transform = np.array([
+                [-s*d*sin(phi),     0, 1],
+                [s*d*sin(pi/3+phi), 0, 1],
+                [s*d*sin(pi/6+phi), 0, 1],
+            ])
 
         config_d = np.array([[kappa_d, phi_d, s_d]]).T
 
@@ -2060,33 +2163,7 @@ class Kinematics(QThread):
     def stop(self):
         self.__is_stop = True
 
-class ComputeKinematicsParam(QThread):
-    __show = pyqtSignal()
-    
-    def __init__(self, robot: ContinuumRobot, slot_function=None) -> None:
-        super().__init__()
 
-        self.robot = robot
-        if slot_function != None: self.__show.connect(slot_function)
-        
-        self.__is_stop = False
-    
-    def run(self):
-        if self.robot.is_calibration:
-            while not self.__is_stop:
-                self.robot.outside_length[0] = self.robot.backbone_length[2] + (self.robot.motor_1.current_position - self.robot.outside_calibration[0]) / self.robot.ROPE_RATIO
-                self.robot.outside_length[1] = self.robot.backbone_length[2] + (self.robot.motor_2.current_position - self.robot.outside_calibration[1]) / self.robot.ROPE_RATIO
-                self.robot.outside_length[2] = self.robot.backbone_length[2] + (self.robot.motor_3.current_position - self.robot.outside_calibration[2]) / self.robot.ROPE_RATIO
-
-                s, kappa, phi = self.robot.actuator_to_config(self.robot.outside_length[0], self.robot.outside_length[1], self.robot.outside_length[2])
-                # self.robot.backbone_length[2] = s
-                self.robot.backbone_curvature[2] = kappa
-                self.robot.backbone_rotation_angle[2] = phi
-
-                self.robot.outside_coordinate = self.robot.config_to_task(s, kappa, phi)
-
-                self.__show.emit()
-    
 if __name__ == "__main__":
     kin = Kinematics(None)
     # kin.config_space_single(kin.test)
