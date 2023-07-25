@@ -9,7 +9,7 @@ from PyQt5.QtCore import QThread, pyqtSignal, QMutex
 
 
 # 添加模块路径
-import sys, os, time
+import sys, os, time, math
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from continuum_robot.control_panel import Ui_MainWindow as Ui_ControlPanel
@@ -30,12 +30,20 @@ class ControlPanel(QMainWindow):
         self.ui = Ui_ControlPanel()
         self.ui.setupUi(self)
 
-        self.robot = ContinuumRobot(update_output_status_slot_function=self.show_valve_status, 
-                                    pdo_1_slot_function=self.show_pdo_1, 
-                                    pdo_2_slot_function=self.show_pdo_2, 
-                                    pdo_4_slot_function=self.show_pdo_4, 
-                                    status_signal=self.show_status, 
-                                    update_signal=self.show_force)
+        self.robot = ContinuumRobot()
+        
+        self.robot.read_canopen_thread.show_motor_status.connect(self.show_motor_status)
+        self.robot.read_canopen_thread.show_motor_original.connect(self.show_motor_original)
+        self.robot.read_canopen_thread.show_motor_mode.connect(self.show_motor_mode)
+        self.robot.read_canopen_thread.show_switch.connect(self.show_switch)
+        self.robot.read_canopen_thread.status_signal.connect(self.show_status)
+        self.robot.read_canopen_thread.show_ballscrew.connect(self.show_ballscrew)
+        self.robot.read_canopen_thread.show_rope.connect(self.show_rope)
+        self.robot.read_canopen_thread.show_kinematics.connect(self.show_kinematics)
+
+        self.robot.io.show_valve.connect(self.show_valve)
+
+        self.robot.read_sensor_thread.show_force.connect(self.show_force)
         
         self.signal_connect_slot()
 
@@ -64,7 +72,7 @@ class ControlPanel(QMainWindow):
         self.ui.test_9.clicked.connect(self.force_test_stop)
 
         # self.ui.test_10.clicked.connect(self.force_set_zero)
-        self.ui.test_10.clicked.connect(self.robot.compute_test)
+        # self.ui.test_10.clicked.connect(self.robot.compute_test)
 
         # self.ui.test_11.clicked.connect(lambda: self.robot.rope_move("1", 3, 1, is_relative=True))
         # self.ui.test_12.clicked.connect(lambda: self.robot.rope_move("1", -3, 1, is_relative=True))
@@ -75,7 +83,7 @@ class ControlPanel(QMainWindow):
 
         # self.ui.test_13.clicked.connect(self.robot.forward)
 
-        self.ui.bt_cali.clicked.connect(self.calibration)
+        
         
         self.show() # 显示界面
 
@@ -235,218 +243,178 @@ class ControlPanel(QMainWindow):
         self.ui.extension.clicked.connect(self.robot.back)
         self.ui.retraction.clicked.connect(self.robot.forward)
 
+        self.ui.bt_cali.clicked.connect(self.calibration)
 
-    ''' 显示 TPDO1 '''
-    def show_pdo_1(self, node_id) -> None:
-        # 电机
-        if node_id in Motor.motor_dict.keys():
-            # 状态
-            status = getattr(self.robot, f"motor_{node_id}").servo_status
-            if status == "switch_on_disabled":
-                color, status = "#ffff00", "INIT"
-                
-                getattr(self.ui, "shut_down_{}".format(node_id)).setEnabled(True)
-                getattr(self.ui, "switch_on_{}".format(node_id)).setEnabled(False)
-                getattr(self.ui, "disable_voltage_{}".format(node_id)).setEnabled(False)
-                getattr(self.ui, "quick_stop_{}".format(node_id)).setEnabled(False)
-                getattr(self.ui, "disable_operation_{}".format(node_id)).setEnabled(False)
-                getattr(self.ui, "enable_operation_{}".format(node_id)).setEnabled(False)
-                getattr(self.ui, "fault_reset_{}".format(node_id)).setEnabled(False)
+        self.ui.curve_forward_out.pressed.connect(self.robot.outside_curve)
+        self.ui.curve_forward_out.released.connect(self.robot.outside_curvature_stop)
+        self.ui.curve_back_out.pressed.connect(self.robot.outside_straighten)
+        self.ui.curve_back_out.released.connect(self.robot.outside_curvature_stop)
+        self.ui.radius_forward_out.pressed.connect(self.robot.outside_rotate_forward)
+        self.ui.radius_forward_out.released.connect(self.robot.outside_rotate_stop)
+        self.ui.radius_back_out.pressed.connect(self.robot.outside_rotate_reverse)
+        self.ui.radius_back_out.released.connect(self.robot.outside_rotate_stop)
 
-                getattr(self.ui, "tab_motor_{}".format(node_id)).setEnabled(False)
 
-            elif status == "ready_to_switch_on":
-                color, status = "#ffff00","READY"
 
-                getattr(self.ui, "shut_down_{}".format(node_id)).setEnabled(False)
-                getattr(self.ui, "switch_on_{}".format(node_id)).setEnabled(True)
-                getattr(self.ui, "disable_voltage_{}".format(node_id)).setEnabled(True)
-                getattr(self.ui, "quick_stop_{}".format(node_id)).setEnabled(True)
-                getattr(self.ui, "disable_operation_{}".format(node_id)).setEnabled(False)
-                getattr(self.ui, "enable_operation_{}".format(node_id)).setEnabled(False)
-                getattr(self.ui, "fault_reset_{}".format(node_id)).setEnabled(False)
 
-                getattr(self.ui, "tab_motor_{}".format(node_id)).setEnabled(True)
-
-            elif status == "switched_on":
-                color, status = "#ffff00","DISABLE"
-                
-                getattr(self.ui, "shut_down_{}".format(node_id)).setEnabled(True)
-                getattr(self.ui, "switch_on_{}".format(node_id)).setEnabled(False)
-                getattr(self.ui, "disable_voltage_{}".format(node_id)).setEnabled(True)
-                getattr(self.ui, "quick_stop_{}".format(node_id)).setEnabled(True)
-                getattr(self.ui, "disable_operation_{}".format(node_id)).setEnabled(False)
-                getattr(self.ui, "enable_operation_{}".format(node_id)).setEnabled(True)
-                getattr(self.ui, "fault_reset_{}".format(node_id)).setEnabled(False)
-
-                getattr(self.ui, "tab_motor_{}".format(node_id)).setEnabled(True)
-
-            elif status == "operation_enable":
-                color, status = "#00ff00", "ENABLE"
-
-                getattr(self.ui, "shut_down_{}".format(node_id)).setEnabled(True)
-                getattr(self.ui, "switch_on_{}".format(node_id)).setEnabled(False)
-                getattr(self.ui, "disable_voltage_{}".format(node_id)).setEnabled(True)
-                getattr(self.ui, "quick_stop_{}".format(node_id)).setEnabled(True)
-                getattr(self.ui, "disable_operation_{}".format(node_id)).setEnabled(True)
-                getattr(self.ui, "enable_operation_{}".format(node_id)).setEnabled(False)
-                getattr(self.ui, "fault_reset_{}".format(node_id)).setEnabled(False)
-
-                getattr(self.ui, "tab_motor_{}".format(node_id)).setEnabled(True)
-
-            elif status == "quick_stop_active":
-                color, status = "#ff0000","STOP"
-
-                getattr(self.ui, "shut_down_{}".format(node_id)).setEnabled(False)
-                getattr(self.ui, "switch_on_{}".format(node_id)).setEnabled(False)
-                getattr(self.ui, "disable_voltage_{}".format(node_id)).setEnabled(True)
-                getattr(self.ui, "quick_stop_{}".format(node_id)).setEnabled(False)
-                getattr(self.ui, "disable_operation_{}".format(node_id)).setEnabled(False)
-                getattr(self.ui, "enable_operation_{}".format(node_id)).setEnabled(True)
-                getattr(self.ui, "fault_reset_{}".format(node_id)).setEnabled(False)
-
-                getattr(self.ui, "tab_motor_{}".format(node_id)).setEnabled(False)
-
-            elif status == "fault_reaction_active" or "fault":
-                color, status = "#ff0000","FAULT"
-
-                getattr(self.ui, "shut_down_{}".format(node_id)).setEnabled(False)
-                getattr(self.ui, "switch_on_{}".format(node_id)).setEnabled(False)
-                getattr(self.ui, "disable_voltage_{}".format(node_id)).setEnabled(False)
-                getattr(self.ui, "quick_stop_{}".format(node_id)).setEnabled(False)
-                getattr(self.ui, "disable_operation_{}".format(node_id)).setEnabled(False)
-                getattr(self.ui, "enable_operation_{}".format(node_id)).setEnabled(False)
-                getattr(self.ui, "fault_reset_{}".format(node_id)).setEnabled(True)
-
-                getattr(self.ui, "tab_motor_{}".format(node_id)).setEnabled(False)
-                
-            else:
-                color, status = "#0000ff","UNKNOWN"
-
-                getattr(self.ui, "shut_down_{}".format(node_id)).setEnabled(True)
-                getattr(self.ui, "switch_on_{}".format(node_id)).setEnabled(False)
-                getattr(self.ui, "disable_voltage_{}".format(node_id)).setEnabled(False)
-                getattr(self.ui, "quick_stop_{}".format(node_id)).setEnabled(False)
-                getattr(self.ui, "disable_operation_{}".format(node_id)).setEnabled(False)
-                getattr(self.ui, "enable_operation_{}".format(node_id)).setEnabled(False)
-                getattr(self.ui, "fault_reset_{}".format(node_id)).setEnabled(False)
-
-                getattr(self.ui, "tab_motor_{}".format(node_id)).setEnabled(False)
-            
-            status_str = "<span style=\"color:{};\">{}</span>".format(color, status)
-            getattr(self.ui, f"status_{node_id}").setText(status_str)
+    ''' 显示 电机状态 '''
+    def show_motor_status(self, node_id) -> None:
+        status = getattr(self.robot, f"motor_{node_id}").servo_status
         
-        # IO
-        elif node_id in IoModule.io_dict.keys():
-            if self.robot.io.input_1 or self.robot.io.input_1:
-                # 电机10关键动作
-                # 电机10关键动作
-                pass
-                
-                
-
-
-                # self.motor_10.set_servo_status("quick_stop") # 先停止电机10
-                # self.motor_10.permission = False # 取消运动权限
-                
-                
-
-
-                
-                # 电机10关键动作 
-                # 电机10关键动作
+        if status == "switch_on_disabled":
+            color, status = "#ffff00", "INIT"
             
-            warning = "<span style=\"color:#ff0000;\">{}</span>".format("WARNING")
-            clear = "<span style=\"color:#00ff00;\">{}</span>".format("CLEAR")
+            getattr(self.ui, "shut_down_{}".format(node_id)).setEnabled(True)
+            getattr(self.ui, "switch_on_{}".format(node_id)).setEnabled(False)
+            getattr(self.ui, "disable_voltage_{}".format(node_id)).setEnabled(False)
+            getattr(self.ui, "quick_stop_{}".format(node_id)).setEnabled(False)
+            getattr(self.ui, "disable_operation_{}".format(node_id)).setEnabled(False)
+            getattr(self.ui, "enable_operation_{}".format(node_id)).setEnabled(False)
+            getattr(self.ui, "fault_reset_{}".format(node_id)).setEnabled(False)
 
-            self.ui.switch_1.setText(warning if self.robot.io.input_1 else clear)
-            self.ui.switch_2.setText(warning if self.robot.io.input_2 else clear)
+            getattr(self.ui, "tab_motor_{}".format(node_id)).setEnabled(False)
 
-    ''' 显示 TPDO2 '''
-    def show_pdo_2(self, node_id) -> None:
-        # 电机
-        if node_id in Motor.motor_dict.keys():
-            if node_id == 10:
-                if self.robot.ballscrew_is_set_zero:
-                    self.robot.ballscrew_position = (self.robot.motor_10.zero_position - self.robot.motor_10.current_position) / 5120
-                    self.robot.ballscrew_velocity = self.robot.motor_10.current_speed * 440 / 5120
+        elif status == "ready_to_switch_on":
+            color, status = "#ffff00","READY"
 
-                    color = "#00ff00" if self.robot.ballscrew_position >=0 else "#ff0000"
+            getattr(self.ui, "shut_down_{}".format(node_id)).setEnabled(False)
+            getattr(self.ui, "switch_on_{}".format(node_id)).setEnabled(True)
+            getattr(self.ui, "disable_voltage_{}".format(node_id)).setEnabled(True)
+            getattr(self.ui, "quick_stop_{}".format(node_id)).setEnabled(True)
+            getattr(self.ui, "disable_operation_{}".format(node_id)).setEnabled(False)
+            getattr(self.ui, "enable_operation_{}".format(node_id)).setEnabled(False)
+            getattr(self.ui, "fault_reset_{}".format(node_id)).setEnabled(False)
 
-                    self.ui.ballscrew.setText("<span style=\"color:{};\">{}</span>".format(color, round(self.robot.ballscrew_position, 2)))
-                    self.ui.ballscrew_v.setText("<span style=\"color:{};\">{}</span>".format(color, round(self.robot.ballscrew_velocity, 2)))
-                else:
-                    self.ui.ballscrew.setText("<span style=\"color:#ff0000;\">No Zero</span>")
-                    self.ui.ballscrew_v.setText("<span style=\"color:#ff0000;\">No Zero</span>")
-            else:
-                if self.robot.rope_is_set_zero:
-                    position = (getattr(self.robot, f"motor_{node_id}").current_position - getattr(self.robot, f"motor_{node_id}").zero_position) / 12536.512440
-                    setattr(self.robot, f"rope_{node_id}_position", position)
+            getattr(self.ui, "tab_motor_{}".format(node_id)).setEnabled(True)
 
-                    velocity = getattr(self.robot, f"motor_{node_id}").current_speed * 440 / 12536.512440
-                    setattr(self.robot, f"rope_{node_id}_velocity", velocity)
-                    
-                    color = "#00ff00" if position >=0 else "#ff0000"
-                    
-                    getattr(self.ui, "rope_{}".format(node_id)).setText("<span style=\"color:{};\">{}</span>".format(color, round(position, 2)))
-                    getattr(self.ui, "rope_v_{}".format(node_id)).setText("<span style=\"color:{};\">{}</span>".format(color, round(velocity, 2)))
-                else:
-                    getattr(self.ui, "rope_{}".format(node_id)).setText("<span style=\"color:#ff0000;\">No Zero</span>")
-                    getattr(self.ui, "rope_v_{}".format(node_id)).setText("<span style=\"color:#ff0000;\">No Zero</span>")
-
-                if self.robot.is_calibration:
-                    ...
-                else: ...
+        elif status == "switched_on":
+            color, status = "#ffff00","DISABLE"
             
-            # 位置
-            position = getattr(self.robot, f"motor_{node_id}").current_position
+            getattr(self.ui, "shut_down_{}".format(node_id)).setEnabled(True)
+            getattr(self.ui, "switch_on_{}".format(node_id)).setEnabled(False)
+            getattr(self.ui, "disable_voltage_{}".format(node_id)).setEnabled(True)
+            getattr(self.ui, "quick_stop_{}".format(node_id)).setEnabled(True)
+            getattr(self.ui, "disable_operation_{}".format(node_id)).setEnabled(False)
+            getattr(self.ui, "enable_operation_{}".format(node_id)).setEnabled(True)
+            getattr(self.ui, "fault_reset_{}".format(node_id)).setEnabled(False)
 
-            max_position = getattr(self.robot, f"motor_{node_id}").max_position
-            min_position = getattr(self.robot, f"motor_{node_id}").min_position
-            if max_position != None and min_position != None:
-                range = max_position - min_position
+            getattr(self.ui, "tab_motor_{}".format(node_id)).setEnabled(True)
 
-                if position < max_position and position > min_position:
-                    if position <= min_position+range*0.1 or position >= max_position-range*0.1: color = "#ff0000"
-                    elif position > min_position+range*0.1 and position <= min_position+range*0.3 or position < max_position-range*0.1 and position >= max_position-range*0.3: color = "#ffff00"
-                    else: color = "#00ff00"
-                else: color = "#0000ff"
-            else: color = "#00ff00"
+        elif status == "operation_enable":
+            color, status = "#00ff00", "ENABLE"
 
-            position_str = "<span style=\"color:{};\">{}</span>".format(color, position)
+            getattr(self.ui, "shut_down_{}".format(node_id)).setEnabled(True)
+            getattr(self.ui, "switch_on_{}".format(node_id)).setEnabled(False)
+            getattr(self.ui, "disable_voltage_{}".format(node_id)).setEnabled(True)
+            getattr(self.ui, "quick_stop_{}".format(node_id)).setEnabled(True)
+            getattr(self.ui, "disable_operation_{}".format(node_id)).setEnabled(True)
+            getattr(self.ui, "enable_operation_{}".format(node_id)).setEnabled(False)
+            getattr(self.ui, "fault_reset_{}".format(node_id)).setEnabled(False)
 
-            getattr(self.ui, f"current_position_{node_id}").setText(position_str)
+            getattr(self.ui, "tab_motor_{}".format(node_id)).setEnabled(True)
+
+        elif status == "quick_stop_active":
+            color, status = "#ff0000","STOP"
+
+            getattr(self.ui, "shut_down_{}".format(node_id)).setEnabled(False)
+            getattr(self.ui, "switch_on_{}".format(node_id)).setEnabled(False)
+            getattr(self.ui, "disable_voltage_{}".format(node_id)).setEnabled(True)
+            getattr(self.ui, "quick_stop_{}".format(node_id)).setEnabled(False)
+            getattr(self.ui, "disable_operation_{}".format(node_id)).setEnabled(False)
+            getattr(self.ui, "enable_operation_{}".format(node_id)).setEnabled(True)
+            getattr(self.ui, "fault_reset_{}".format(node_id)).setEnabled(False)
+
+            getattr(self.ui, "tab_motor_{}".format(node_id)).setEnabled(False)
+
+        elif status == "fault_reaction_active" or "fault":
+            color, status = "#ff0000","FAULT"
+
+            getattr(self.ui, "shut_down_{}".format(node_id)).setEnabled(False)
+            getattr(self.ui, "switch_on_{}".format(node_id)).setEnabled(False)
+            getattr(self.ui, "disable_voltage_{}".format(node_id)).setEnabled(False)
+            getattr(self.ui, "quick_stop_{}".format(node_id)).setEnabled(False)
+            getattr(self.ui, "disable_operation_{}".format(node_id)).setEnabled(False)
+            getattr(self.ui, "enable_operation_{}".format(node_id)).setEnabled(False)
+            getattr(self.ui, "fault_reset_{}".format(node_id)).setEnabled(True)
+
+            getattr(self.ui, "tab_motor_{}".format(node_id)).setEnabled(False)
             
-            # 速度
-            speed = getattr(self.robot, f"motor_{node_id}").current_speed
+        else:
+            color, status = "#0000ff","UNKNOWN"
 
-            max_speed = getattr(self.robot, f"motor_{node_id}").max_speed
-            min_speed = getattr(self.robot, f"motor_{node_id}").min_speed
-            if max_position != None and min_position != None:
-                range = max_speed - min_speed
+            getattr(self.ui, "shut_down_{}".format(node_id)).setEnabled(True)
+            getattr(self.ui, "switch_on_{}".format(node_id)).setEnabled(False)
+            getattr(self.ui, "disable_voltage_{}".format(node_id)).setEnabled(False)
+            getattr(self.ui, "quick_stop_{}".format(node_id)).setEnabled(False)
+            getattr(self.ui, "disable_operation_{}".format(node_id)).setEnabled(False)
+            getattr(self.ui, "enable_operation_{}".format(node_id)).setEnabled(False)
+            getattr(self.ui, "fault_reset_{}".format(node_id)).setEnabled(False)
 
-                if speed <= max_speed and speed >= min_speed:
-                    if speed <= min_speed+range*0.1 or speed >= max_speed-range*0.1: color = "#ff0000"
-                    elif speed > min_speed+range*0.1 and speed <= min_speed+range*0.3 or speed < max_speed-range*0.1 and speed >= max_speed-range*0.3: color = "#ffff00"
-                    else: color = "#00ff00"
-                else: color = "#0000ff"
-            else: color = "#00ff00"
+            getattr(self.ui, "tab_motor_{}".format(node_id)).setEnabled(False)
+        
+        status_str = "<span style=\"color:{};\">{}</span>".format(color, status)
+        getattr(self.ui, f"status_{node_id}").setText(status_str)
 
-            speed_str = "<span style=\"color:{};\">{}</span>".format(color, speed)
+    ''' 显示 开关 '''
+    def show_switch(self) -> None:
+        if self.robot.io.input_1 or self.robot.io.input_1: pass
+        
+        warning = "<span style=\"color:#ff0000;\">{}</span>".format("WARNING")
+        clear = "<span style=\"color:#00ff00;\">{}</span>".format("CLEAR")
 
-            getattr(self.ui, f"current_velocity_{node_id}").setText(speed_str)
+        self.ui.switch_1.setText(warning if self.robot.io.input_1 else clear)
+        self.ui.switch_2.setText(warning if self.robot.io.input_2 else clear)
+
+    ''' 显示 原始位置速度 '''
+    def show_motor_original(self, node_id) -> None:
+        # 位置
+        position = getattr(self.robot, f"motor_{node_id}").current_position
+
+        max_position = getattr(self.robot, f"motor_{node_id}").max_position
+        min_position = getattr(self.robot, f"motor_{node_id}").min_position
+        if max_position != None and min_position != None:
+            range = max_position - min_position
+
+            if position < max_position and position > min_position:
+                if position <= min_position+range*0.1 or position >= max_position-range*0.1: color = "#ff0000"
+                elif position > min_position+range*0.1 and position <= min_position+range*0.3 or position < max_position-range*0.1 and position >= max_position-range*0.3: color = "#ffff00"
+                else: color = "#00ff00"
+            else: color = "#0000ff"
+        else: color = "#00ff00"
+
+        position_str = "<span style=\"color:{};\">{}</span>".format(color, position)
+
+        getattr(self.ui, f"current_position_{node_id}").setText(position_str)
+        
+        # 速度
+        speed = getattr(self.robot, f"motor_{node_id}").current_speed
+
+        max_speed = getattr(self.robot, f"motor_{node_id}").max_speed
+        min_speed = getattr(self.robot, f"motor_{node_id}").min_speed
+        if max_position != None and min_position != None:
+            range = max_speed - min_speed
+
+            if speed <= max_speed and speed >= min_speed:
+                if speed <= min_speed+range*0.1 or speed >= max_speed-range*0.1: color = "#ff0000"
+                elif speed > min_speed+range*0.1 and speed <= min_speed+range*0.3 or speed < max_speed-range*0.1 and speed >= max_speed-range*0.3: color = "#ffff00"
+                else: color = "#00ff00"
+            else: color = "#0000ff"
+        else: color = "#00ff00"
+
+        speed_str = "<span style=\"color:{};\">{}</span>".format(color, speed)
+
+        getattr(self.ui, f"current_velocity_{node_id}").setText(speed_str)
     
-    ''' 显示 TPDO4 '''
-    def show_pdo_4(self, node_id) -> None:
-        # 电机
-        if node_id in Motor.motor_dict.keys():
-            control_mode = getattr(self.robot, f"motor_{node_id}").control_mode
-            if control_mode == "position_control": mode_str = "<span style=\"color:#00ff00;\">POSITION</span>"
-            elif control_mode == "speed_control": mode_str = "<span style=\"color:#00ff00;\">SPEED</span>"
-            else: pass
-            getattr(self.ui, f"mode_{node_id}").setText(mode_str)
+    ''' 显示 控制模式 '''
+    def show_motor_mode(self, node_id) -> None:
+        control_mode = getattr(self.robot, f"motor_{node_id}").control_mode
+
+        if control_mode == "position_control": mode_str = "<span style=\"color:#00ff00;\">POSITION</span>"
+        elif control_mode == "speed_control": mode_str = "<span style=\"color:#00ff00;\">SPEED</span>"
+        
+        getattr(self.ui, f"mode_{node_id}").setText(mode_str)
     
-    ''' 显示 传感器 '''
+    ''' 显示 力 '''
     def show_force(self, node_id) -> None:
         if node_id in Sensor.sensor_dict.keys():
             force = getattr(self.robot, f"sensor_{node_id}").force
@@ -461,7 +429,7 @@ class ControlPanel(QMainWindow):
             getattr(self.ui, f"force_{node_id}").setText(force_str)
 
     ''' 显示 电磁阀 '''
-    def show_valve_status(self) -> None:
+    def show_valve(self) -> None:
         # 小爪 开启状态较为危险
         open = "<span style=\"color:#ffff00;\">{}</span>".format("OPEN")
         close = "<span style=\"color:#00ff00;\">{}</span>".format("CLOSE")
@@ -517,6 +485,47 @@ class ControlPanel(QMainWindow):
     ''' 显示 程序状态 '''
     def show_status(self, message) -> None:
         self.ui.statusBar.showMessage(message, 5000)
+    
+    ''' 显示 滚珠丝杠 '''
+    def show_ballscrew(self, is_zero):
+        if is_zero:
+            color = "#00ff00" if self.robot.ballscrew_position >= 0 else "#ff0000"
+
+            self.ui.ballscrew.setText("<span style=\"color:{};\">{}</span>".format(color, round(self.robot.ballscrew_position, 2)))
+            self.ui.ballscrew_v.setText("<span style=\"color:{};\">{}</span>".format(color, round(self.robot.ballscrew_velocity, 2)))
+        else:
+            self.ui.ballscrew.setText("<span style=\"color:#ff0000;\">No Zero</span>")
+            self.ui.ballscrew_v.setText("<span style=\"color:#ff0000;\">No Zero</span>")
+    
+    ''' 显示 绳 '''
+    def show_rope(self, is_zero, node_id):
+        if is_zero:
+            position = getattr(self.robot, f"rope_{node_id}_position")
+            velocity = getattr(self.robot, f"rope_{node_id}_velocity")
+            
+            color = "#00ff00" if position >= 0 else "#ff0000"
+            
+            getattr(self.ui, "rope_{}".format(node_id)).setText("<span style=\"color:{};\">{}</span>".format(color, round(position, 2)))
+            getattr(self.ui, "rope_v_{}".format(node_id)).setText("<span style=\"color:{};\">{}</span>".format(color, round(velocity, 2)))
+        else:
+            getattr(self.ui, "rope_{}".format(node_id)).setText("<span style=\"color:#ff0000;\">No Zero</span>")
+            getattr(self.ui, "rope_v_{}".format(node_id)).setText("<span style=\"color:#ff0000;\">No Zero</span>")
+
+    ''' 显示 运动学参数 '''
+    def show_kinematics(self):
+        self.ui.length_1.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_length[0], 2)))
+        self.ui.length_2.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_length[1], 2)))
+        self.ui.length_3.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_length[2], 2)))
+
+        self.ui.length_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_length[2], 2)))
+        if self.robot.backbone_curvature[2] > 0: self.ui.curvature_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_curvature[2], 5)))
+        else: self.ui.curvature_out.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.backbone_curvature[2], 5)))
+        self.ui.radius_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_rotation_angle[2]/math.pi*180, 2)))
+        
+        self.ui.x_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_coordinate[0], 2)))
+        self.ui.y_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_coordinate[1], 2)))
+        self.ui.z_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_coordinate[2], 2)))
+        
 
 
 
@@ -529,28 +538,6 @@ class ControlPanel(QMainWindow):
 
             self.show_status("Open Device !!!")
         else: self.show_status("Open Device Failed")
-
-        # if UsbCan.open_device():
-            
-        #     if not self.__usbcan_0_is_start and self.usbcan_0.init_can() and self.usbcan_0.start_can():
-        #         self.read_canopen_thread = CANopenUpdate(pdo_1_slot_function=self.show_pdo_1, pdo_2_slot_function=self.show_pdo_2, pdo_4_slot_function=self.show_pdo_4, status_signal=self.show_status)
-        #         self.read_canopen_thread.start()
-
-        #         self.__usbcan_0_is_start = True
-
-        #     if not self.__usbcan_1_is_start and self.usbcan_1.init_can() and self.usbcan_1.start_can():
-        #         self.read_sensor_thread = SensorResolve(update_signal=self.show_force)
-        #         self.read_sensor_thread.start()
-
-        #         self.__usbcan_1_is_start = True
-
-        #     if self.__usbcan_0_is_start and self.__usbcan_1_is_start:
-        #         self.ui.bt_open_device.setEnabled(False)
-
-        #         self.ui.bt_init_robot.setEnabled(True)
-
-        #         self.show_status("Open Device !!!")
-        # else: self.show_status("Open Device Failed")
     
     ''' 初始化机器人 '''
     def initialize_robot(self) -> None:
@@ -797,22 +784,6 @@ class ControlPanel(QMainWindow):
         bl_m = float(self.ui.midside_length.text()) if self.ui.midside_length.text() != "" else float(self.ui.midside_length.placeholderText())
         bl_i = float(self.ui.inside_length.text()) if self.ui.inside_length.text() != "" else float(self.ui.inside_length.placeholderText())
         self.robot.calibration(bl_o, bl_m, bl_i)
-
-        def show():
-            self.ui.length_1.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_length[0], 2)))
-            self.ui.length_2.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_length[1], 2)))
-            self.ui.length_3.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_length[2], 2)))
-
-            self.ui.length_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_length[2], 2)))
-            self.ui.curvature_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_curvature[2], 6)))
-            self.ui.radius_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_rotation_angle[2], 2)))
-            
-            self.ui.x_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_coordinate[0], 2)))
-            self.ui.y_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_coordinate[1], 2)))
-            self.ui.z_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_coordinate[2], 2)))
-        
-        self.robot.compute_test(show)
-    
     
     
     
