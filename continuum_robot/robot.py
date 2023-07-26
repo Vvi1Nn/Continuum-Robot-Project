@@ -96,26 +96,33 @@ class ContinuumRobot():
 
         self.joystick_thread = Joystick()
 
-        self.backbone_length = [168, 170, 172]
-        self.backbone_length_d = [0, 0, 0]
+        self.backbone_length = [168, 170, 172] # in mid out
+        # self.backbone_length_d = [0, 0, 0]
 
-        self.backbone_curvature = [0, 0, 0]
-        self.backbone_curvature_d = [0, 0, 0]
+        self.backbone_curvature = [None, None, None] # in mid out
+        # self.backbone_curvature_d = [0, 0, 0]
 
-        self.backbone_rotation_angle = [0, 0, 0]
-        self.backbone_rotation_angle_d = [0, 0, 0]
+        self.backbone_rotation_angle = [None, None, None] # in mid out
+        # self.backbone_rotation_angle_d = [0, 0, 0]
 
         self.backbone_section_num = [9, 10, 10]
-        self.backbone_d = 2.5
+        self.backbone_d = 2.6
 
-        self.outside_calibration = [None, None, None] # 1 2 3
-        self.midside_calibration = [None, None, None] # 4 5 6
-        self.inside_calibration = [None, None, None] # 7 8 9
+        # self.outside_calibration = [None, None, None] # 1 2 3
+        # self.midside_calibration = [None, None, None] # 4 5 6
+        # self.inside_calibration = [None, None, None] # 7 8 9
+
         self.is_calibration = False
+        self.rope_zero_position = [None, None, None, None, None, None, None, None, None] # 123456789
+        self.rope_init_length = [None, None, None, None, None, None, None, None, None] # 123456789
+        self.rope_total_length = [None, None, None, None, None, None, None, None, None] # 123456789
+        self.rope_outside_length = [None, None, None] # 123
+        self.rope_midside_length = [None, None, None, None, None, None] # 123456
+        self.rope_inside_length = [None, None, None, None, None, None, None, None, None] # 123456789
 
-        self.outside_length = [None, None, None] # 1 2 3
-        self.midside_length = [None, None, None] # 4 5 6
-        self.inside_length = [None, None, None] # 7 8 9
+        # self.outside_length = [None, None, None] # 1 2 3
+        # self.midside_length = [None, None, None] # 4 5 6
+        # self.inside_length = [None, None, None] # 7 8 9
 
         self.outside_coordinate = (None, None, None)
         self.midside_coordinate = (None, None, None)
@@ -290,21 +297,19 @@ class ContinuumRobot():
 
     ''' 标定 初始状态 曲率0 长度已知 '''
     def calibration(self, bl_o: float, bl_m: float, bl_i: float):
-        self.backbone_length[0] = bl_i
-        self.backbone_length[1] = bl_m
-        self.backbone_length[2] = bl_o
+        self.rope_zero_position = [getattr(self, f"motor_{i}").current_position for i in range(1,10)]
 
-        self.outside_calibration[0] = self.motor_1.current_position
-        self.outside_calibration[1] = self.motor_2.current_position
-        self.outside_calibration[2] = self.motor_3.current_position
+        self.rope_init_length = [bl_o+bl_m+bl_i, bl_o+bl_m+bl_i, bl_o+bl_m+bl_i, 
+                                 bl_m+bl_i,      bl_m+bl_i,      bl_m+bl_i, 
+                                 bl_i,           bl_i,           bl_i]
+        
+        self.rope_inside_length = [bl_i, bl_i, bl_i, bl_i, bl_i, bl_i, bl_i, bl_i, bl_i] # 123456789
+        self.rope_midside_length = [bl_m, bl_m, bl_m, bl_m, bl_m, bl_m] # 123456
+        self.rope_outside_length = [bl_o, bl_o, bl_o] # 123
 
-        self.midside_calibration[0] = self.motor_4.current_position
-        self.midside_calibration[1] = self.motor_5.current_position
-        self.midside_calibration[2] = self.motor_6.current_position
-
-        self.inside_calibration[0] = self.motor_7.current_position
-        self.inside_calibration[1] = self.motor_8.current_position
-        self.inside_calibration[2] = self.motor_9.current_position
+        self.backbone_length = [bl_i, bl_m, bl_o] # in mid out
+        self.backbone_curvature = [0, 0, 0] # in mid out
+        self.backbone_rotation_angle = [0, 0, 0] # in mid out
 
         self.is_calibration = True
 
@@ -398,47 +403,92 @@ class ContinuumRobot():
         return l_1, l_2, l_3
 
     ''' 逆雅可比 '''
-    def config_to_actuator_jacobian(self, s_d: float, kappa_d: float, phi_d: float):
-        n = self.backbone_section_num[2]
-        d = self.backbone_d
-
-        s = self.backbone_length[2]
-        kappa = self.backbone_curvature[2]
-        phi = self.backbone_rotation_angle[2]
-        
-        if kappa != 0:
-            param_1 = cos((kappa * s) / (2 * n))
-            param_2 = sin((kappa * s) / (2 * n))
-            param_3 = 2 * n / pow(kappa, 2)
-            param_4 = 2 * n * d
-            param_5 = 1 / kappa - d * sin(phi)
-            param_6 = 1 / kappa + d * sin(pi/3 + phi)
-            param_7 = 1 / kappa - d * sin(pi/6 + phi)
-            
-            transform = np.array([
-                [s*param_1*param_5 - param_3*param_2, -param_4*param_2*cos(phi),      kappa*param_1*param_5],
-                [s*param_1*param_6 - param_3*param_2, param_4*param_2*cos(pi/3+phi),  kappa*param_1*param_6],
-                [s*param_1*param_7 - param_3*param_2, -param_4*param_2*cos(pi/6+phi), kappa*param_1*param_7],
-            ])
-        else:
-            transform = np.array([
-                [-s*d*sin(phi),      0, 1],
-                [s*d*sin(pi/3+phi),  0, 1],
-                [-s*d*sin(pi/6+phi), 0, 1],
-            ])
-
+    def config_to_actuator_jacobian(self, section: str, s_d: float, kappa_d: float, phi_d: float):
         config_d = np.array([[kappa_d, phi_d, s_d]]).T
 
-        actuator_d = np.matmul(transform, config_d)
+        def jacobian(n, s, kappa, phi):
+            if kappa != 0:
+                param_1 = cos((kappa * s) / (2 * n))
+                param_2 = sin((kappa * s) / (2 * n))
+                param_3 = 2 * n / pow(kappa, 2)
+                param_4 = 2 * n * self.backbone_d
+                param_5 = 1 / kappa - self.backbone_d * sin(phi)
+                param_6 = 1 / kappa + self.backbone_d * sin(pi/3 + phi)
+                param_7 = 1 / kappa - self.backbone_d * cos(pi/6 + phi)
+                
+                transform = np.array([
+                    [s*param_1*param_5 - param_3*param_2, -param_4*param_2*cos(phi),     kappa*param_1*param_5],
+                    [s*param_1*param_6 - param_3*param_2, param_4*param_2*cos(pi/3+phi), kappa*param_1*param_6],
+                    [s*param_1*param_7 - param_3*param_2, param_4*param_2*sin(pi/6+phi), kappa*param_1*param_7],
+                ])
+            else:
+                transform = np.array([
+                    [-s*self.backbone_d*sin(phi),      0, 1],
+                    [s*self.backbone_d*sin(pi/3+phi),  0, 1],
+                    [-s*self.backbone_d*cos(pi/6+phi), 0, 1], 
+                ])
+            return transform
+        
+        if section == "outside":
+            n = self.backbone_section_num[2]
+            s = self.backbone_length[2]
+            kappa = self.backbone_curvature[2]
+            phi = self.backbone_rotation_angle[2]
 
-        l_1_d = actuator_d[0, 0]
-        l_2_d = actuator_d[1, 0]
-        l_3_d = actuator_d[2, 0]
+            actuator_d = np.matmul(jacobian(n, s, kappa, phi), config_d)
+            l_1_d = actuator_d[0, 0]
+            l_2_d = actuator_d[1, 0]
+            l_3_d = actuator_d[2, 0]
+            return l_1_d, l_2_d, l_3_d
+        
+        elif section == "midside":
+            n = self.backbone_section_num[1]
+            s = self.backbone_length[1]
+            kappa = self.backbone_curvature[1]
+            phi = self.backbone_rotation_angle[1]
 
-        return l_1_d, l_2_d, l_3_d
+            actuator_d = np.matmul(jacobian(n, s, kappa, phi), config_d)
+            l_4_d = actuator_d[0, 0]
+            l_5_d = actuator_d[1, 0]
+            l_6_d = actuator_d[2, 0]
+            
+            phi += 40/180*pi
+            actuator_d = np.matmul(jacobian(n, s, kappa, phi), config_d)
+            l_1_d = actuator_d[0, 0]
+            l_2_d = actuator_d[1, 0]
+            l_3_d = actuator_d[2, 0]
+
+            return l_1_d, l_2_d, l_3_d, l_4_d, l_5_d, l_6_d
+        
+        elif section == "inside":
+            n = self.backbone_section_num[0]
+            s = self.backbone_length[0]
+            kappa = self.backbone_curvature[0]
+            phi = self.backbone_rotation_angle[0]
+
+            actuator_d = np.matmul(jacobian(n, s, kappa, phi), config_d)
+            l_7_d = actuator_d[0, 0]
+            l_8_d = actuator_d[1, 0]
+            l_9_d = actuator_d[2, 0]
+
+            phi += 40/180*pi
+            actuator_d = np.matmul(jacobian(n, s, kappa, phi), config_d)
+            l_4_d = actuator_d[0, 0]
+            l_5_d = actuator_d[1, 0]
+            l_6_d = actuator_d[2, 0]
+
+            phi += 40/180*pi
+            actuator_d = np.matmul(jacobian(n, s, kappa, phi), config_d)
+            l_1_d = actuator_d[0, 0]
+            l_2_d = actuator_d[1, 0]
+            l_3_d = actuator_d[2, 0]
+
+            return l_1_d, l_2_d, l_3_d, l_4_d, l_5_d, l_6_d, l_7_d, l_8_d, l_9_d
+        
+        else: return 0
 
     ''' 逆雅可比 '''
-    def task_to_config_jacobian(self, spatial_velocity: tuple):
+    def task_to_config_jacobian(self, section: str, spatial_velocity: tuple):
         x_d = spatial_velocity[0]
         y_d = spatial_velocity[1]
         z_d = spatial_velocity[2]
@@ -446,9 +496,19 @@ class ContinuumRobot():
         y_w = spatial_velocity[4]
         z_w = spatial_velocity[5]
 
-        s = self.backbone_length[2]
-        kappa = self.backbone_curvature[2]
-        phi = self.backbone_rotation_angle[2]
+        if section == "outside":
+            s = self.backbone_length[2]
+            kappa = self.backbone_curvature[2]
+            phi = self.backbone_rotation_angle[2]
+        elif section == "midside":
+            s = self.backbone_length[1]
+            kappa = self.backbone_curvature[1]
+            phi = self.backbone_rotation_angle[1]
+        elif section == "inside":
+            s = self.backbone_length[0]
+            kappa = self.backbone_curvature[0]
+            phi = self.backbone_rotation_angle[0]
+        else: return 0, 0, 0
 
         transform = np.array([
             [cos(phi)*(cos(kappa*s)-1)/pow(kappa,2), 0, 0              ],
@@ -471,19 +531,19 @@ class ContinuumRobot():
 
     '''  '''
     def outside_curve(self):
-        self.outside_curvature_thread = SingleSectionKinematics(self, section="outside", config_d=(0, 0.001, 0))
+        self.outside_curvature_thread = SingleSectionKinematics(self, section="midside", config_d=(0, 0.001, 0))
         self.outside_curvature_thread.start()
     def outside_straighten(self):
-        self.outside_curvature_thread = SingleSectionKinematics(self, section="outside", config_d=(0, -0.001, 0))
+        self.outside_curvature_thread = SingleSectionKinematics(self, section="midside", config_d=(0, -0.001, 0))
         self.outside_curvature_thread.start()
     def outside_curvature_stop(self):
         self.outside_curvature_thread.stop()
         self.outside_curvature_thread.wait()
     def outside_rotate_forward(self):
-        self.outside_rotate_thread = SingleSectionKinematics(self, section="outside", config_d=(0, 0, 0.5))
+        self.outside_rotate_thread = SingleSectionKinematics(self, section="midside", config_d=(0, 0, 0.5))
         self.outside_rotate_thread.start()
     def outside_rotate_reverse(self):
-        self.outside_rotate_thread = SingleSectionKinematics(self, section="outside", config_d=(0, 0, -0.5))
+        self.outside_rotate_thread = SingleSectionKinematics(self, section="midside", config_d=(0, 0, -0.5))
         self.outside_rotate_thread.start()
     def outside_rotate_stop(self):
         self.outside_rotate_thread.stop()
@@ -648,16 +708,52 @@ class CANopenUpdate(QThread):
                         self.status_signal.emit("[Node {}] Get NMT response, bus status is {}".format(node_id, label))
                    
             if self.robot.is_calibration:
-                self.robot.outside_length[0] = self.robot.backbone_length[2] + (self.robot.motor_1.current_position - self.robot.outside_calibration[0]) / self.robot.ROPE_RATIO
-                self.robot.outside_length[1] = self.robot.backbone_length[2] + (self.robot.motor_2.current_position - self.robot.outside_calibration[1]) / self.robot.ROPE_RATIO
-                self.robot.outside_length[2] = self.robot.backbone_length[2] + (self.robot.motor_3.current_position - self.robot.outside_calibration[2]) / self.robot.ROPE_RATIO
+                for i in range(1,10):
+                    self.robot.rope_total_length[i-1] = self.robot.rope_init_length[i-1] + (getattr(self.robot, f"motor_{i}").current_position - self.robot.rope_zero_position[i-1]) / self.robot.ROPE_RATIO
+                
+                # inside
+                for i in range(6,9):
+                    self.robot.rope_inside_length[i] = self.robot.rope_total_length[i]
+                
+                s_in, kappa_in, phi_in = self.robot.actuator_to_config(self.robot.rope_inside_length[6], self.robot.rope_inside_length[7], self.robot.rope_inside_length[8])
+                
+                self.robot.backbone_length[0] = s_in
+                self.robot.backbone_curvature[0] = kappa_in
+                self.robot.backbone_rotation_angle[0] = phi_in
 
-                s, kappa, phi = self.robot.actuator_to_config(self.robot.outside_length[0], self.robot.outside_length[1], self.robot.outside_length[2])
-                # self.robot.backbone_length[2] = s
-                self.robot.backbone_curvature[2] = kappa
-                self.robot.backbone_rotation_angle[2] = phi
+                l_4, l_5, l_6 = self.robot.config_to_actuator(s_in, kappa_in, phi_in+40/180*pi)
+                l_1, l_2, l_3 = self.robot.config_to_actuator(s_in, kappa_in, phi_in+80/180*pi)
+                for i in range(0,6):
+                    exec("self.robot.rope_inside_length[{}] = l_{}".format(i, i+1))
 
-                self.robot.outside_coordinate = self.robot.config_to_task(s, kappa, phi)
+                self.robot.inside_coordinate = self.robot.config_to_task(s_in, kappa_in, phi_in)
+                
+                # midside
+                for i in range(3,6):
+                    self.robot.rope_midside_length[i] = self.robot.rope_total_length[i] - self.robot.rope_inside_length[i]
+
+                s_mid, kappa_mid, phi_mid = self.robot.actuator_to_config(self.robot.rope_midside_length[3], self.robot.rope_midside_length[4], self.robot.rope_midside_length[5])
+                self.robot.backbone_length[1] = s_mid
+                self.robot.backbone_curvature[1] = kappa_mid
+                self.robot.backbone_rotation_angle[1] = phi_mid
+
+                l_1, l_2, l_3 = self.robot.config_to_actuator(s_mid, kappa_mid, phi_mid+40/180*pi)
+                for i in range(0,3):
+                    exec("self.robot.rope_midside_length[{}] = l_{}".format(i, i+1))
+
+                self.robot.midside_coordinate = self.robot.config_to_task(s_mid, kappa_mid, phi_mid)
+
+                # outside
+                for i in range(0,3):
+                    self.robot.rope_outside_length[i] = self.robot.rope_total_length[i] - self.robot.rope_inside_length[i] - self.robot.rope_midside_length[i]
+
+                s_out, kappa_out, phi_out = self.robot.actuator_to_config(self.robot.rope_outside_length[0], self.robot.rope_outside_length[1], self.robot.rope_outside_length[2])
+                self.robot.backbone_length[2] = s_out
+                self.robot.backbone_curvature[2] = kappa_out
+                self.robot.backbone_rotation_angle[2] = phi_out
+                
+                self.robot.outside_coordinate = self.robot.config_to_task(s_out, kappa_out, phi_out)
+
 
                 self.show_kinematics.emit()
                 
@@ -1879,7 +1975,46 @@ class SingleSectionKinematics(QThread):
             self.robot.motor_3.set_speed(0, is_pdo=True)
         
         elif self.__section == "midside":
-            ...
+            self.robot.motor_4.set_control_mode("speed_control")
+            self.robot.motor_5.set_control_mode("speed_control")
+            self.robot.motor_6.set_control_mode("speed_control")
+            self.robot.motor_1.set_control_mode("speed_control")
+            self.robot.motor_2.set_control_mode("speed_control")
+            self.robot.motor_3.set_control_mode("speed_control")
+
+            self.robot.motor_4.set_speed(0, is_pdo=True)
+            self.robot.motor_5.set_speed(0, is_pdo=True)
+            self.robot.motor_6.set_speed(0, is_pdo=True)
+            self.robot.motor_1.set_speed(0, is_pdo=True)
+            self.robot.motor_2.set_speed(0, is_pdo=True)
+            self.robot.motor_3.set_speed(0, is_pdo=True)
+
+            self.robot.motor_4.enable_operation(is_pdo=True)
+            self.robot.motor_5.enable_operation(is_pdo=True)
+            self.robot.motor_6.enable_operation(is_pdo=True)
+            self.robot.motor_1.enable_operation(is_pdo=True)
+            self.robot.motor_2.enable_operation(is_pdo=True)
+            self.robot.motor_3.enable_operation(is_pdo=True)
+
+            while not self.__is_stop:
+                if self.__mode == "config_d":
+                    l_1_d, l_2_d, l_3_d, l_4_d, l_5_d, l_6_d = self.robot.config_to_actuator_jacobian(self.__section, self.__s_d, self.__kappa_d, self.__phi_d)
+
+                    self.robot.rope_move_speed(("1", l_1_d), ("2", l_2_d), ("3", l_3_d), ("4", l_4_d), ("5", l_5_d), ("6", l_6_d))
+            
+            self.robot.motor_4.disable_operation(is_pdo=True)
+            self.robot.motor_5.disable_operation(is_pdo=True)
+            self.robot.motor_6.disable_operation(is_pdo=True)
+            self.robot.motor_1.disable_operation(is_pdo=True)
+            self.robot.motor_2.disable_operation(is_pdo=True)
+            self.robot.motor_3.disable_operation(is_pdo=True)
+
+            self.robot.motor_4.set_speed(0, is_pdo=True)
+            self.robot.motor_5.set_speed(0, is_pdo=True)
+            self.robot.motor_6.set_speed(0, is_pdo=True)
+            self.robot.motor_1.set_speed(0, is_pdo=True)
+            self.robot.motor_2.set_speed(0, is_pdo=True)
+            self.robot.motor_3.set_speed(0, is_pdo=True)
         elif self.__section == "inside":
             ...
     
