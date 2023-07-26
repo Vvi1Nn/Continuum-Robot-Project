@@ -513,18 +513,60 @@ class ControlPanel(QMainWindow):
 
     ''' 显示 运动学参数 '''
     def show_kinematics(self):
-        self.ui.length_1.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_length[0], 2)))
-        self.ui.length_2.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_length[1], 2)))
-        self.ui.length_3.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_length[2], 2)))
-
+        # outside
+        self.ui.length_1_o.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.rope_outside_length[0], 2)))
+        self.ui.length_2_o.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.rope_outside_length[1], 2)))
+        self.ui.length_3_o.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.rope_outside_length[2], 2)))
         self.ui.length_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_length[2], 2)))
-        if self.robot.backbone_curvature[2] > 0: self.ui.curvature_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_curvature[2], 5)))
-        else: self.ui.curvature_out.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.backbone_curvature[2], 5)))
-        self.ui.radius_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_rotation_angle[2]/math.pi*180, 2)))
+        self.ui.curvature_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_curvature[2], 5)))
+        self.ui.angle_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_rotation_angle[2]/math.pi*180, 2)))
+        self.ui.x_out_local.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_coordinate[0], 2)))
+        self.ui.y_out_local.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_coordinate[1], 2)))
+        self.ui.z_out_local.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_coordinate[2], 2)))
+
+        # midside
+        self.ui.length_1_m.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.rope_midside_length[0], 2)))
+        self.ui.length_2_m.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.rope_midside_length[1], 2)))
+        self.ui.length_3_m.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.rope_midside_length[2], 2)))
+        self.ui.length_4_m.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.rope_midside_length[3], 2)))
+        self.ui.length_5_m.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.rope_midside_length[4], 2)))
+        self.ui.length_6_m.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.rope_midside_length[5], 2)))
+        self.ui.length_mid.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_length[1], 2)))
+        self.ui.curvature_mid.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_curvature[1], 5)))
+        self.ui.angle_mid.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_rotation_angle[1]/math.pi*180, 2)))
+        self.ui.x_mid_local.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.midside_coordinate[0], 2)))
+        self.ui.y_mid_local.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.midside_coordinate[1], 2)))
+        self.ui.z_mid_local.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.midside_coordinate[2], 2)))
+
+        # inside
+        self.ui.length_1_i.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.rope_inside_length[0], 2)))
+        self.ui.length_2_i.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.rope_inside_length[1], 2)))
+        self.ui.length_3_i.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.rope_inside_length[2], 2)))
+        self.ui.length_4_i.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.rope_inside_length[3], 2)))
+        self.ui.length_5_i.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.rope_inside_length[4], 2)))
+        self.ui.length_6_i.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.rope_inside_length[5], 2)))
+        self.ui.length_7_i.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.rope_inside_length[6], 2)))
+        self.ui.length_8_i.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.rope_inside_length[7], 2)))
+        self.ui.length_9_i.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.rope_inside_length[8], 2)))
+        self.ui.length_in.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_length[0], 2)))
+        self.ui.curvature_in.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_curvature[0], 5)))
+        self.ui.angle_in.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_rotation_angle[0]/math.pi*180, 2)))
+        self.ui.x_in_local.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.inside_coordinate[0], 2)))
+        self.ui.y_in_local.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.inside_coordinate[1], 2)))
+        self.ui.z_in_local.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.inside_coordinate[2], 2)))
+
+        # self.ui.length_1.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_length[0], 2)))
+        # self.ui.length_2.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_length[1], 2)))
+        # self.ui.length_3.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_length[2], 2)))
+
+        # self.ui.length_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_length[2], 2)))
+        # if self.robot.backbone_curvature[2] > 0: self.ui.curvature_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_curvature[2], 5)))
+        # else: self.ui.curvature_out.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.backbone_curvature[2], 5)))
+        # self.ui.radius_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_rotation_angle[2]/math.pi*180, 2)))
         
-        self.ui.x_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_coordinate[0], 2)))
-        self.ui.y_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_coordinate[1], 2)))
-        self.ui.z_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_coordinate[2], 2)))
+        # self.ui.x_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_coordinate[0], 2)))
+        # self.ui.y_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_coordinate[1], 2)))
+        # self.ui.z_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_coordinate[2], 2)))
         
 
 
