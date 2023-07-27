@@ -201,7 +201,7 @@ QStackedWidget QTextBrowser {
           <string notr="true"/>
          </property>
          <property name="currentIndex">
-          <number>3</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="page_control">
           <layout class="QVBoxLayout" name="verticalLayout_7" stretch="2,8,8,3">
@@ -10698,7 +10698,7 @@ Zero</string>
                   <number>0</number>
                  </property>
                  <item>
-                  <widget class="QPushButton" name="radius_forward_out">
+                  <widget class="QPushButton" name="angle_forward_out">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                      <horstretch>0</horstretch>
@@ -10712,7 +10712,7 @@ Zero</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QPushButton" name="radius_back_out">
+                  <widget class="QPushButton" name="angle_back_out">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                      <horstretch>0</horstretch>
