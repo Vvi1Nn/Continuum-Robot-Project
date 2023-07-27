@@ -96,7 +96,8 @@ class ContinuumRobot():
 
         self.joystick_thread = Joystick()
 
-        self.backbone_length = [168, 170, 172] # in mid out
+        self.backbone_init_length = [168, 170, 172] # in mid out
+        self.backbone_length = [None, None, None] # in mid out
         # self.backbone_length_d = [0, 0, 0]
 
         self.backbone_curvature = [None, None, None] # in mid out
@@ -231,6 +232,7 @@ class ContinuumRobot():
         self.ballscrew_move_thread = BallScrewMove(distance, velocity, is_close=is_close, is_relative=is_relative, robot=self)
         self.ballscrew_move_thread.start()
 
+
     def rope_move_abs(self, rope: str, /, *, point: float, velocity: float) -> None:
         duration_time = []
 
@@ -266,6 +268,68 @@ class ContinuumRobot():
             duration_time = abs(target_position) / (profile_velocity * self.VELOCITY_RATIO) + 0.1
             time.sleep(duration_time)
 
+    def rope_pos_ready(self, *args: str):
+        for node_id in args:
+            getattr(self, f"motor_{node_id}").set_control_mode("position_control")
+    
+    def rope_move_abs_new(self, *args: tuple):
+        id_list = []
+        t_list = []
+        for tuple in args:
+            id, pos, vel = tuple
+            id_list.append(id)
+            
+            tar_pos = int(round(self.rope_zero_position[id-1] + abs(pos) * self.ROPE_RATIO, 0))
+            pro_vel = int(round(self.ROPE_RATIO * abs(vel) / self.VELOCITY_RATIO, 0))
+            
+            t = abs(tar_pos - getattr(self, f"motor_{id}").current_position) / (pro_vel * self.VELOCITY_RATIO) + 0.05
+            t_list.append(t)
+
+            getattr(self, f"motor_{id}").set_position(tar_pos, velocity=pro_vel, is_pdo=True)
+            getattr(self, f"motor_{id}").ready(is_pdo=True)
+        
+        t_list.sort(reverse=True)
+        delay = t_list[0]
+        for id in id_list:
+            getattr(self, f"motor_{id}").action(is_immediate=False, is_relative=False, is_pdo=True)
+        time.sleep(delay)
+
+    def rope_move_rel_new(self, *args: tuple):
+        id_list = []
+        t_list = []
+        for tuple in args:
+            id, pos, vel = tuple
+            id_list.append(id)
+            
+            tar_pos = int(round(pos * self.ROPE_RATIO, 0))
+            pro_vel = int(round(self.ROPE_RATIO * abs(vel) / self.VELOCITY_RATIO, 0))
+            
+            t = abs(tar_pos) / (pro_vel * self.VELOCITY_RATIO)
+            t_list.append(t)
+
+            getattr(self, f"motor_{id}").set_position(tar_pos, velocity=pro_vel, is_pdo=True)
+            getattr(self, f"motor_{id}").ready(is_pdo=True)
+        
+        t_list.sort(reverse=True)
+        delay = t_list[0]
+        for id in id_list:
+            getattr(self, f"motor_{id}").action(is_immediate=False, is_relative=True, is_pdo=True)
+        time.sleep(delay)
+
+    def rope_ready_speed(self, *args: str):
+        for node_id in args:
+            getattr(self, f"motor_{node_id}").set_control_mode("speed_control")
+        for node_id in args:
+            getattr(self, f"motor_{node_id}").set_speed(0, is_pdo=True)
+        for node_id in args:
+            getattr(self, f"motor_{node_id}").enable_operation(is_pdo=True)
+    
+    def rope_stop_speed(self, *args: str):
+        for node_id in args:
+            getattr(self, f"motor_{node_id}").disable_operation(is_pdo=True)
+        for node_id in args:
+            getattr(self, f"motor_{node_id}").set_speed(0, is_pdo=True)
+    
     def rope_move_speed(self, *args: tuple):
         for tuple in args:
             node_id, speed = tuple
@@ -275,6 +339,7 @@ class ContinuumRobot():
     def rope_move(self, rope: str, distance: float, velocity: float, /, *, is_relative: bool) -> None:
         self.rope_move_thread = RopeMove(rope, distance, velocity, is_relative=is_relative, robot=self)
         self.rope_move_thread.start()
+
 
     def forward(self):
         self.test_thread = Forward(self)
@@ -307,6 +372,7 @@ class ContinuumRobot():
         self.rope_midside_length = [bl_m, bl_m, bl_m, bl_m, bl_m, bl_m] # 123456
         self.rope_outside_length = [bl_o, bl_o, bl_o] # 123
 
+        self.backbone_init_length = [bl_i, bl_m, bl_o] # in mid out
         self.backbone_length = [bl_i, bl_m, bl_o] # in mid out
         self.backbone_curvature = [0, 0, 0] # in mid out
         self.backbone_rotation_angle = [0, 0, 0] # in mid out
@@ -1931,7 +1997,7 @@ class Back(QThread):
 
 
 class SingleSectionKinematics(QThread):
-    def __init__(self, robot: ContinuumRobot, /, *, section=None, config_d=None) -> None:
+    def __init__(self, robot: ContinuumRobot, /, *, section=None, config_d=None, config=None) -> None:
         super().__init__()
 
         self.robot = robot
@@ -1942,81 +2008,85 @@ class SingleSectionKinematics(QThread):
             self.__kappa_d = config_d[1]
             self.__phi_d = config_d[2]
             self.__mode = "config_d"
+        elif config != None:
+            self.__l_1 = config[0]
+            self.__l_2 = config[1]
+            self.__l_3 = config[2]
+            self.__mode = "config"
         else: self.__mode = None
 
         self.__is_stop = False
     
     def run(self):
         if self.__section == "outside":
-            self.robot.motor_1.set_control_mode("speed_control")
-            self.robot.motor_2.set_control_mode("speed_control")
-            self.robot.motor_3.set_control_mode("speed_control")
+            if self.__mode == "config_d":
+                self.robot.motor_1.set_control_mode("speed_control")
+                self.robot.motor_2.set_control_mode("speed_control")
+                self.robot.motor_3.set_control_mode("speed_control")
 
-            self.robot.motor_1.set_speed(0, is_pdo=True)
-            self.robot.motor_2.set_speed(0, is_pdo=True)
-            self.robot.motor_3.set_speed(0, is_pdo=True)
+                self.robot.motor_1.set_speed(0, is_pdo=True)
+                self.robot.motor_2.set_speed(0, is_pdo=True)
+                self.robot.motor_3.set_speed(0, is_pdo=True)
 
-            self.robot.motor_1.enable_operation(is_pdo=True)
-            self.robot.motor_2.enable_operation(is_pdo=True)
-            self.robot.motor_3.enable_operation(is_pdo=True)
+                self.robot.motor_1.enable_operation(is_pdo=True)
+                self.robot.motor_2.enable_operation(is_pdo=True)
+                self.robot.motor_3.enable_operation(is_pdo=True)
 
-            while not self.__is_stop:
-                if self.__mode == "config_d":
-                    l_1_d, l_2_d, l_3_d = self.robot.config_to_actuator_jacobian(self.__s_d, self.__kappa_d, self.__phi_d)
-
+                while not self.__is_stop:
+                    l_1_d, l_2_d, l_3_d = self.robot.config_to_actuator_jacobian(self.__section, self.__s_d, self.__kappa_d, self.__phi_d)
                     self.robot.rope_move_speed(("1", l_1_d), ("2", l_2_d), ("3", l_3_d))
-            
-            self.robot.motor_1.disable_operation(is_pdo=True)
-            self.robot.motor_2.disable_operation(is_pdo=True)
-            self.robot.motor_3.disable_operation(is_pdo=True)
+                
+                self.robot.motor_1.disable_operation(is_pdo=True)
+                self.robot.motor_2.disable_operation(is_pdo=True)
+                self.robot.motor_3.disable_operation(is_pdo=True)
 
-            self.robot.motor_1.set_speed(0, is_pdo=True)
-            self.robot.motor_2.set_speed(0, is_pdo=True)
-            self.robot.motor_3.set_speed(0, is_pdo=True)
+                self.robot.motor_1.set_speed(0, is_pdo=True)
+                self.robot.motor_2.set_speed(0, is_pdo=True)
+                self.robot.motor_3.set_speed(0, is_pdo=True)
         
         elif self.__section == "midside":
-            self.robot.motor_4.set_control_mode("speed_control")
-            self.robot.motor_5.set_control_mode("speed_control")
-            self.robot.motor_6.set_control_mode("speed_control")
-            self.robot.motor_1.set_control_mode("speed_control")
-            self.robot.motor_2.set_control_mode("speed_control")
-            self.robot.motor_3.set_control_mode("speed_control")
+            if self.__mode == "config_d":
+                self.robot.motor_4.set_control_mode("speed_control")
+                self.robot.motor_5.set_control_mode("speed_control")
+                self.robot.motor_6.set_control_mode("speed_control")
+                self.robot.motor_1.set_control_mode("speed_control")
+                self.robot.motor_2.set_control_mode("speed_control")
+                self.robot.motor_3.set_control_mode("speed_control")
 
-            self.robot.motor_4.set_speed(0, is_pdo=True)
-            self.robot.motor_5.set_speed(0, is_pdo=True)
-            self.robot.motor_6.set_speed(0, is_pdo=True)
-            self.robot.motor_1.set_speed(0, is_pdo=True)
-            self.robot.motor_2.set_speed(0, is_pdo=True)
-            self.robot.motor_3.set_speed(0, is_pdo=True)
+                self.robot.motor_4.set_speed(0, is_pdo=True)
+                self.robot.motor_5.set_speed(0, is_pdo=True)
+                self.robot.motor_6.set_speed(0, is_pdo=True)
+                self.robot.motor_1.set_speed(0, is_pdo=True)
+                self.robot.motor_2.set_speed(0, is_pdo=True)
+                self.robot.motor_3.set_speed(0, is_pdo=True)
 
-            self.robot.motor_4.enable_operation(is_pdo=True)
-            self.robot.motor_5.enable_operation(is_pdo=True)
-            self.robot.motor_6.enable_operation(is_pdo=True)
-            self.robot.motor_1.enable_operation(is_pdo=True)
-            self.robot.motor_2.enable_operation(is_pdo=True)
-            self.robot.motor_3.enable_operation(is_pdo=True)
+                self.robot.motor_4.enable_operation(is_pdo=True)
+                self.robot.motor_5.enable_operation(is_pdo=True)
+                self.robot.motor_6.enable_operation(is_pdo=True)
+                self.robot.motor_1.enable_operation(is_pdo=True)
+                self.robot.motor_2.enable_operation(is_pdo=True)
+                self.robot.motor_3.enable_operation(is_pdo=True)
 
-            while not self.__is_stop:
-                if self.__mode == "config_d":
+                while not self.__is_stop:
                     l_1_d, l_2_d, l_3_d, l_4_d, l_5_d, l_6_d = self.robot.config_to_actuator_jacobian(self.__section, self.__s_d, self.__kappa_d, self.__phi_d)
-
                     self.robot.rope_move_speed(("1", l_1_d), ("2", l_2_d), ("3", l_3_d), ("4", l_4_d), ("5", l_5_d), ("6", l_6_d))
-            
-            self.robot.motor_4.disable_operation(is_pdo=True)
-            self.robot.motor_5.disable_operation(is_pdo=True)
-            self.robot.motor_6.disable_operation(is_pdo=True)
-            self.robot.motor_1.disable_operation(is_pdo=True)
-            self.robot.motor_2.disable_operation(is_pdo=True)
-            self.robot.motor_3.disable_operation(is_pdo=True)
+                
+                self.robot.motor_4.disable_operation(is_pdo=True)
+                self.robot.motor_5.disable_operation(is_pdo=True)
+                self.robot.motor_6.disable_operation(is_pdo=True)
+                self.robot.motor_1.disable_operation(is_pdo=True)
+                self.robot.motor_2.disable_operation(is_pdo=True)
+                self.robot.motor_3.disable_operation(is_pdo=True)
 
-            self.robot.motor_4.set_speed(0, is_pdo=True)
-            self.robot.motor_5.set_speed(0, is_pdo=True)
-            self.robot.motor_6.set_speed(0, is_pdo=True)
-            self.robot.motor_1.set_speed(0, is_pdo=True)
-            self.robot.motor_2.set_speed(0, is_pdo=True)
-            self.robot.motor_3.set_speed(0, is_pdo=True)
+                self.robot.motor_4.set_speed(0, is_pdo=True)
+                self.robot.motor_5.set_speed(0, is_pdo=True)
+                self.robot.motor_6.set_speed(0, is_pdo=True)
+                self.robot.motor_1.set_speed(0, is_pdo=True)
+                self.robot.motor_2.set_speed(0, is_pdo=True)
+                self.robot.motor_3.set_speed(0, is_pdo=True)
         elif self.__section == "inside":
             ...
+        else: return
     
     def stop(self):
         self.__is_stop = True
