@@ -543,6 +543,9 @@ class ControlPanel(QMainWindow):
         self.ui.x_out_local.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_coordinate[0], 2)))
         self.ui.y_out_local.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_coordinate[1], 2)))
         self.ui.z_out_local.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_coordinate[2], 2)))
+        self.ui.x_out_world.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_world_coordinate[0], 2)))
+        self.ui.y_out_world.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_world_coordinate[1], 2)))
+        self.ui.z_out_world.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_world_coordinate[2], 2)))
 
         # midside
         self.ui.length_1_m.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.rope_midside_length[0], 2)))
@@ -557,6 +560,9 @@ class ControlPanel(QMainWindow):
         self.ui.x_mid_local.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.midside_coordinate[0], 2)))
         self.ui.y_mid_local.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.midside_coordinate[1], 2)))
         self.ui.z_mid_local.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.midside_coordinate[2], 2)))
+        self.ui.x_mid_world.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.midside_world_coordinate[0], 2)))
+        self.ui.y_mid_world.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.midside_world_coordinate[1], 2)))
+        self.ui.z_mid_world.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.midside_world_coordinate[2], 2)))
 
         # inside
         self.ui.length_1_i.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.rope_inside_length[0], 2)))
@@ -574,6 +580,9 @@ class ControlPanel(QMainWindow):
         self.ui.x_in_local.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.inside_coordinate[0], 2)))
         self.ui.y_in_local.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.inside_coordinate[1], 2)))
         self.ui.z_in_local.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.inside_coordinate[2], 2)))
+        self.ui.x_in_world.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.inside_world_coordinate[0], 2)))
+        self.ui.y_in_world.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.inside_world_coordinate[1], 2)))
+        self.ui.z_in_world.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.inside_world_coordinate[2], 2)))
 
         # # rope
         # for id in range(1,10):
