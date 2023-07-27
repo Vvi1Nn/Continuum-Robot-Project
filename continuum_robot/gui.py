@@ -245,15 +245,35 @@ class ControlPanel(QMainWindow):
 
         self.ui.bt_cali.clicked.connect(self.calibration)
 
-        self.ui.curve_forward_out.pressed.connect(self.robot.outside_curve)
-        self.ui.curve_forward_out.released.connect(self.robot.outside_curvature_stop)
-        self.ui.curve_back_out.pressed.connect(self.robot.outside_straighten)
-        self.ui.curve_back_out.released.connect(self.robot.outside_curvature_stop)
-        self.ui.radius_forward_out.pressed.connect(self.robot.outside_rotate_forward)
-        self.ui.radius_forward_out.released.connect(self.robot.outside_rotate_stop)
-        self.ui.radius_back_out.pressed.connect(self.robot.outside_rotate_reverse)
-        self.ui.radius_back_out.released.connect(self.robot.outside_rotate_stop)
+        self.ui.curve_forward_out.pressed.connect(lambda: self.robot.config_space("outside", "curve"))
+        self.ui.curve_forward_out.released.connect(self.robot.config_space_stop)
+        self.ui.curve_back_out.pressed.connect(lambda: self.robot.config_space("outside", "straighten"))
+        self.ui.curve_back_out.released.connect(self.robot.config_space_stop)
+        self.ui.angle_forward_out.pressed.connect(lambda: self.robot.config_space("outside", "rotate_clockwise"))
+        self.ui.angle_forward_out.released.connect(self.robot.config_space_stop)
+        self.ui.angle_back_out.pressed.connect(lambda: self.robot.config_space("outside", "rotate_anticlockwise"))
+        self.ui.angle_back_out.released.connect(self.robot.config_space_stop)
+        self.ui.reset_out.clicked.connect(lambda: self.robot.config_space("outside", "reset"))
 
+        self.ui.curve_forward_mid.pressed.connect(lambda: self.robot.config_space("midside", "curve"))
+        self.ui.curve_forward_mid.released.connect(self.robot.config_space_stop)
+        self.ui.curve_back_mid.pressed.connect(lambda: self.robot.config_space("midside", "straighten"))
+        self.ui.curve_back_mid.released.connect(self.robot.config_space_stop)
+        self.ui.angle_forward_mid.pressed.connect(lambda: self.robot.config_space("midside", "rotate_clockwise"))
+        self.ui.angle_forward_mid.released.connect(self.robot.config_space_stop)
+        self.ui.angle_back_mid.pressed.connect(lambda: self.robot.config_space("midside", "rotate_anticlockwise"))
+        self.ui.angle_back_mid.released.connect(self.robot.config_space_stop)
+        self.ui.reset_mid.clicked.connect(lambda: self.robot.config_space("midside", "reset"))
+
+        self.ui.curve_forward_in.pressed.connect(lambda: self.robot.config_space("inside", "curve"))
+        self.ui.curve_forward_in.released.connect(self.robot.config_space_stop)
+        self.ui.curve_back_in.pressed.connect(lambda: self.robot.config_space("inside", "straighten"))
+        self.ui.curve_back_in.released.connect(self.robot.config_space_stop)
+        self.ui.angle_forward_in.pressed.connect(lambda: self.robot.config_space("inside", "rotate_clockwise"))
+        self.ui.angle_forward_in.released.connect(self.robot.config_space_stop)
+        self.ui.angle_back_in.pressed.connect(lambda: self.robot.config_space("inside", "rotate_anticlockwise"))
+        self.ui.angle_back_in.released.connect(self.robot.config_space_stop)
+        self.ui.reset_in.clicked.connect(lambda: self.robot.config_space("inside", "reset"))
 
 
 
@@ -501,7 +521,7 @@ class ControlPanel(QMainWindow):
     def show_rope(self, is_zero, node_id):
         if is_zero:
             position = getattr(self.robot, f"rope_{node_id}_position")
-            velocity = getattr(self.robot, f"rope_{node_id}_velocity")
+            velocity = self.robot.rope_velocity[node_id-1]
             
             color = "#00ff00" if position >= 0 else "#ff0000"
             
@@ -555,19 +575,9 @@ class ControlPanel(QMainWindow):
         self.ui.y_in_local.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.inside_coordinate[1], 2)))
         self.ui.z_in_local.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.inside_coordinate[2], 2)))
 
-        # self.ui.length_1.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_length[0], 2)))
-        # self.ui.length_2.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_length[1], 2)))
-        # self.ui.length_3.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_length[2], 2)))
-
-        # self.ui.length_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_length[2], 2)))
-        # if self.robot.backbone_curvature[2] > 0: self.ui.curvature_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_curvature[2], 5)))
-        # else: self.ui.curvature_out.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.backbone_curvature[2], 5)))
-        # self.ui.radius_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_rotation_angle[2]/math.pi*180, 2)))
-        
-        # self.ui.x_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_coordinate[0], 2)))
-        # self.ui.y_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_coordinate[1], 2)))
-        # self.ui.z_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_coordinate[2], 2)))
-        
+        # # rope
+        # for id in range(1,10):
+        #     exec("self.ui.rope_{}.setText('<span style=\"color:#00ff00;\">{}</span>')".format(id, round(self.robot.rope_total_length[id-1], 2)))
 
 
 
