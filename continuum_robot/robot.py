@@ -129,6 +129,9 @@ class ContinuumRobot():
         self.outside_coordinate = (None, None, None)
         self.midside_coordinate = (None, None, None)
         self.inside_coordinate = (None, None, None)
+        self.outside_world_coordinate = (None, None, None)
+        self.midside_world_coordinate = (None, None, None)
+        self.inside_world_coordinate = (None, None, None)
 
     def open_device(self) -> bool:
         if UsbCan.open_device():
@@ -404,7 +407,8 @@ class ContinuumRobot():
         return s, kappa, phi
     
     ''' 正运动学 '''
-    def config_to_task(self, length: float, kappa: float, phi: float):
+    def config_to_task(self, length: float, kappa: float, phi: float, /, *, is_matrix=False):
+        length = - length # z轴向内 论文是向外
         if kappa != 0:
             transform = np.array([
                 [cos(phi)*cos(phi*length), -sin(phi), cos(phi)*sin(kappa*length), cos(phi)*(1-cos(kappa*length))/kappa], 
@@ -420,14 +424,14 @@ class ContinuumRobot():
                 [0,                        0, 0, 1     ],
             ])
         
-        coordinate = np.array([[0, 0, 0, 1]]).T
-
-        position = np.matmul(transform, coordinate)
-        x = position[0,0]
-        y = position[1,0]
-        z = position[2,0]
-
-        return x, y, z
+        if not is_matrix:
+            coordinate = np.array([[0, 0, 0, 1]]).T
+            position = np.matmul(transform, coordinate)
+            x = position[0,0]
+            y = position[1,0]
+            z = position[2,0]
+            return x, y, z
+        else: return transform
 
     ''' 逆运动学 '''
     def task_to_config(self, position: tuple):
@@ -815,6 +819,7 @@ class CANopenUpdate(QThread):
                     exec("self.robot.rope_inside_length[{}] = l_{}".format(i, i+1))
 
                 self.robot.inside_coordinate = self.robot.config_to_task(s_in, kappa_in, phi_in)
+                trans_in = self.robot.config_to_task(s_in, kappa_in, phi_in, is_matrix=True)
                 
                 # midside
                 for i in range(3,6):
@@ -831,6 +836,7 @@ class CANopenUpdate(QThread):
                     exec("self.robot.rope_midside_length[{}] = l_{}".format(i, i+1))
 
                 self.robot.midside_coordinate = self.robot.config_to_task(s_mid, kappa_mid, phi_mid)
+                trans_mid = self.robot.config_to_task(s_mid, kappa_mid, phi_mid, is_matrix=True)
 
                 # outside
                 for i in range(0,3):
@@ -842,7 +848,21 @@ class CANopenUpdate(QThread):
                 self.robot.backbone_rotation_angle[2] = phi_out
                 
                 self.robot.outside_coordinate = self.robot.config_to_task(s_out, kappa_out, phi_out)
+                trans_out = self.robot.config_to_task(s_out, kappa_out, phi_out, is_matrix=True)
 
+                # world
+                trans_world = np.array([
+                    [cos(5*pi/9),  -sin(5*pi/9),  0,  0], 
+                    [-sin(5*pi/9), -cos(5*pi/9),  0,  0],
+                    [0,            0,             -1, 0],
+                    [0,            0,             0,  1],
+                ])
+                p_out_world = np.matmul(np.matmul(np.matmul(np.matmul(trans_world, trans_in), trans_mid), trans_out), np.array([[0, 0, 0, 1]]).T)
+                p_mid_world = np.matmul(np.matmul(np.matmul(trans_world, trans_in), trans_mid), np.array([[0, 0, 0, 1]]).T)
+                p_in_world = np.matmul(np.matmul(trans_world, trans_in), np.array([[0, 0, 0, 1]]).T)
+                self.robot.outside_world_coordinate = (p_out_world[0,0], p_out_world[1,0], p_out_world[2,0])
+                self.robot.midside_world_coordinate = (p_mid_world[0,0], p_mid_world[1,0], p_mid_world[2,0])
+                self.robot.inside_world_coordinate = (p_in_world[0,0], p_in_world[1,0], p_in_world[2,0])
 
                 self.show_kinematics.emit()
                 
