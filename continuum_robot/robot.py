@@ -117,6 +117,7 @@ class ContinuumRobot():
         self.rope_zero_position = [None, None, None, None, None, None, None, None, None] # 123456789
         self.rope_init_length = [None, None, None, None, None, None, None, None, None] # 123456789
         self.rope_total_length = [None, None, None, None, None, None, None, None, None] # 123456789
+        self.rope_velocity = [None, None, None, None, None, None, None, None, None] # 123456789
         self.rope_outside_length = [None, None, None] # 123
         self.rope_midside_length = [None, None, None, None, None, None] # 123456
         self.rope_inside_length = [None, None, None, None, None, None, None, None, None] # 123456789
@@ -268,7 +269,7 @@ class ContinuumRobot():
             duration_time = abs(target_position) / (profile_velocity * self.VELOCITY_RATIO) + 0.1
             time.sleep(duration_time)
 
-    def rope_pos_ready(self, *args: str):
+    def rope_ready_position(self, *args: str):
         for node_id in args:
             getattr(self, f"motor_{node_id}").set_control_mode("position_control")
     
@@ -276,10 +277,10 @@ class ContinuumRobot():
         id_list = []
         t_list = []
         for tuple in args:
-            id, pos, vel = tuple
+            id, tar_l, vel = tuple
             id_list.append(id)
             
-            tar_pos = int(round(self.rope_zero_position[id-1] + abs(pos) * self.ROPE_RATIO, 0))
+            tar_pos = int(round(self.rope_zero_position[int(id)-1] + (tar_l - self.rope_init_length[int(id)-1]) * self.ROPE_RATIO, 0))
             pro_vel = int(round(self.ROPE_RATIO * abs(vel) / self.VELOCITY_RATIO, 0))
             
             t = abs(tar_pos - getattr(self, f"motor_{id}").current_position) / (pro_vel * self.VELOCITY_RATIO) + 0.05
@@ -451,22 +452,32 @@ class ContinuumRobot():
         return s, kappa, phi
 
     ''' 逆运动学 '''
-    def config_to_actuator(self, s: float, kappa: float, phi: float):
-        n = self.backbone_section_num[2]
-        d = self.backbone_d
+    def config_to_actuator(self, section: str, s: float, kappa: float, phi: float):
+        def transform(n, s, kappa, phi):
+            param_1 = 2*n*sin((kappa*s)/(2*n))
+            if kappa != 0:
+                l_1 = param_1*(1/kappa-self.backbone_d*sin(phi))
+                l_2 = param_1*(1/kappa+self.backbone_d*sin(phi+pi/3))
+                l_3 = param_1*(1/kappa-self.backbone_d*cos(phi+pi/6))
+            else:
+                l_1, l_2, l_3 = s, s, s
+            return l_1, l_2, l_3
 
-        param_1 = 2*n*sin((kappa*s)/(2*n))
-
-        if kappa != 0:
-            l_1 = param_1*(1/kappa-d*sin(phi))
-            l_2 = param_1*(1/kappa+d*sin(phi+pi/3))
-            l_3 = param_1*(1/kappa-d*cos(phi+pi/6))
-        else:
-            l_1 = s
-            l_2 = s
-            l_3 = s
-
-        return l_1, l_2, l_3
+        if section == "outside":
+            n = self.backbone_section_num[2]
+            l_1, l_2, l_3 = transform(n, s, kappa, phi)
+            return l_1, l_2, l_3
+        elif section == "midside":
+            n = self.backbone_section_num[1]
+            l_4, l_5, l_6 = transform(n, s, kappa, phi)
+            l_1, l_2, l_3 = transform(n, s, kappa, phi+40/180*pi)
+            return l_1, l_2, l_3, l_4, l_5, l_6
+        elif section == "inside":
+            n = self.backbone_section_num[0]
+            l_7, l_8, l_9 = transform(n, s, kappa, phi)
+            l_4, l_5, l_6 = transform(n, s, kappa, phi+40/180*pi)
+            l_1, l_2, l_3 = transform(n, s, kappa, phi+80/180*pi)
+            return l_1, l_2, l_3, l_4, l_5, l_6, l_7, l_8, l_9
 
     ''' 逆雅可比 '''
     def config_to_actuator_jacobian(self, section: str, s_d: float, kappa_d: float, phi_d: float):
@@ -595,25 +606,32 @@ class ContinuumRobot():
 
         return kappa_d, phi_d, s_d
 
-    '''  '''
-    def outside_curve(self):
-        self.outside_curvature_thread = SingleSectionKinematics(self, section="midside", config_d=(0, 0.001, 0))
-        self.outside_curvature_thread.start()
-    def outside_straighten(self):
-        self.outside_curvature_thread = SingleSectionKinematics(self, section="midside", config_d=(0, -0.001, 0))
-        self.outside_curvature_thread.start()
-    def outside_curvature_stop(self):
-        self.outside_curvature_thread.stop()
-        self.outside_curvature_thread.wait()
-    def outside_rotate_forward(self):
-        self.outside_rotate_thread = SingleSectionKinematics(self, section="midside", config_d=(0, 0, 0.5))
-        self.outside_rotate_thread.start()
-    def outside_rotate_reverse(self):
-        self.outside_rotate_thread = SingleSectionKinematics(self, section="midside", config_d=(0, 0, -0.5))
-        self.outside_rotate_thread.start()
-    def outside_rotate_stop(self):
-        self.outside_rotate_thread.stop()
-        self.outside_rotate_thread.wait()
+
+    ''' configuration space '''
+    def config_space(self, section: str, operation: str):
+        if operation == "curve":
+            self.config_space_thread = SingleSectionKinematics(self, section, config_d=(0, 0.001, 0))
+        elif operation == "straighten":
+            self.config_space_thread = SingleSectionKinematics(self, section, config_d=(0, -0.001, 0))
+        elif operation == "rotate_clockwise":
+            self.config_space_thread = SingleSectionKinematics(self, section, config_d=(0, 0, 0.25))
+        elif operation == "rotate_anticlockwise":
+            self.config_space_thread = SingleSectionKinematics(self, section, config_d=(0, 0, -0.25))
+        elif operation == "reset":
+            if section == "outside":
+                self.config_space_thread = SingleSectionKinematics(self, "outside", config=(self.backbone_init_length[2], 0, 0))
+            elif section == "midside":
+                self.config_space_thread = SingleSectionKinematics(self, "midside", config=(self.backbone_init_length[1], 0, 0))
+            elif section == "inside":
+                self.config_space_thread = SingleSectionKinematics(self, "inside", config=(self.backbone_init_length[0], 0, 0))
+        
+        try: self.config_space_thread.start()
+        except: print("\033[0;31m[Error] config_space_thread is not created\033[0m")
+    def config_space_stop(self):
+        try:
+            self.config_space_thread.stop()
+            self.config_space_thread.wait()
+        except: print("\033[0;31m[Error] config_space_thread is not created\033[0m")
 
 
 
@@ -705,8 +723,11 @@ class CANopenUpdate(QThread):
                                     position = (getattr(self.robot, f"motor_{node_id}").current_position - getattr(self.robot, f"motor_{node_id}").zero_position) / 12536.512440
                                     setattr(self.robot, f"rope_{node_id}_position", position)
 
-                                    velocity = getattr(self.robot, f"motor_{node_id}").current_speed * 440 / 12536.512440
-                                    setattr(self.robot, f"rope_{node_id}_velocity", velocity)
+                                    # velocity = getattr(self.robot, f"motor_{node_id}").current_speed * 440 / 12536.512440
+                                    # setattr(self.robot, f"rope_{node_id}_velocity", velocity)
+                                
+                                if self.robot.is_calibration:
+                                    self.robot.rope_velocity[node_id-1] = speed * self.robot.VELOCITY_RATIO / self.robot.ROPE_RATIO
                                 
                                 self.show_rope.emit(self.robot.rope_is_set_zero, node_id)
 
@@ -787,8 +808,9 @@ class CANopenUpdate(QThread):
                 self.robot.backbone_curvature[0] = kappa_in
                 self.robot.backbone_rotation_angle[0] = phi_in
 
-                l_4, l_5, l_6 = self.robot.config_to_actuator(s_in, kappa_in, phi_in+40/180*pi)
-                l_1, l_2, l_3 = self.robot.config_to_actuator(s_in, kappa_in, phi_in+80/180*pi)
+                # l_4, l_5, l_6 = self.robot.config_to_actuator(s_in, kappa_in, phi_in+40/180*pi)
+                # l_1, l_2, l_3 = self.robot.config_to_actuator(s_in, kappa_in, phi_in+80/180*pi)
+                l_1, l_2, l_3, l_4, l_5, l_6, l_7, l_8, l_9 = self.robot.config_to_actuator("inside", s_in, kappa_in, phi_in)
                 for i in range(0,6):
                     exec("self.robot.rope_inside_length[{}] = l_{}".format(i, i+1))
 
@@ -803,7 +825,8 @@ class CANopenUpdate(QThread):
                 self.robot.backbone_curvature[1] = kappa_mid
                 self.robot.backbone_rotation_angle[1] = phi_mid
 
-                l_1, l_2, l_3 = self.robot.config_to_actuator(s_mid, kappa_mid, phi_mid+40/180*pi)
+                # l_1, l_2, l_3 = self.robot.config_to_actuator(s_mid, kappa_mid, phi_mid+40/180*pi)
+                l_1, l_2, l_3, l_4, l_5, l_6 = self.robot.config_to_actuator("midside", s_mid, kappa_mid, phi_mid)
                 for i in range(0,3):
                     exec("self.robot.rope_midside_length[{}] = l_{}".format(i, i+1))
 
@@ -1997,7 +2020,10 @@ class Back(QThread):
 
 
 class SingleSectionKinematics(QThread):
-    def __init__(self, robot: ContinuumRobot, /, *, section=None, config_d=None, config=None) -> None:
+    action = pyqtSignal()
+    shutdown = pyqtSignal()
+    
+    def __init__(self, robot: ContinuumRobot, section=None, /, *, config_d=None, config=None) -> None:
         super().__init__()
 
         self.robot = robot
@@ -2009,84 +2035,295 @@ class SingleSectionKinematics(QThread):
             self.__phi_d = config_d[2]
             self.__mode = "config_d"
         elif config != None:
-            self.__l_1 = config[0]
-            self.__l_2 = config[1]
-            self.__l_3 = config[2]
+            self.__s = config[0]
+            self.__kappa = config[1]
+            self.__phi = config[2]
             self.__mode = "config"
         else: self.__mode = None
 
         self.__is_stop = False
     
     def run(self):
+        self.action.emit()
+
         if self.__section == "outside":
             if self.__mode == "config_d":
-                self.robot.motor_1.set_control_mode("speed_control")
-                self.robot.motor_2.set_control_mode("speed_control")
-                self.robot.motor_3.set_control_mode("speed_control")
-
-                self.robot.motor_1.set_speed(0, is_pdo=True)
-                self.robot.motor_2.set_speed(0, is_pdo=True)
-                self.robot.motor_3.set_speed(0, is_pdo=True)
-
-                self.robot.motor_1.enable_operation(is_pdo=True)
-                self.robot.motor_2.enable_operation(is_pdo=True)
-                self.robot.motor_3.enable_operation(is_pdo=True)
-
+                self.robot.rope_ready_speed("1","2","3")
+                
                 while not self.__is_stop:
                     l_1_d, l_2_d, l_3_d = self.robot.config_to_actuator_jacobian(self.__section, self.__s_d, self.__kappa_d, self.__phi_d)
                     self.robot.rope_move_speed(("1", l_1_d), ("2", l_2_d), ("3", l_3_d))
                 
-                self.robot.motor_1.disable_operation(is_pdo=True)
-                self.robot.motor_2.disable_operation(is_pdo=True)
-                self.robot.motor_3.disable_operation(is_pdo=True)
+                self.robot.rope_stop_speed("1","2","3")
 
-                self.robot.motor_1.set_speed(0, is_pdo=True)
-                self.robot.motor_2.set_speed(0, is_pdo=True)
-                self.robot.motor_3.set_speed(0, is_pdo=True)
+            elif self.__mode == "config":
+                self.robot.rope_ready_position("1","2","3")
+                
+                l_1, l_2, l_3 = self.robot.config_to_actuator("outside", self.__s, self.__kappa, self.__phi)
+                
+                for i in range(3):
+                    exec("l_{}_tar = l_{} + self.robot.rope_midside_length[{}] + self.robot.rope_inside_length[{}]".format(i+1, i+1, i, i))
+                for i in range(3):
+                    exec("i = {}".format(i))
+                l_1_tar = l_1 + self.robot.rope_midside_length[0] + self.robot.rope_inside_length[0]
+                l_2_tar = l_2 + self.robot.rope_midside_length[1] + self.robot.rope_inside_length[1]
+                l_3_tar = l_3 + self.robot.rope_midside_length[2] + self.robot.rope_inside_length[2]
+
+                l_1_cur = self.robot.rope_total_length[0]
+                l_2_cur = self.robot.rope_total_length[1]
+                l_3_cur = self.robot.rope_total_length[2]
+
+                l_1_delta = abs(l_1_tar - l_1_cur)
+                l_2_delta = abs(l_2_tar - l_2_cur)
+                l_3_delta = abs(l_3_tar - l_3_cur)
+                if l_1_delta >= l_2_delta and l_1_delta >= l_3_delta:
+                    l_1_d = 1
+                    l_2_d = l_1_d / l_1_delta * l_2_delta
+                    l_3_d = l_1_d / l_1_delta * l_3_delta
+                elif l_2_delta >= l_1_delta and l_2_delta >= l_3_delta:
+                    l_2_d = 1
+                    l_1_d = l_2_d / l_2_delta * l_1_delta
+                    l_3_d = l_2_d / l_2_delta * l_3_delta
+                elif l_3_delta >= l_1_delta and l_3_delta >= l_2_delta:
+                    l_3_d = 1
+                    l_1_d = l_3_d / l_3_delta * l_1_delta
+                    l_2_d = l_3_d / l_3_delta * l_2_delta
+                
+                self.robot.rope_move_abs_new(("1", l_1_tar, l_1_d), ("2", l_2_tar, l_2_d), ("3", l_3_tar, l_3_d))
         
         elif self.__section == "midside":
             if self.__mode == "config_d":
-                self.robot.motor_4.set_control_mode("speed_control")
-                self.robot.motor_5.set_control_mode("speed_control")
-                self.robot.motor_6.set_control_mode("speed_control")
-                self.robot.motor_1.set_control_mode("speed_control")
-                self.robot.motor_2.set_control_mode("speed_control")
-                self.robot.motor_3.set_control_mode("speed_control")
-
-                self.robot.motor_4.set_speed(0, is_pdo=True)
-                self.robot.motor_5.set_speed(0, is_pdo=True)
-                self.robot.motor_6.set_speed(0, is_pdo=True)
-                self.robot.motor_1.set_speed(0, is_pdo=True)
-                self.robot.motor_2.set_speed(0, is_pdo=True)
-                self.robot.motor_3.set_speed(0, is_pdo=True)
-
-                self.robot.motor_4.enable_operation(is_pdo=True)
-                self.robot.motor_5.enable_operation(is_pdo=True)
-                self.robot.motor_6.enable_operation(is_pdo=True)
-                self.robot.motor_1.enable_operation(is_pdo=True)
-                self.robot.motor_2.enable_operation(is_pdo=True)
-                self.robot.motor_3.enable_operation(is_pdo=True)
+                self.robot.rope_ready_speed("1","2","3","4","5","6")
 
                 while not self.__is_stop:
                     l_1_d, l_2_d, l_3_d, l_4_d, l_5_d, l_6_d = self.robot.config_to_actuator_jacobian(self.__section, self.__s_d, self.__kappa_d, self.__phi_d)
                     self.robot.rope_move_speed(("1", l_1_d), ("2", l_2_d), ("3", l_3_d), ("4", l_4_d), ("5", l_5_d), ("6", l_6_d))
                 
-                self.robot.motor_4.disable_operation(is_pdo=True)
-                self.robot.motor_5.disable_operation(is_pdo=True)
-                self.robot.motor_6.disable_operation(is_pdo=True)
-                self.robot.motor_1.disable_operation(is_pdo=True)
-                self.robot.motor_2.disable_operation(is_pdo=True)
-                self.robot.motor_3.disable_operation(is_pdo=True)
+                self.robot.rope_stop_speed("1","2","3","4","5","6")
+            
+            elif self.__mode == "config":
+                self.robot.rope_ready_position("1","2","3","4","5","6")
+                
+                l_1, l_2, l_3, l_4, l_5, l_6 = self.robot.config_to_actuator("midside", self.__s, self.__kappa, self.__phi)
+                
+                l_1_tar = l_1 + self.robot.rope_inside_length[0] + self.robot.rope_outside_length[0]
+                l_2_tar = l_2 + self.robot.rope_inside_length[1] + self.robot.rope_outside_length[1]
+                l_3_tar = l_3 + self.robot.rope_inside_length[2] + self.robot.rope_outside_length[2]
+                l_4_tar = l_4 + self.robot.rope_inside_length[3]
+                l_5_tar = l_5 + self.robot.rope_inside_length[4]
+                l_6_tar = l_6 + self.robot.rope_inside_length[5]
 
-                self.robot.motor_4.set_speed(0, is_pdo=True)
-                self.robot.motor_5.set_speed(0, is_pdo=True)
-                self.robot.motor_6.set_speed(0, is_pdo=True)
-                self.robot.motor_1.set_speed(0, is_pdo=True)
-                self.robot.motor_2.set_speed(0, is_pdo=True)
-                self.robot.motor_3.set_speed(0, is_pdo=True)
+                l_1_cur = self.robot.rope_total_length[0]
+                l_2_cur = self.robot.rope_total_length[1]
+                l_3_cur = self.robot.rope_total_length[2]
+                l_4_cur = self.robot.rope_total_length[3]
+                l_5_cur = self.robot.rope_total_length[4]
+                l_6_cur = self.robot.rope_total_length[5]
+
+                l_1_delta = abs(l_1_tar - l_1_cur)
+                l_2_delta = abs(l_2_tar - l_2_cur)
+                l_3_delta = abs(l_3_tar - l_3_cur)
+                l_4_delta = abs(l_4_tar - l_4_cur)
+                l_5_delta = abs(l_5_tar - l_5_cur)
+                l_6_delta = abs(l_6_tar - l_6_cur)
+                if 5*l_1_delta >= l_2_delta + l_3_delta + l_4_delta + l_5_delta + l_6_delta:
+                    l_1_d = 1
+                    k = l_1_d / l_1_delta
+                    l_2_d = k * l_2_delta
+                    l_3_d = k * l_3_delta
+                    l_4_d = k * l_4_delta
+                    l_5_d = k * l_5_delta
+                    l_6_d = k * l_6_delta
+                elif 5*l_2_delta >= l_1_delta + l_3_delta + l_4_delta + l_5_delta + l_6_delta:
+                    l_2_d = 1
+                    k = l_2_d / l_2_delta
+                    l_1_d = k * l_1_delta
+                    l_3_d = k * l_3_delta
+                    l_4_d = k * l_4_delta
+                    l_5_d = k * l_5_delta
+                    l_6_d = k * l_6_delta
+                elif 5*l_3_delta >= l_1_delta + l_2_delta + l_4_delta + l_5_delta + l_6_delta:
+                    l_3_d = 1
+                    k = l_3_d / l_3_delta
+                    l_1_d = k * l_1_delta
+                    l_2_d = k * l_2_delta
+                    l_4_d = k * l_4_delta
+                    l_5_d = k * l_5_delta
+                    l_6_d = k * l_6_delta
+                elif 5*l_4_delta >= l_1_delta + l_2_delta + l_3_delta + l_5_delta + l_6_delta:
+                    l_4_d = 1
+                    k = l_4_d / l_4_delta
+                    l_1_d = k * l_1_delta
+                    l_2_d = k * l_2_delta
+                    l_3_d = k * l_3_delta
+                    l_5_d = k * l_5_delta
+                    l_6_d = k * l_6_delta
+                elif 5*l_5_delta >= l_1_delta + l_2_delta + l_3_delta + l_4_delta + l_6_delta:
+                    l_5_d = 1
+                    k = l_5_d / l_5_delta
+                    l_1_d = k * l_1_delta
+                    l_2_d = k * l_2_delta
+                    l_3_d = k * l_3_delta
+                    l_4_d = k * l_4_delta
+                    l_6_d = k * l_6_delta
+                elif 5*l_6_delta >= l_1_delta + l_2_delta + l_3_delta + l_4_delta + l_5_delta:
+                    l_6_d = 1
+                    k = l_6_d / l_6_delta
+                    l_1_d = k * l_1_delta
+                    l_2_d = k * l_2_delta
+                    l_3_d = k * l_3_delta
+                    l_4_d = k * l_4_delta
+                    l_5_d = k * l_5_delta
+                
+                self.robot.rope_move_abs_new(("1", l_1_tar, l_1_d), ("2", l_2_tar, l_2_d), ("3", l_3_tar, l_3_d), ("4", l_4_tar, l_4_d), ("5", l_5_tar, l_5_d), ("6", l_6_tar, l_6_d))
+        
         elif self.__section == "inside":
-            ...
-        else: return
+            if self.__mode == "config_d":
+                self.robot.rope_ready_speed("1","2","3","4","5","6","7","8","9")
+                
+                while not self.__is_stop:
+                    l_1_d, l_2_d, l_3_d, l_4_d, l_5_d, l_6_d, l_7_d, l_8_d, l_9_d = self.robot.config_to_actuator_jacobian("inside", self.__s_d, self.__kappa_d, self.__phi_d)
+                    self.robot.rope_move_speed(("1", l_1_d), ("2", l_2_d), ("3", l_3_d), ("4", l_4_d), ("5", l_5_d), ("6", l_6_d), ("7", l_7_d), ("8", l_8_d), ("9", l_9_d))
+                
+                self.robot.rope_stop_speed("1","2","3","4","5","6","7","8","9")
+
+            elif self.__mode == "config":
+                self.robot.rope_ready_position("1","2","3","4","5","6","7","8","9")
+                
+                l_1, l_2, l_3, l_4, l_5, l_6, l_7, l_8, l_9 = self.robot.config_to_actuator("inside", self.__s, self.__kappa, self.__phi)
+                
+                l_1_tar = l_1 + self.robot.rope_midside_length[0] + self.robot.rope_outside_length[0]
+                l_2_tar = l_2 + self.robot.rope_midside_length[1] + self.robot.rope_outside_length[1]
+                l_3_tar = l_3 + self.robot.rope_midside_length[2] + self.robot.rope_outside_length[2]
+                l_4_tar = l_4 + self.robot.rope_midside_length[3]
+                l_5_tar = l_5 + self.robot.rope_midside_length[4]
+                l_6_tar = l_6 + self.robot.rope_midside_length[5]
+                l_7_tar = l_7
+                l_8_tar = l_8
+                l_9_tar = l_9
+
+                l_1_cur = self.robot.rope_total_length[0]
+                l_2_cur = self.robot.rope_total_length[1]
+                l_3_cur = self.robot.rope_total_length[2]
+                l_4_cur = self.robot.rope_total_length[3]
+                l_5_cur = self.robot.rope_total_length[4]
+                l_6_cur = self.robot.rope_total_length[5]
+                l_7_cur = self.robot.rope_total_length[6]
+                l_8_cur = self.robot.rope_total_length[7]
+                l_9_cur = self.robot.rope_total_length[8]
+
+                l_1_delta = abs(l_1_tar - l_1_cur)
+                l_2_delta = abs(l_2_tar - l_2_cur)
+                l_3_delta = abs(l_3_tar - l_3_cur)
+                l_4_delta = abs(l_4_tar - l_4_cur)
+                l_5_delta = abs(l_5_tar - l_5_cur)
+                l_6_delta = abs(l_6_tar - l_6_cur)
+                l_7_delta = abs(l_7_tar - l_7_cur)
+                l_8_delta = abs(l_8_tar - l_8_cur)
+                l_9_delta = abs(l_9_tar - l_9_cur)
+                if 8*l_1_delta >= l_2_delta + l_3_delta + l_4_delta + l_5_delta + l_6_delta + l_7_delta + l_8_delta + l_9_delta:
+                    l_1_d = 1
+                    k = l_1_d / l_1_delta
+                    l_2_d = k * l_2_delta
+                    l_3_d = k * l_3_delta
+                    l_4_d = k * l_4_delta
+                    l_5_d = k * l_5_delta
+                    l_6_d = k * l_6_delta
+                    l_7_d = k * l_7_delta
+                    l_8_d = k * l_8_delta
+                    l_9_d = k * l_9_delta
+                elif 8*l_2_delta >= l_1_delta + l_3_delta + l_4_delta + l_5_delta + l_6_delta + l_7_delta + l_8_delta + l_9_delta:
+                    l_2_d = 1
+                    k = l_2_d / l_2_delta
+                    l_1_d = k * l_1_delta
+                    l_3_d = k * l_3_delta
+                    l_4_d = k * l_4_delta
+                    l_5_d = k * l_5_delta
+                    l_6_d = k * l_6_delta
+                    l_7_d = k * l_7_delta
+                    l_8_d = k * l_8_delta
+                    l_9_d = k * l_9_delta
+                elif 8*l_3_delta >= l_1_delta + l_2_delta + l_4_delta + l_5_delta + l_6_delta + l_7_delta + l_8_delta + l_9_delta:
+                    l_3_d = 1
+                    k = l_3_d / l_3_delta
+                    l_1_d = k * l_1_delta
+                    l_2_d = k * l_2_delta
+                    l_4_d = k * l_4_delta
+                    l_5_d = k * l_5_delta
+                    l_6_d = k * l_6_delta
+                    l_7_d = k * l_7_delta
+                    l_8_d = k * l_8_delta
+                    l_9_d = k * l_9_delta
+                elif 8*l_4_delta >= l_1_delta + l_2_delta + l_3_delta + l_5_delta + l_6_delta + l_7_delta + l_8_delta + l_9_delta:
+                    l_4_d = 1
+                    k = l_4_d / l_4_delta
+                    l_1_d = k * l_1_delta
+                    l_2_d = k * l_2_delta
+                    l_3_d = k * l_3_delta
+                    l_5_d = k * l_5_delta
+                    l_6_d = k * l_6_delta
+                    l_7_d = k * l_7_delta
+                    l_8_d = k * l_8_delta
+                    l_9_d = k * l_9_delta
+                elif 8*l_5_delta >= l_1_delta + l_2_delta + l_3_delta + l_4_delta + l_6_delta + l_7_delta + l_8_delta + l_9_delta:
+                    l_5_d = 1
+                    k = l_5_d / l_5_delta
+                    l_1_d = k * l_1_delta
+                    l_2_d = k * l_2_delta
+                    l_3_d = k * l_3_delta
+                    l_4_d = k * l_4_delta
+                    l_6_d = k * l_6_delta
+                    l_7_d = k * l_7_delta
+                    l_8_d = k * l_8_delta
+                    l_9_d = k * l_9_delta
+                elif 8*l_6_delta >= l_1_delta + l_2_delta + l_3_delta + l_4_delta + l_5_delta + l_7_delta + l_8_delta + l_9_delta:
+                    l_6_d = 1
+                    k = l_6_d / l_6_delta
+                    l_1_d = k * l_1_delta
+                    l_2_d = k * l_2_delta
+                    l_3_d = k * l_3_delta
+                    l_4_d = k * l_4_delta
+                    l_5_d = k * l_5_delta
+                    l_7_d = k * l_7_delta
+                    l_8_d = k * l_8_delta
+                    l_9_d = k * l_9_delta
+                elif 8*l_7_delta >= l_1_delta + l_2_delta + l_3_delta + l_4_delta + l_5_delta + l_6_delta + l_8_delta + l_9_delta:
+                    l_7_d = 1
+                    k = l_7_d / l_7_delta
+                    l_1_d = k * l_1_delta
+                    l_2_d = k * l_2_delta
+                    l_3_d = k * l_3_delta
+                    l_4_d = k * l_4_delta
+                    l_5_d = k * l_5_delta
+                    l_6_d = k * l_6_delta
+                    l_8_d = k * l_8_delta
+                    l_9_d = k * l_9_delta
+                elif 8*l_8_delta >= l_1_delta + l_2_delta + l_3_delta + l_4_delta + l_5_delta + l_6_delta + l_7_delta + l_9_delta:
+                    l_8_d = 1
+                    k = l_8_d / l_8_delta
+                    l_1_d = k * l_1_delta
+                    l_2_d = k * l_2_delta
+                    l_3_d = k * l_3_delta
+                    l_4_d = k * l_4_delta
+                    l_5_d = k * l_5_delta
+                    l_6_d = k * l_6_delta
+                    l_7_d = k * l_7_delta
+                    l_9_d = k * l_9_delta
+                elif 8*l_9_delta >= l_1_delta + l_2_delta + l_3_delta + l_4_delta + l_5_delta + l_6_delta + l_7_delta + l_8_delta:
+                    l_9_d = 1
+                    k = l_9_d / l_9_delta
+                    l_1_d = k * l_1_delta
+                    l_2_d = k * l_2_delta
+                    l_3_d = k * l_3_delta
+                    l_4_d = k * l_4_delta
+                    l_5_d = k * l_5_delta
+                    l_6_d = k * l_6_delta
+                    l_7_d = k * l_7_delta
+                    l_8_d = k * l_8_delta
+                
+                self.robot.rope_move_abs_new(("1", l_1_tar, l_1_d), ("2", l_2_tar, l_2_d), ("3", l_3_tar, l_3_d), ("4", l_4_tar, l_4_d), ("5", l_5_tar, l_5_d), ("6", l_6_tar, l_6_d), ("7", l_7_tar, l_7_d), ("8", l_8_tar, l_8_d), ("9", l_9_tar, l_9_d))
+        
+        self.shutdown.emit()
     
     def stop(self):
         self.__is_stop = True
