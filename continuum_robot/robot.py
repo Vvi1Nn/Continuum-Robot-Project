@@ -285,6 +285,7 @@ class ContinuumRobot():
             
             tar_pos = int(round(self.rope_zero_position[int(id)-1] + (tar_l - self.rope_init_length[int(id)-1]) * self.ROPE_RATIO, 0))
             pro_vel = int(round(self.ROPE_RATIO * abs(vel) / self.VELOCITY_RATIO, 0))
+            if pro_vel == 0: pro_vel = 1
             
             t = abs(tar_pos - getattr(self, f"motor_{id}").current_position) / (pro_vel * self.VELOCITY_RATIO) + 0.05
             t_list.append(t)
@@ -307,6 +308,7 @@ class ContinuumRobot():
             
             tar_pos = int(round(pos * self.ROPE_RATIO, 0))
             pro_vel = int(round(self.ROPE_RATIO * abs(vel) / self.VELOCITY_RATIO, 0))
+            if pro_vel == 0: pro_vel = 1
             
             t = abs(tar_pos) / (pro_vel * self.VELOCITY_RATIO)
             t_list.append(t)
@@ -569,14 +571,7 @@ class ContinuumRobot():
         else: return 0
 
     ''' 逆雅可比 '''
-    def task_to_config_jacobian(self, section: str, spatial_velocity: tuple):
-        x_d = spatial_velocity[0]
-        y_d = spatial_velocity[1]
-        z_d = spatial_velocity[2]
-        x_w = spatial_velocity[3]
-        y_w = spatial_velocity[4]
-        z_w = spatial_velocity[5]
-
+    def task_to_config_jacobian(self, section: str, spatial_velocity: tuple, /, *, is_matrix=False):
         if section == "outside":
             s = self.backbone_length[2]
             kappa = self.backbone_curvature[2]
@@ -591,24 +586,43 @@ class ContinuumRobot():
             phi = self.backbone_rotation_angle[0]
         else: return 0, 0, 0
 
-        transform = np.array([
-            [cos(phi)*(cos(kappa*s)-1)/pow(kappa,2), 0, 0              ],
-            [sin(phi)*(cos(kappa*s)-1)/pow(kappa,2), 0, 0              ],
-            [-(sin(kappa*s)-kappa*s)/pow(kappa,2),   0, 1              ],
-            [-s*sin(phi),                            0, -kappa*sin(phi)],
-            [s*cos(phi),                             0, kappa*cos(phi) ],
-            [0,                                      1, 0              ],
-        ])
+        if kappa != 0:
+            transform = np.array([
+                [cos(phi)*(cos(kappa*s)-1)/pow(kappa,2), 0, 0              ],
+                [sin(phi)*(cos(kappa*s)-1)/pow(kappa,2), 0, 0              ],
+                [-(sin(kappa*s)-kappa*s)/pow(kappa,2),   0, 1              ],
+                [-s*sin(phi),                            0, -kappa*sin(phi)],
+                [s*cos(phi),                             0, kappa*cos(phi) ],
+                [0,                                      1, 0              ],
+            ])
+        else:
+            transform = np.array([
+                [-pow(s,2)*cos(phi)/2, 0, 0],
+                [-pow(s,2)*sin(phi)/2, 0, 0],
+                [0,                    0, 1],
+                [-s*sin(phi),          0, 0],
+                [s*cos(phi),           0, 0],
+                [0,                    1, 0],
+            ])
 
-        spatial_velocity_vector = np.array([[x_d, y_d, z_d, x_w, y_w, z_w]]).T
+        if not is_matrix:
+            x_d = spatial_velocity[0]
+            y_d = spatial_velocity[1]
+            z_d = spatial_velocity[2]
+            x_w = spatial_velocity[3]
+            y_w = spatial_velocity[4]
+            z_w = spatial_velocity[5]
 
-        config_vector = np.matmul(np.linalg.pinv(transform), spatial_velocity_vector)
+            spatial_velocity_vector = np.array([[x_d, y_d, z_d, x_w, y_w, z_w]]).T
 
-        kappa_d = config_vector[0, 0]
-        phi_d = config_vector[1, 0]
-        s_d = config_vector[2, 0]
+            config_vector = np.matmul(np.linalg.pinv(transform), spatial_velocity_vector)
 
-        return kappa_d, phi_d, s_d
+            kappa_d = config_vector[0, 0]
+            phi_d = config_vector[1, 0]
+            s_d = config_vector[2, 0]
+
+            return kappa_d, phi_d, s_d
+        else: return transform
 
 
     ''' configuration space '''
@@ -2345,6 +2359,33 @@ class SingleSectionKinematics(QThread):
         
         self.shutdown.emit()
     
+    def stop(self):
+        self.__is_stop = True
+
+class MultiSection(QThread):
+    def __init__(self, robot: ContinuumRobot, /, *, task_d=None, config_d=None, config=None) -> None:
+        super().__init__()
+
+        self.robot = robot
+        self.__is_stop = False
+
+        if task_d != None:
+            self.__mode = "task_d"
+            self.__x_d = task_d[0]
+            self.__y_d = task_d[1]
+            self.__z_d = task_d[2]
+            self.__w_x = task_d[3]
+            self.__w_y = task_d[4]
+            self.__w_z = task_d[5]
+
+    def run(self):
+        if self.__mode == "task_d":
+            while not self.__is_stop:
+                jacobian_inside = self.robot.task_to_config_jacobian("inside", None, is_matrix=True)
+                jacobian_midside = self.robot.task_to_config_jacobian("midside", None, is_matrix=True)
+                jacobian_outside = self.robot.task_to_config_jacobian("outside", None, is_matrix=True)
+                transform_inside = self.robot.config_to_task()
+
     def stop(self):
         self.__is_stop = True
 
