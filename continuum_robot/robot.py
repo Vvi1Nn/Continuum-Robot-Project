@@ -8,6 +8,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 
 from math import *
 import numpy as np
+import pygame
 
 # 添加模块路径
 import sys, os, time
@@ -94,7 +95,7 @@ class ContinuumRobot():
         
         self.read_sensor_thread = SensorResolve()
 
-        self.joystick_thread = Joystick()
+        self.teleoperation_thread = TeleOperation(self)
 
         self.backbone_init_length = [168, 170, 172] # in mid out
         self.backbone_length = [None, None, None] # in mid out
@@ -109,10 +110,6 @@ class ContinuumRobot():
         self.backbone_section_num = [9, 10, 10]
         self.backbone_d = 2.6
 
-        # self.outside_calibration = [None, None, None] # 1 2 3
-        # self.midside_calibration = [None, None, None] # 4 5 6
-        # self.inside_calibration = [None, None, None] # 7 8 9
-
         self.is_calibration = False
         self.rope_zero_position = [None, None, None, None, None, None, None, None, None] # 123456789
         self.rope_init_length = [None, None, None, None, None, None, None, None, None] # 123456789
@@ -121,10 +118,6 @@ class ContinuumRobot():
         self.rope_outside_length = [None, None, None] # 123
         self.rope_midside_length = [None, None, None, None, None, None] # 123456
         self.rope_inside_length = [None, None, None, None, None, None, None, None, None] # 123456789
-
-        # self.outside_length = [None, None, None] # 1 2 3
-        # self.midside_length = [None, None, None] # 4 5 6
-        # self.inside_length = [None, None, None] # 7 8 9
 
         self.outside_coordinate = (None, None, None)
         self.midside_coordinate = (None, None, None)
@@ -359,13 +352,7 @@ class ContinuumRobot():
         self.back_thread = Back(robot=self)
         self.back_thread.start()
 
-    def kinematics_test(self):
-        self.kinematics_thread = Kinematics(self)
-        self.kinematics_thread.start()
-    def kinematics_test_stop(self):
-        self.kinematics_thread.stop()
-        self.kinematics_thread.wait()
-
+    
     ''' 标定 初始状态 曲率0 长度已知 '''
     def calibration(self, bl_o: float, bl_m: float, bl_i: float):
         self.rope_zero_position = [getattr(self, f"motor_{i}").current_position for i in range(1,10)]
@@ -409,8 +396,20 @@ class ContinuumRobot():
         return s, kappa, phi
     
     ''' 正运动学 '''
-    def config_to_task(self, length: float, kappa: float, phi: float, /, *, is_matrix=False):
-        length = - length # z轴向内 论文是向外
+    def config_to_task(self, section: str, /, *, is_matrix=False):
+        if section == "outside":
+            length = -self.backbone_length[2] # z轴向内 论文是向外
+            kappa = self.backbone_curvature[2]
+            phi = self.backbone_rotation_angle[2]
+        elif section == "midside":
+            length = -self.backbone_length[1] # z轴向内 论文是向外
+            kappa = self.backbone_curvature[1]
+            phi = self.backbone_rotation_angle[1]
+        elif section == "inside":
+            length = -self.backbone_length[0] # z轴向内 论文是向外
+            kappa = self.backbone_curvature[0]
+            phi = self.backbone_rotation_angle[0]
+        else: return 0, 0, 0
         if kappa != 0:
             transform = np.array([
                 [cos(phi)*cos(phi*length), -sin(phi), cos(phi)*sin(kappa*length), cos(phi)*(1-cos(kappa*length))/kappa], 
@@ -645,13 +644,16 @@ class ContinuumRobot():
         
         try: self.config_space_thread.start()
         except: print("\033[0;31m[Error] config_space_thread is not created\033[0m")
+    def config_space_multi(self):
+        self.config_space_thread = MultiSectionKinematics(self, config_d=(0, 0, 0, 0, 0.001, 0.25, 0, 0.001, 0))
+        try: self.config_space_thread.start()
+        except: print("\033[0;31m[Error] config_space_thread is not created\033[0m")
     def config_space_stop(self):
         try:
             self.config_space_thread.stop()
             self.config_space_thread.wait()
         except: print("\033[0;31m[Error] config_space_thread is not created\033[0m")
-
-
+    
 
 ''' CANopen 接收 数据处理 '''
 class CANopenUpdate(QThread):
@@ -832,8 +834,10 @@ class CANopenUpdate(QThread):
                 for i in range(0,6):
                     exec("self.robot.rope_inside_length[{}] = l_{}".format(i, i+1))
 
-                self.robot.inside_coordinate = self.robot.config_to_task(s_in, kappa_in, phi_in)
-                trans_in = self.robot.config_to_task(s_in, kappa_in, phi_in, is_matrix=True)
+                # self.robot.inside_coordinate = self.robot.config_to_task(s_in, kappa_in, phi_in)
+                self.robot.inside_coordinate = self.robot.config_to_task("inside")
+                # trans_in = self.robot.config_to_task(s_in, kappa_in, phi_in, is_matrix=True)
+                trans_in = self.robot.config_to_task("inside", is_matrix=True)
                 
                 # midside
                 for i in range(3,6):
@@ -849,8 +853,10 @@ class CANopenUpdate(QThread):
                 for i in range(0,3):
                     exec("self.robot.rope_midside_length[{}] = l_{}".format(i, i+1))
 
-                self.robot.midside_coordinate = self.robot.config_to_task(s_mid, kappa_mid, phi_mid)
-                trans_mid = self.robot.config_to_task(s_mid, kappa_mid, phi_mid, is_matrix=True)
+                # self.robot.midside_coordinate = self.robot.config_to_task(s_mid, kappa_mid, phi_mid)
+                self.robot.midside_coordinate = self.robot.config_to_task("midside")
+                # trans_mid = self.robot.config_to_task(s_mid, kappa_mid, phi_mid, is_matrix=True)
+                trans_mid = self.robot.config_to_task("midside", is_matrix=True)
 
                 # outside
                 for i in range(0,3):
@@ -861,19 +867,33 @@ class CANopenUpdate(QThread):
                 self.robot.backbone_curvature[2] = kappa_out
                 self.robot.backbone_rotation_angle[2] = phi_out
                 
-                self.robot.outside_coordinate = self.robot.config_to_task(s_out, kappa_out, phi_out)
-                trans_out = self.robot.config_to_task(s_out, kappa_out, phi_out, is_matrix=True)
+                # self.robot.outside_coordinate = self.robot.config_to_task(s_out, kappa_out, phi_out)
+                self.robot.outside_coordinate = self.robot.config_to_task("outside")
+                # trans_out = self.robot.config_to_task(s_out, kappa_out, phi_out, is_matrix=True)
+                trans_out = self.robot.config_to_task("outside", is_matrix=True)
 
                 # world
-                trans_world = np.array([
-                    [cos(5*pi/9),  -sin(5*pi/9),  0,  0], 
-                    [-sin(5*pi/9), -cos(5*pi/9),  0,  0],
-                    [0,            0,             -1, 0],
-                    [0,            0,             0,  1],
+                trans_out_to_mid =  np.array([
+                    [cos(-40*pi/180), -sin(-40*pi/180), 0, 0], 
+                    [sin(-40*pi/180), cos(-40*pi/180),  0, 0],
+                    [0,               0,                1, 0],
+                    [0,               0,                0, 1],
                 ])
-                p_out_world = np.matmul(np.matmul(np.matmul(np.matmul(trans_world, trans_in), trans_mid), trans_out), np.array([[0, 0, 0, 1]]).T)
-                p_mid_world = np.matmul(np.matmul(np.matmul(trans_world, trans_in), trans_mid), np.array([[0, 0, 0, 1]]).T)
-                p_in_world = np.matmul(np.matmul(trans_world, trans_in), np.array([[0, 0, 0, 1]]).T)
+                trans_mid_to_in =  np.array([
+                    [cos(-40*pi/180), -sin(-40*pi/180), 0, 0], 
+                    [sin(-40*pi/180), cos(-40*pi/180),  0, 0],
+                    [0,               0,                1, 0],
+                    [0,               0,                0, 1],
+                ])
+                trans_in_to_world =  np.array([
+                    [-cos(80*pi/180), sin(80*pi/180), 0,  0], 
+                    [sin(80*pi/180), cos(80*pi/180),  0,  0],
+                    [0,               0,               -1, 0],
+                    [0,               0,               0,  1],
+                ])
+                p_out_world = np.matmul(np.matmul(np.matmul(np.matmul(np.matmul(np.matmul(trans_in_to_world, trans_in), trans_mid_to_in), trans_mid), trans_out_to_mid), trans_out), np.array([[0, 0, 0, 1]]).T)
+                p_mid_world = np.matmul(np.matmul(np.matmul(np.matmul(trans_in_to_world, trans_in), trans_mid_to_in), trans_mid), np.array([[0, 0, 0, 1]]).T)
+                p_in_world = np.matmul(np.matmul(trans_in_to_world, trans_in), np.array([[0, 0, 0, 1]]).T)
                 self.robot.outside_world_coordinate = (p_out_world[0,0], p_out_world[1,0], p_out_world[2,0])
                 self.robot.midside_world_coordinate = (p_mid_world[0,0], p_mid_world[1,0], p_mid_world[2,0])
                 self.robot.inside_world_coordinate = (p_in_world[0,0], p_in_world[1,0], p_in_world[2,0])
@@ -2362,7 +2382,7 @@ class SingleSectionKinematics(QThread):
     def stop(self):
         self.__is_stop = True
 
-class MultiSection(QThread):
+class MultiSectionKinematics(QThread):
     def __init__(self, robot: ContinuumRobot, /, *, task_d=None, config_d=None, config=None) -> None:
         super().__init__()
 
@@ -2377,6 +2397,17 @@ class MultiSection(QThread):
             self.__w_x = task_d[3]
             self.__w_y = task_d[4]
             self.__w_z = task_d[5]
+        elif config_d != None:
+            self.__mode = "config_d"
+            self.__s_d_in = config_d[0]
+            self.__kappa_d_in = config_d[1]
+            self.__phi_d_in = config_d[2]
+            self.__s_d_mid = config_d[3]
+            self.__kappa_d_mid = config_d[4]
+            self.__phi_d_mid = config_d[5]
+            self.__s_d_out = config_d[6]
+            self.__kappa_d_out = config_d[7]
+            self.__phi_d_out = config_d[8]
 
     def run(self):
         if self.__mode == "task_d":
@@ -2384,307 +2415,159 @@ class MultiSection(QThread):
                 jacobian_inside = self.robot.task_to_config_jacobian("inside", None, is_matrix=True)
                 jacobian_midside = self.robot.task_to_config_jacobian("midside", None, is_matrix=True)
                 jacobian_outside = self.robot.task_to_config_jacobian("outside", None, is_matrix=True)
-                transform_inside = self.robot.config_to_task()
-
+                transform_inside = self.robot.config_to_task("inside", is_matrix=True)
+                transform_midside = self.robot.config_to_task("midside", is_matrix=True)
+                transform_outside = self.robot.config_to_task("outside", is_matrix=True)
+        
+        elif self.__mode == "config_d":
+            self.robot.rope_ready_speed("1","2","3","4","5","6","7","8","9")
+            while not self.__is_stop:
+                l_1_d_in, l_2_d_in, l_3_d_in, l_4_d_in, l_5_d_in, l_6_d_in, l_7_d_in, l_8_d_in, l_9_d_in = self.robot.config_to_actuator_jacobian("inside", self.__s_d_in, self.__kappa_d_in, self.__phi_d_in)
+                l_1_d_mid, l_2_d_mid, l_3_d_mid, l_4_d_mid, l_5_d_mid, l_6_d_mid = self.robot.config_to_actuator_jacobian("midside", self.__s_d_mid, self.__kappa_d_mid, self.__phi_d_mid)
+                l_1_d_out, l_2_d_out, l_3_d_out = self.robot.config_to_actuator_jacobian("outside", self.__s_d_out, self.__kappa_d_out, self.__phi_d_out)
+                l_1_d = l_1_d_in + l_1_d_mid + l_1_d_out
+                l_2_d = l_2_d_in + l_2_d_mid + l_2_d_out
+                l_3_d = l_3_d_in + l_3_d_mid + l_3_d_out
+                l_4_d = l_4_d_in + l_4_d_mid
+                l_5_d = l_5_d_in + l_5_d_mid
+                l_6_d = l_6_d_in + l_6_d_mid
+                l_7_d = l_7_d_in
+                l_8_d = l_8_d_in
+                l_9_d = l_9_d_in
+                self.robot.rope_move_speed(("1", l_1_d), ("2", l_2_d), ("3", l_3_d), ("4", l_4_d), ("5", l_5_d), ("6", l_6_d), ("7", l_7_d), ("8", l_8_d), ("9", l_9_d))
+            self.robot.rope_stop_speed("1","2","3","4","5","6","7","8","9")
+    
     def stop(self):
         self.__is_stop = True
 
-class Kinematics(QThread):
+class TeleOperation(QThread):
+    button_signal_0 = pyqtSignal(int)
+    button_signal_1 = pyqtSignal(int)
+    button_signal_2 = pyqtSignal(int)
+    button_signal_3 = pyqtSignal(int)
+    button_signal_4 = pyqtSignal(int)
+    button_signal_5 = pyqtSignal(int)
+    button_signal_6 = pyqtSignal(int)
+    button_signal_7 = pyqtSignal(int)
+    button_signal_8 = pyqtSignal(int)
+    button_signal_9 = pyqtSignal(int)
+    button_signal_10 = pyqtSignal(int)
+    button_signal_11 = pyqtSignal(int)
+    axis_signal_0 = pyqtSignal(float)
+    axis_signal_1 = pyqtSignal(float)
+    axis_signal_2 = pyqtSignal(float)
+    axis_signal_3 = pyqtSignal(float)
+    hat_signal_0 = pyqtSignal(tuple)
+    
     def __init__(self, robot: ContinuumRobot) -> None:
         super().__init__()
-
+        
         self.robot = robot
 
-        self.n = 10
-        self.d = 2.5 # mm
-        self.l = 172 # mm
-
+        self.__is_joystick = False
+        self.__is_stop = False
+        
+    def __setup(self):
         self.__is_stop = False
 
-        self.test = (30, 30, 160)
+        pygame.init() # 初始化模块
+
+        # 界面
+        self.screen = pygame.display.set_mode([800, 500])
+        # self.screen = pygame.display.set_mode((240, 180))
+        pygame.display.set_caption("遥操作界面")
+        self.screen.fill((255, 255, 255))
+
+        self.font = pygame.font.SysFont(None, 40) # 字体
+
+        self.clock = pygame.time.Clock() # 时钟
+
+        # 等待joystick插入
+        while not self.__is_joystick:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT: pygame.quit()
+            if pygame.joystick.get_count() == 1:
+                self.__is_joystick = True
+                self.joystick = pygame.joystick.Joystick(0)
+            # 显示
+            self.screen.fill((255,255,255))
+            self.__print("No Joystick!", x=10, y=10)
+            # 刷新
+            pygame.display.flip()
+            self.clock.tick(20)
+
+    def __print(self, text, /, *, x, y):
+        textBitmap = self.font.render(text, True, (0,0,0))
+        self.screen.blit(textBitmap, [x, y])
     
-    def config_to_task(self, kappa, length, phi):
-        if kappa != 0:
-            transform = np.array([
-                [cos(phi)*cos(phi*length), -sin(phi), cos(phi)*sin(kappa*length), cos(phi)*(1-cos(kappa*length))/kappa], 
-                [sin(phi)*cos(phi*length), cos(phi),  sin(phi)*sin(kappa*length), sin(phi)*(1-cos(kappa*length))/kappa],
-                [-sin(kappa*length),       0,         cos(kappa*length),          sin(kappa*length)/kappa             ],
-                [0,                        0,         0,                          1                                   ],
-            ])
-        else:
-            transform = np.array([
-                [cos(phi)*cos(phi*length), -sin(phi), cos(phi)*sin(kappa*length), 0     ], 
-                [sin(phi)*cos(phi*length), cos(phi),  sin(phi)*sin(kappa*length), 0     ],
-                [-sin(kappa*length),       0,         cos(kappa*length),          length],
-                [0,                        0,         0,                          1     ],
-            ])
-        
-        coordinate = np.array([[0, 0, 0, 1]]).T
-        
-        # print(transform)
-        print(np.matmul(transform, coordinate))
-    
-    def config_to_actuator(self, kappa_dot, phi_dot, l_dot):
-        # 第3节
-        # l = self.robot.backbone_length[2]
-        # kappa = self.robot.backbone_curvature[2]
-        # phi = self.robot.backbone_rotation_angle[2]
-        times = 300
-        l = 172
-        kappa = 0.005
-        phi = 0
-        while times != 0:
-            param_1 = cos((kappa * l) / (2 * self.n))
-            param_2 = sin((kappa * l) / (2 * self.n))
-            param_3 = 2 * self.n / pow(kappa, 2)
-            param_4 = 2 * self.n * self.d
-            param_5 = 1 / kappa - self.d * sin(phi)
-            param_6 = 1 / kappa + self.d * sin(pi/3 + phi)
-            param_7 = 1 / kappa - self.d * cos(pi/6 + phi)
-            
-            transform = np.array([
-                [l*param_1*param_5 - param_3*param_2, -param_4*param_2*cos(phi),     kappa*param_1*param_5],
-                [l*param_1*param_6 - param_3*param_2, param_4*param_2*cos(pi/3+phi), kappa*param_1*param_6],
-                [l*param_1*param_7 - param_3*param_2, param_4*param_2*sin(pi/6+phi), kappa*param_1*param_7]
-            ])
-
-            config_dot = np.array([[kappa_dot, phi_dot, l_dot]]).T
-
-            actuator_dot = np.matmul(transform, config_dot)
-            print("l_1_dot =", actuator_dot[0, 0])
-            print("l_2_dot =", actuator_dot[1, 0])
-            print("l_3_dot =", actuator_dot[2, 0])
-
-            phi += 0.01
-            times -= 1
-
-
-        return actuator_dot
-    
-    def config_space_single(self, coordinate: tuple):
-        x, y, z = coordinate
-
-        if z > self.l or z <= 0: return
-
-        if x > 0 and y == 0: phi = 0
-        elif x > 0 and y > 0: phi = atan(y / x)
-        elif x == 0 and y > 0: phi = pi / 2
-        elif x < 0 and y > 0: phi = atan(y / x) + pi
-        elif x < 0 and y == 0: phi = pi
-        elif x < 0 and y < 0: phi = atan(y / x) + pi
-        elif x == 0 and y < 0: phi = 1.5 * pi
-        elif x > 0 and y < 0: phi = atan(y / x) + 2 * pi
-        else: phi = None
-
-        kappa = 2 * sqrt(pow(x,2)+pow(y,2)) / (pow(x,2)+pow(y,2)+pow(z,2))
-
-        # theta = acos(1 - kappa * sqrt(pow(x,2)+pow(y,2))) if z > 0 else 2*pi - acos(1 - kappa * sqrt(pow(x,2)+pow(y,2)))
-
-        print("phi =", phi)
-        print("kappa =", kappa)
-
-        if kappa != 0:
-            l_1 = 2 * self.n * sin(kappa * self.l / 2 / self.n) * (1 / kappa - self.d * sin(phi))
-            l_2 = 2 * self.n * sin(kappa * self.l / 2 / self.n) * (1 / kappa + self.d * sin(phi + pi/3))
-            l_3 = 2 * self.n * sin(kappa * self.l / 2 / self.n) * (1 / kappa - self.d * cos(phi + pi/6))
-        else:
-            l_1 = z
-            l_2 = z
-            l_3 = z
-
-        print("l_1 =", l_1, "delta =", l_1-self.l)
-        print("l_2 =", l_2, "delta =", l_2-self.l)
-        print("l_3 =", l_3, "delta =", l_3-self.l)
-
-        self.actuator_to_config(l_1, l_2, l_3)
-
-        return l_1, l_2, l_3
-    
-    def actuator_to_config(self, l_1, l_2, l_3):
-        param_1 = sqrt(pow(l_1,2)+pow(l_2,2)+pow(l_3,2)-l_1*l_2-l_2*l_3-l_1*l_3)
-        param_2 = l_1+l_2+l_3
-        param_3 = l_3+l_2-2*l_1
-        param_4 = l_2-l_3
-
-        kappa = (2*param_1)/(self.d*param_2)
-        if param_4 == 0:
-            if param_3 > 0: phi = pi/2
-            elif param_3 == 0: phi = 0
-            elif param_3 < 0: phi = 3*pi/2
-        elif param_4 > 0: phi = atan(1/sqrt(3)*param_3/param_4)
-        elif param_4 < 0: phi = atan(1/sqrt(3)*param_3/param_4) + pi
-        if param_1 == 0: s = param_2 / 3
-        else: s = self.n*self.d*param_2/param_1*asin(param_1/(3*self.n*self.d))
-
-        print("kappa =", kappa)
-        print("phi =", phi)
-        print("s =", s)
-
-        return s, kappa, phi
-    
-    def config_to_actuator_jacobian(self, s_d: float, kappa_d: float, phi_d: float):
-        n = 10
-        d = 2.5
-
-        s = 172
-        kappa = 0.005
-        phi = pi/2
-
-        if kappa != 0:
-            param_1 = cos((kappa * s) / (2 * n))
-            param_2 = sin((kappa * s) / (2 * n))
-            param_3 = 2 * n / pow(kappa, 2)
-            param_4 = 2 * n * d
-            param_5 = 1 / kappa - d * sin(phi)
-            param_6 = 1 / kappa + d * sin(pi/3 + phi)
-            param_7 = 1 / kappa - d * cos(pi/6 + phi)
-            
-            transform = np.array([
-                [s*param_1*param_5 - param_3*param_2, -param_4*param_2*cos(phi),     kappa*param_1*param_5],
-                [s*param_1*param_6 - param_3*param_2, param_4*param_2*cos(pi/3+phi), kappa*param_1*param_6],
-                [s*param_1*param_7 - param_3*param_2, param_4*param_2*sin(pi/6+phi), kappa*param_1*param_7]
-            ])
-        else:
-            transform = np.array([
-                [-s*d*sin(phi),     0, 1],
-                [s*d*sin(pi/3+phi), 0, 1],
-                [s*d*sin(pi/6+phi), 0, 1],
-            ])
-
-        config_d = np.array([[kappa_d, phi_d, s_d]]).T
-
-        actuator_d = np.matmul(transform, config_d)
-
-        l_1_d = actuator_d[0, 0]
-        l_2_d = actuator_d[1, 0]
-        l_3_d = actuator_d[2, 0]
-
-        return l_1_d, l_2_d, l_3_d
-
-    def task_to_config_jacobian(self, spatial_velocity: tuple):
-        x_d = spatial_velocity[0]
-        y_d = spatial_velocity[1]
-        z_d = spatial_velocity[2]
-        x_w = spatial_velocity[3]
-        y_w = spatial_velocity[4]
-        z_w = spatial_velocity[5]
-
-        s = 172
-        kappa = 0.005
-        phi = pi/2
-
-        transform = np.array([
-            [cos(phi)*(cos(kappa*s)-1)/pow(kappa,2), 0, 0              ],
-            [sin(phi)*(cos(kappa*s)-1)/pow(kappa,2), 0, 0              ],
-            [-(sin(kappa*s)-kappa*s)/pow(kappa,2),   0, 1              ],
-            [-s*sin(phi),                            0, -kappa*sin(phi)],
-            [s*cos(phi),                             0, kappa*cos(phi) ],
-            [0,                                      1, 0              ],
-        ])
-        print(np.linalg.pinv(transform))
-
-        spatial_velocity_vector = np.array([[x_d, y_d, z_d, x_w, y_w, z_w]]).T
-
-        config_vector = np.matmul(np.linalg.pinv(transform), spatial_velocity_vector)
-
-        kappa_d = config_vector[0, 0]
-        phi_d = config_vector[1, 0]
-        s_d = config_vector[2, 0]
-
-        return kappa_d, phi_d, s_d
-    
-    # ''' 逆运动学 '''
-    # def run(self):
-    #     rope_1_current = self.l
-    #     rope_2_current = self.l
-    #     rope_3_current = self.l
-
-    #     print("========== MOVE ==========")
-    #     target_coordinate = self.test
-    #     rope_1, rope_2, rope_3 = self.config_space_single(target_coordinate)
-
-    #     delta_1 = rope_1 - rope_1_current
-    #     delta_2 = rope_2 - rope_2_current
-    #     delta_3 = rope_3 - rope_3_current
-
-    #     self.robot.rope_move_rel("1", distance=delta_1, velocity=1, is_wait=False)
-    #     self.robot.rope_move_rel("2", distance=delta_2, velocity=1*rope_2/rope_1, is_wait=False)
-    #     self.robot.rope_move_rel("3", distance=delta_3, velocity=1*rope_3/rope_1, is_wait=False)
-
-    #     rope_1_current = rope_1
-    #     rope_2_current = rope_2
-    #     rope_3_current = rope_3
-
-    #     time.sleep(1)
-
-    #     print("========== ZERO ==========")
-    #     rope_1, rope_2, rope_3 = self.l, self.l, self.l
-
-    #     delta_1 = rope_1 - rope_1_current
-    #     delta_2 = rope_2 - rope_2_current
-    #     delta_3 = rope_3 - rope_3_current
-
-    #     self.robot.rope_move_rel("1", distance=delta_1, velocity=1, is_wait=False)
-    #     self.robot.rope_move_rel("2", distance=delta_2, velocity=1*rope_2/rope_1, is_wait=False)
-    #     self.robot.rope_move_rel("3", distance=delta_3, velocity=1*rope_3/rope_1, is_wait=False)
-
-    #     rope_1_current = rope_1
-    #     rope_2_current = rope_2
-    #     rope_3_current = rope_3
-
-    ''' 雅可比 '''
     def run(self):
-        self.robot.motor_1.set_control_mode("speed_control")
-        self.robot.motor_2.set_control_mode("speed_control")
-        self.robot.motor_3.set_control_mode("speed_control")
+        self.__setup() # 初始化
 
-        self.robot.motor_1.halt(is_pdo=True)
-        self.robot.motor_2.halt(is_pdo=True)
-        self.robot.motor_3.halt(is_pdo=True)
-
-        self.robot.motor_1.set_speed(0, is_pdo=True)
-        self.robot.motor_2.set_speed(0, is_pdo=True)
-        self.robot.motor_3.set_speed(0, is_pdo=True)
-
-        self.robot.motor_1.enable_operation(is_pdo=True)
-        self.robot.motor_2.enable_operation(is_pdo=True)
-        self.robot.motor_3.enable_operation(is_pdo=True)
+        self.robot.rope_ready_speed("1","2","3","4","5","6","7","8","9")
 
         while not self.__is_stop:
-            l_1_d, l_2_d, l_3_d = self.robot.config_to_actuator_jacobian(0, 0, 0.5)
+            # 检测
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT: self.__is_stop = True
+            
+            # 显示
+            self.screen.fill((255,255,255))
+            x_current, y_current = 10, 10
+            self.__print("Joystick name: {}".format(self.joystick.get_name()), x=x_current, y=y_current)
+            
+            button_num = self.joystick.get_numbuttons()
+            axis_num = self.joystick.get_numaxes()
+            hat_num = self.joystick.get_numhats()
+            
+            for i in range(button_num):
+                getattr(self, f"button_signal_{i}").emit(self.joystick.get_button(i))
+                y_current += 40
+                self.__print("Button {}:  {}".format(i, True if self.joystick.get_button(i) else False), x=x_current, y=y_current)
+            x_current, y_current = 310, 10
+            
+            for i in range(axis_num):
+                getattr(self, f"axis_signal_{i}").emit(self.joystick.get_axis(i))
+                y_current += 40
+                self.__print("Axis {}:  {:.6f}".format(i, self.joystick.get_axis(i)), x=x_current, y=y_current)
+            x_current, y_current = 610, 10
+            
+            for i in range(hat_num):
+                y_current += 40
+                self.__print("Hat {}:  {}".format(i, str(self.joystick.get_hat(i))), x=x_current, y=y_current)
+            
+            # 操作
+            kappa_d = self.joystick.get_axis(1) * 0.001 if abs(self.joystick.get_axis(1)) > 0.01 else 0
+            phi_d = self.joystick.get_axis(2) * 0.25 if abs(self.joystick.get_axis(2)) > 0.01 else 0
 
-            self.robot.rope_move_speed(("1", l_1_d), ("2", l_2_d), ("3", l_3_d))
-        
-        self.robot.motor_1.disable_operation(is_pdo=True)
-        self.robot.motor_2.disable_operation(is_pdo=True)
-        self.robot.motor_3.disable_operation(is_pdo=True)
+            if self.joystick.get_button(2) and not self.joystick.get_button(3): # out
+                if kappa_d >= 0 and self.robot.backbone_curvature[2] > 0.01: kappa_d = 0
+                elif kappa_d < 0 and self.robot.backbone_curvature[2] < 0.00001: kappa_d = 0
+                print("outside ", kappa_d, phi_d)
+                l_1_d, l_2_d, l_3_d = self.robot.config_to_actuator_jacobian("outside", 0, kappa_d, phi_d)
+                self.robot.rope_move_speed(("1", l_1_d), ("2", l_2_d), ("3", l_3_d))
+            elif self.joystick.get_button(3) and not self.joystick.get_button(2): # mid
+                if kappa_d >= 0 and self.robot.backbone_curvature[1] > 0.01: kappa_d = 0
+                elif kappa_d < 0 and self.robot.backbone_curvature[1] < 0.00001: kappa_d = 0
+                print("midside ", kappa_d, phi_d)
+                l_1_d, l_2_d, l_3_d, l_4_d, l_5_d, l_6_d = self.robot.config_to_actuator_jacobian("midside", 0, kappa_d, phi_d)
+                self.robot.rope_move_speed(("1", l_1_d), ("2", l_2_d), ("3", l_3_d), ("4", l_4_d), ("5", l_5_d), ("6", l_6_d))
+            else:
+                self.robot.motor_1.set_speed(0, is_pdo=True)
+                self.robot.motor_2.set_speed(0, is_pdo=True)
+                self.robot.motor_3.set_speed(0, is_pdo=True)
+                self.robot.motor_4.set_speed(0, is_pdo=True)
+                self.robot.motor_5.set_speed(0, is_pdo=True)
+                self.robot.motor_6.set_speed(0, is_pdo=True)
+                self.robot.motor_7.set_speed(0, is_pdo=True)
+                self.robot.motor_8.set_speed(0, is_pdo=True)
+                self.robot.motor_9.set_speed(0, is_pdo=True)
+            
+            # 刷新
+            pygame.display.flip()
+            self.clock.tick(20)
 
-        self.robot.motor_1.set_speed(0, is_pdo=True)
-        self.robot.motor_2.set_speed(0, is_pdo=True)
-        self.robot.motor_3.set_speed(0, is_pdo=True)
-    
+        self.robot.rope_stop_speed("1","2","3","4","5","6","7","8","9")
+        pygame.quit()
+
     def stop(self):
         self.__is_stop = True
-
-
-if __name__ == "__main__":
-    kin = Kinematics(None)
-    # kin.config_space_single(kin.test)
-
-    # kin.config_to_task(0.00514259,172,0.78539816)
-
-    # kin.config_to_actuator(0.00000001, 0, 0)
-
-    # kin.actuator_to_config(170,172,170)
-    # kin.actuator_to_config(170,170,172)
-    # kin.actuator_to_config(172,170,172)
-    # kin.actuator_to_config(172,172,170)
-
-    kappa_d, phi_d, s_d = kin.task_to_config_jacobian((1,1,-1,0,0,0))
-    print("kappa_d =", kappa_d)
-    print("phi_d =", phi_d)
-    print("s_d =", s_d)
-    l_1_d, l_2_d, l_3_d = kin.config_to_actuator_jacobian(s_d, kappa_d, phi_d)
-    print("l_1_d =", l_1_d)
-    print("l_2_d =", l_2_d)
-    print("l_3_d =", l_3_d)
