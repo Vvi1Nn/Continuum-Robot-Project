@@ -78,10 +78,11 @@ class ControlPanel(QMainWindow):
         # self.ui.test_12.clicked.connect(lambda: self.robot.rope_move("1", -3, 1, is_relative=True))
         # self.ui.test_11.clicked.connect(self.robot.back)
 
-        self.ui.test_12.pressed.connect(self.robot.kinematics_test)
-        self.ui.test_12.released.connect(self.robot.kinematics_test_stop)
-
         # self.ui.test_13.clicked.connect(self.robot.forward)
+
+        self.ui.pushButton.pressed.connect(self.robot.config_space_multi)
+        self.ui.pushButton.released.connect(self.robot.config_space_stop)
+        self.ui.teleoperation.clicked.connect(self.robot.teleoperation_thread.start)
 
         
         
@@ -274,6 +275,8 @@ class ControlPanel(QMainWindow):
         self.ui.angle_back_in.pressed.connect(lambda: self.robot.config_space("inside", "rotate_anticlockwise"))
         self.ui.angle_back_in.released.connect(self.robot.config_space_stop)
         self.ui.reset_in.clicked.connect(lambda: self.robot.config_space("inside", "reset"))
+
+        
 
 
 
