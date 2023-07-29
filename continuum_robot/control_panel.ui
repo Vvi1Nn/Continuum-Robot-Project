@@ -201,7 +201,7 @@ QStackedWidget QTextBrowser {
           <string notr="true"/>
          </property>
          <property name="currentIndex">
-          <number>3</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="page_control">
           <layout class="QVBoxLayout" name="verticalLayout_7" stretch="2,8,8,3">
@@ -6493,7 +6493,7 @@ All</string>
            <item>
             <widget class="QTabWidget" name="status">
              <property name="currentIndex">
-              <number>2</number>
+              <number>0</number>
              </property>
              <widget class="QWidget" name="tab_joint_status">
               <attribute name="title">
@@ -10027,7 +10027,7 @@ Zero</string>
           </widget>
          </widget>
          <widget class="QWidget" name="page_kin">
-          <layout class="QVBoxLayout" name="verticalLayout_160" stretch="1,5,5,5,1">
+          <layout class="QVBoxLayout" name="verticalLayout_160" stretch="1,5,5,5,3">
            <property name="spacing">
             <number>0</number>
            </property>
@@ -11957,6 +11957,32 @@ Zero</string>
              <property name="title">
               <string>All</string>
              </property>
+             <widget class="QPushButton" name="pushButton">
+              <property name="geometry">
+               <rect>
+                <x>160</x>
+                <y>30</y>
+                <width>117</width>
+                <height>32</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>Test</string>
+              </property>
+             </widget>
+             <widget class="QPushButton" name="teleoperation">
+              <property name="geometry">
+               <rect>
+                <x>540</x>
+                <y>50</y>
+                <width>117</width>
+                <height>32</height>
+               </rect>
+              </property>
+              <property name="text">
+               <string>TeleOp</string>
+              </property>
+             </widget>
             </widget>
            </item>
           </layout>
