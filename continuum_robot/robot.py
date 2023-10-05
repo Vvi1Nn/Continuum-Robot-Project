@@ -1846,7 +1846,7 @@ class Forward(QThread):
         self.robot.io.open_valve_3()
         self.robot.io.open_valve_2()
 
-        times = 15
+        times = 7
         while not self.__is_stop and times != 0:
             self.robot.io.close_valve_4()
             self.robot.io.open_valve_1()
@@ -1866,57 +1866,57 @@ class Forward(QThread):
 
             times -= 1
         
-        self.robot.io.open_valve_1()
+        # self.robot.io.open_valve_1()
         
-        self.robot.ballscrew_move_abs(227, velocity=20)
+        # self.robot.ballscrew_move_abs(227, velocity=20)
 
-        times = 14
-        while not self.__is_stop and times != 0:
-            self.robot.io.close_valve_4()
-            self.robot.io.open_valve_2()
+        # times = 14
+        # while not self.__is_stop and times != 0:
+        #     self.robot.io.close_valve_4()
+        #     self.robot.io.open_valve_2()
 
-            self.robot.ballscrew_move_abs(237, velocity=5, is_wait=False)
+        #     self.robot.ballscrew_move_abs(237, velocity=5, is_wait=False)
 
-            self.robot.rope_move_rel("123456", distance=10, velocity=5)
+        #     self.robot.rope_move_rel("123456", distance=10, velocity=5)
 
-            self.robot.io.close_valve_2()
-            self.robot.io.open_valve_4()
+        #     self.robot.io.close_valve_2()
+        #     self.robot.io.open_valve_4()
 
-            for i in range(6,0,-1):
-                while getattr(self.robot, f"sensor_{i}").force > - 1.5:
-                    self.robot.rope_move_rel(str(i), distance=-0.5, velocity=10)
+        #     for i in range(6,0,-1):
+        #         while getattr(self.robot, f"sensor_{i}").force > - 1.5:
+        #             self.robot.rope_move_rel(str(i), distance=-0.5, velocity=10)
 
-            self.robot.ballscrew_move_abs(227, velocity=10)
+        #     self.robot.ballscrew_move_abs(227, velocity=10)
 
-            times -= 1
+        #     times -= 1
         
-        self.robot.io.open_valve_2()
+        # self.robot.io.open_valve_2()
 
-        self.robot.ballscrew_move_abs(100, velocity=20)
+        # self.robot.ballscrew_move_abs(100, velocity=20)
 
-        times = 13
-        while not self.__is_stop and times != 0:
-            self.robot.io.close_valve_4()
-            self.robot.io.open_valve_3()
+        # times = 13
+        # while not self.__is_stop and times != 0:
+        #     self.robot.io.close_valve_4()
+        #     self.robot.io.open_valve_3()
 
-            self.robot.ballscrew_move_abs(110, velocity=5, is_wait=False)
+        #     self.robot.ballscrew_move_abs(110, velocity=5, is_wait=False)
 
-            self.robot.rope_move_rel("123", distance=10, velocity=5)
+        #     self.robot.rope_move_rel("123", distance=10, velocity=5)
 
-            self.robot.io.close_valve_3()
-            self.robot.io.open_valve_4()
+        #     self.robot.io.close_valve_3()
+        #     self.robot.io.open_valve_4()
 
-            for i in range(3,0,-1):
-                while getattr(self.robot, f"sensor_{i}").force > - 1.5:
-                    self.robot.rope_move_rel(str(i), distance=-0.5, velocity=10)
+        #     for i in range(3,0,-1):
+        #         while getattr(self.robot, f"sensor_{i}").force > - 1.5:
+        #             self.robot.rope_move_rel(str(i), distance=-0.5, velocity=10)
 
-            self.robot.ballscrew_move_abs(100, velocity=10)
+        #     self.robot.ballscrew_move_abs(100, velocity=10)
 
-            times -= 1
+        #     times -= 1
         
-        self.robot.io.close_valve_1()
-        self.robot.io.close_valve_2()
-        self.robot.io.close_valve_3()
+        # self.robot.io.close_valve_1()
+        # self.robot.io.close_valve_2()
+        # self.robot.io.close_valve_3()
 
 
     def stop(self):
