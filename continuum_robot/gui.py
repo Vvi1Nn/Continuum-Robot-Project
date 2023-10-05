@@ -241,8 +241,8 @@ class ControlPanel(QMainWindow):
         self.ui.set_sensor_zero.clicked.connect(self.force_set_zero)
 
         ''' 伸 缩 '''
-        self.ui.extension.clicked.connect(self.robot.back)
-        self.ui.retraction.clicked.connect(self.robot.forward)
+        self.ui.extension.clicked.connect(self.robot.forward)
+        self.ui.retraction.clicked.connect(self.robot.back)
 
         self.ui.bt_cali.clicked.connect(self.calibration)
 
