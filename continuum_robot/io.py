@@ -198,3 +198,19 @@ class IoModule(CanOpenBusProcessor, QObject):
         time.sleep(0.2)
         return success
     
+    # ''' 电磁阀 状态 '''
+    # def set_valve(self, valve_1: bool, valve_2: bool, valve_3: bool):
+    #     open_list = []
+    #     close_list = []
+        
+    #     if valve_1: open_list.append("1")
+    #     else: close_list.append("1")
+    #     if valve_2: open_list.append("2")
+    #     else: close_list.append("2")
+    #     if valve_3: open_list.append("3")
+    #     else: close_list.append("3")
+        
+        
+    #     success = self.set_output(True, open_list[0])
+        
+    #     time.sleep(0.2)
