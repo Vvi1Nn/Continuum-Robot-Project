@@ -182,6 +182,14 @@ class ContinuumRobot():
         self.joint_speed_thread.stop()
         self.joint_speed_thread.wait()
 
+    ''' 滚珠丝杠调零 确定手爪处于极限位置时电机10的位置 该位置作为电机10的参考零点
+    思路: 先让手爪前进一段距离(位置模式) 再缓慢后退寻找接近开关(速度模式)
+    distance: 前进距离 >= 0
+    velocity: 前进速度 > 0
+    speed: 后退速度 > 0
+    start: 开始信号
+    finish: 结束信号
+    '''
     def ballscrew_set_zero(self, distance: int, velocity: int, speed: int, start, finish) -> None:
         self.ballscrew_set_zero_thread = BallScrewSetZero(distance, velocity, speed, robot=self, start_signal=start, finish_signal=finish)
         self.ballscrew_set_zero_thread.start()
@@ -197,10 +205,20 @@ class ContinuumRobot():
         self.rope_force_adapt_thread.stop()
         self.rope_force_adapt_thread.wait()
 
+    ''' 滚珠丝杠归零 手爪运动至极限位置
+    speed: 运动速度 > 0
+    start: 开始信号
+    finish: 结束信号
+    '''
     def ballscrew_go_zero(self, speed: int, start, finish) -> None:
         self.ballscrew_go_zero_thread = BallScrewGoZero(speed, robot=self, start_signal=start, finish_signal=finish)
         self.ballscrew_go_zero_thread.start()
     
+    ''' 手爪移动到绝对位置点 以后极限点为原点 向前为正方向
+    point: 位置点坐标 >=0 <=358 mm
+    velocity: 运动速度 >0 mm/s
+    is_wait: 添加延时 等待运动结束后再进行下一步操作
+    '''
     def ballscrew_move_abs(self, point: float, /, *, velocity: float, is_wait=True) -> None:
         target_position = int(round(self.motor_10.zero_position - abs(point) * self.BALLSCREW_RATIO, 0))
         profile_velocity = int(round(self.BALLSCREW_RATIO * velocity / self.VELOCITY_RATIO, 0))
@@ -213,6 +231,11 @@ class ContinuumRobot():
             duration_time = abs(target_position - self.motor_10.current_position) / (profile_velocity * self.VELOCITY_RATIO) + 1
             time.sleep(duration_time)
     
+    ''' 手爪在当前位置下移动相对距离
+    distance: 移动距离 mm 有正负区别
+    velocity: 运动速度 >0 mm/s
+    is_wait: 添加延时 等待运动结束后再进行下一步操作
+    '''
     def ballscrew_move_rel(self, distance: float, /, *, velocity: float, is_wait=True) -> None:
         target_position = int(round(distance * self.BALLSCREW_RATIO, 0))
         profile_velocity = int(round(self.BALLSCREW_RATIO * velocity / self.VELOCITY_RATIO, 0))
@@ -315,6 +338,10 @@ class ContinuumRobot():
             getattr(self, f"motor_{id}").action(is_immediate=False, is_relative=True, is_pdo=True)
         time.sleep(delay)
 
+    ''' 对控制肌腱伸缩的电机进行速度模式的准备工作
+    设置速度模式 -> 设置目标速度: 0 -> 设置控制状态: enable operation
+    输入: 字符串 电机ID "1"~"9"
+    '''
     def rope_ready_speed(self, *args: str):
         for node_id in args:
             getattr(self, f"motor_{node_id}").set_control_mode("speed_control")
@@ -323,12 +350,21 @@ class ContinuumRobot():
         for node_id in args:
             getattr(self, f"motor_{node_id}").enable_operation(is_pdo=True)
     
+    ''' 对控制肌腱伸缩的电机进行速度模式的后处理
+    设置控制状态: disable operation -> 设置目标速度: 0
+    输入: 字符串 电机ID "1"~"9"
+    '''
     def rope_stop_speed(self, *args: str):
         for node_id in args:
             getattr(self, f"motor_{node_id}").disable_operation(is_pdo=True)
         for node_id in args:
             getattr(self, f"motor_{node_id}").set_speed(0, is_pdo=True)
     
+    ''' 对控制肌腱伸缩的电机进行速度模式的运动
+    输入: 元组 (电机ID, 速度)
+    电机ID: "1" ~ "9"
+    速度: mm/s 有正负区别
+    '''
     def rope_move_speed(self, *args: tuple):
         for tuple in args:
             node_id, speed = tuple
@@ -1866,29 +1902,29 @@ class Forward(QThread):
 
             times -= 1
         
-        # self.robot.io.open_valve_1()
+        self.robot.io.open_valve_1()
         
-        # self.robot.ballscrew_move_abs(227, velocity=20)
+        self.robot.ballscrew_move_abs(227, velocity=20)
 
-        # times = 14
-        # while not self.__is_stop and times != 0:
-        #     self.robot.io.close_valve_4()
-        #     self.robot.io.open_valve_2()
+        times = 5 # 14
+        while not self.__is_stop and times != 0:
+            self.robot.io.close_valve_4()
+            self.robot.io.open_valve_2()
 
-        #     self.robot.ballscrew_move_abs(237, velocity=5, is_wait=False)
+            self.robot.ballscrew_move_abs(237, velocity=5, is_wait=False)
 
-        #     self.robot.rope_move_rel("123456", distance=10, velocity=5)
+            self.robot.rope_move_rel("123456", distance=10, velocity=5)
 
-        #     self.robot.io.close_valve_2()
-        #     self.robot.io.open_valve_4()
+            self.robot.io.close_valve_2()
+            self.robot.io.open_valve_4()
 
-        #     for i in range(6,0,-1):
-        #         while getattr(self.robot, f"sensor_{i}").force > - 1.5:
-        #             self.robot.rope_move_rel(str(i), distance=-0.5, velocity=10)
+            for i in range(6,0,-1):
+                while getattr(self.robot, f"sensor_{i}").force > - 1.5:
+                    self.robot.rope_move_rel(str(i), distance=-0.5, velocity=10)
 
-        #     self.robot.ballscrew_move_abs(227, velocity=10)
+            self.robot.ballscrew_move_abs(227, velocity=10)
 
-        #     times -= 1
+            times -= 1
         
         # self.robot.io.open_valve_2()
 
