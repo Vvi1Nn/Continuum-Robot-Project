@@ -221,6 +221,7 @@ class ContinuumRobot():
     '''
     def ballscrew_move_abs(self, point: float, /, *, velocity: float, is_wait=True) -> None:
         target_position = int(round(self.motor_10.zero_position - abs(point) * self.BALLSCREW_RATIO, 0))
+        print(target_position)
         profile_velocity = int(round(self.BALLSCREW_RATIO * velocity / self.VELOCITY_RATIO, 0))
 
         self.motor_10.set_position(target_position, velocity=profile_velocity, is_pdo=True)
@@ -388,7 +389,11 @@ class ContinuumRobot():
         self.back_thread = Back(robot=self)
         self.back_thread.start()
 
-    
+    def extend_outside_section(self):
+        self.extend_outside_thread = ExtendOustsideSection(self)
+        self.extend_outside_thread.start()
+
+
     ''' 标定 初始状态 曲率0 长度已知 '''
     def calibration(self, bl_o: float, bl_m: float, bl_i: float):
         self.rope_zero_position = [getattr(self, f"motor_{i}").current_position for i in range(1,10)]
@@ -936,7 +941,6 @@ class CANopenUpdate(QThread):
 
                 self.show_kinematics.emit()
                 
-
         print("CANopen Update Thread Stopped")
         self.status_signal.emit("CANopen Update Thread Stopped.")
     
@@ -2104,6 +2108,58 @@ class Back(QThread):
     def stop(self):
         self.__is_stop = True
 
+''' 伸长外节 '''
+class ExtendOustsideSection(QThread):
+    def __init__(self, robot: ContinuumRobot) -> None:
+        
+        super().__init__()
+
+        self.__is_stop = False
+
+        self.robot = robot
+
+        self.__start_point = 76
+        self.__end_point = 86
+    
+    def run(self):
+        self.robot.motor_1.set_control_mode("position_control", check=False)
+        self.robot.motor_2.set_control_mode("position_control", check=False)
+        self.robot.motor_3.set_control_mode("position_control", check=False)
+        self.robot.motor_10.set_control_mode("position_control", check=False)
+
+        self.robot.io.open_valve_3()
+        self.robot.io.open_valve_2()
+        self.robot.io.open_valve_1()
+        
+        self.robot.io.open_valve_4()
+        self.robot.ballscrew_move_abs(71, velocity=20)
+
+        times = 1
+        while not self.__is_stop and times != 0:
+            self.robot.io.close_valve_4()
+
+            self.robot.ballscrew_move_abs(71, velocity=5, is_wait=False)
+
+            self.robot.rope_move_rel("123", distance=10, velocity=5)
+
+            # self.robot.io.close_valve_3()
+            self.robot.io.open_valve_4()
+
+            for i in range(3,0,-1):
+                while getattr(self.robot, f"sensor_{i}").force > - 1.5:
+                    self.robot.rope_move_rel(str(i), distance=-0.5, velocity=10)
+
+            self.robot.ballscrew_move_abs(81, velocity=10)
+
+            times -= 1
+        
+        self.robot.io.close_valve_1()
+        self.robot.io.close_valve_2()
+        self.robot.io.close_valve_3()
+
+
+    def stop(self):
+        self.__is_stop = True
 
 
 
