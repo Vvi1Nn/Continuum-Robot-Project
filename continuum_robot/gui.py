@@ -72,6 +72,8 @@ class ControlPanel(QMainWindow):
         self.ui.test_9.clicked.connect(self.force_test_stop)
 
         self.ui.test_10.clicked.connect(self.robot.extend_outside_section)
+        self.ui.test_11.clicked.connect(self.robot.new_test)
+        self.ui.test_12.clicked.connect(self.robot.stop_new_test)
 
         # self.ui.test_10.clicked.connect(self.force_set_zero)
         # self.ui.test_10.clicked.connect(self.robot.compute_test)
