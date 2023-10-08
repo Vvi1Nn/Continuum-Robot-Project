@@ -137,21 +137,17 @@ class IoModule(CanOpenBusProcessor, QObject):
                     self.show_valve.emit() # 向外发送信号 提示更新状态显示
 
                     if log: print("\033[0;32m[IO {}] OUTPUT STATUS: {}\033[0m".format(self.node_id, value_str))
-                    else: pass
                     return True
                 else:
                     times -= 1
                     if log: print("\033[0;33m[IO {}] setting output ...\033[0m".format(self.node_id))
-                    else: pass
             else:
                 for channel in args: setattr(self, "output_" + channel, not status)
                 
                 if log: print("\033[0;31m[IO {}] set output failed\033[0m".format(self.node_id))
-                else: pass
                 return False
         else:
             if log: print("\033[0;31m[IO {}] bus status is not operational\033[0m".format(self.node_id))
-            else: pass
             return False
     
     ''' 1 '''
