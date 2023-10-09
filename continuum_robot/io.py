@@ -152,61 +152,60 @@ class IoModule(CanOpenBusProcessor, QObject):
     
     ''' 1 '''
     def open_valve_1(self) -> bool:
-        success = self.set_output(True, "1")
-        time.sleep(0.2)
+        if not self.output_1:
+            success = self.set_output(True, "1")
+            time.sleep(0.2)
+        else: success = True
         return success
     
     def close_valve_1(self) -> bool:
-        success = self.set_output(False, "1")
-        time.sleep(0.2)
+        if self.output_1:
+            success = self.set_output(False, "1")
+            time.sleep(0.2)
+        else: success = True
         return success
     
     ''' 2 '''
     def open_valve_2(self) -> bool:
-        success = self.set_output(True, "2")
-        time.sleep(0.2)
+        if not self.output_2:
+            success = self.set_output(True, "2")
+            time.sleep(0.2)
+        else: success = True
         return success
     
     def close_valve_2(self) -> bool:
-        success = self.set_output(False, "2")
-        time.sleep(0.2)
+        if self.output_2:
+            success = self.set_output(False, "2")
+            time.sleep(0.2)
+        else: success = True
         return success
     
     ''' 3 '''
     def open_valve_3(self) -> bool:
-        success = self.set_output(True, "3")
-        time.sleep(0.2)
+        if not self.output_3:
+            success = self.set_output(True, "3")
+            time.sleep(0.2)
+        else: success = True
         return success
     
     def close_valve_3(self) -> bool:
-        success = self.set_output(False, "3")
-        time.sleep(0.2)
+        if self.output_3:
+            success = self.set_output(False, "3")
+            time.sleep(0.2)
+        else: success = True
         return success
     
     ''' 4 '''
     def open_valve_4(self) -> bool:
-        success = self.set_output(False, "4")
-        time.sleep(0.2)
+        if self.output_4:
+            success = self.set_output(False, "4")
+            time.sleep(0.2)
+        else: success = True
         return success
     
     def close_valve_4(self) -> bool:
-        success = self.set_output(True, "4")
-        time.sleep(0.2)
+        if not self.output_4:
+            success = self.set_output(True, "4")
+            time.sleep(0.2)
+        else: success = True
         return success
-    
-    # ''' 电磁阀 状态 '''
-    # def set_valve(self, valve_1: bool, valve_2: bool, valve_3: bool):
-    #     open_list = []
-    #     close_list = []
-        
-    #     if valve_1: open_list.append("1")
-    #     else: close_list.append("1")
-    #     if valve_2: open_list.append("2")
-    #     else: close_list.append("2")
-    #     if valve_3: open_list.append("3")
-    #     else: close_list.append("3")
-        
-        
-    #     success = self.set_output(True, open_list[0])
-        
-    #     time.sleep(0.2)
