@@ -10112,7 +10112,7 @@ Zero</string>
                    <set>Qt::AlignCenter</set>
                   </property>
                   <property name="placeholderText">
-                   <string>172</string>
+                   <string>51</string>
                   </property>
                  </widget>
                 </item>
@@ -10166,7 +10166,7 @@ Zero</string>
                    <set>Qt::AlignCenter</set>
                   </property>
                   <property name="placeholderText">
-                   <string>170</string>
+                   <string>49</string>
                   </property>
                  </widget>
                 </item>
@@ -10220,7 +10220,7 @@ Zero</string>
                    <set>Qt::AlignCenter</set>
                   </property>
                   <property name="placeholderText">
-                   <string>168</string>
+                   <string>42</string>
                   </property>
                  </widget>
                 </item>
