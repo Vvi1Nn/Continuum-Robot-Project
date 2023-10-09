@@ -68,12 +68,21 @@ class ControlPanel(QMainWindow):
         self.ui.test_6.clicked.connect(lambda: self.robot.ballscrew_move(348, 10, is_close=False, is_relative=False))
         self.ui.test_7.clicked.connect(lambda: self.robot.ballscrew_move(358, 10, is_close=False, is_relative=False))
 
-        self.ui.test_8.clicked.connect(self.force_test)
-        self.ui.test_9.clicked.connect(self.force_test_stop)
+        # self.ui.test_8.clicked.connect(self.force_test)
+        # self.ui.test_9.clicked.connect(self.force_test_stop)
+        self.ui.test_8.pressed.connect(self.robot.CurveInsideSection)
+        self.ui.test_8.released.connect(self.robot.StopInsideSection)
 
-        self.ui.test_10.clicked.connect(self.robot.extend_outside_section)
-        self.ui.test_11.clicked.connect(self.robot.new_test)
-        self.ui.test_12.clicked.connect(self.robot.stop_new_test)
+        self.ui.test_9.pressed.connect(self.robot.StraightenInsideSection)
+        self.ui.test_9.released.connect(self.robot.StopInsideSection)
+
+        self.ui.test_10.pressed.connect(self.robot.RotateInsideSectionClockwise)
+        self.ui.test_10.released.connect(self.robot.StopInsideSection)
+
+        # self.ui.test_10.clicked.connect(self.robot.extend_outside_section)
+        self.ui.test_11.clicked.connect(self.robot.ExtendInsideSection)
+        self.ui.test_12.clicked.connect(self.robot.ShortenInsideSection)
+        self.ui.test_13.clicked.connect(self.robot.StopInsideSection)
 
         # self.ui.test_10.clicked.connect(self.force_set_zero)
         # self.ui.test_10.clicked.connect(self.robot.compute_test)
@@ -234,7 +243,7 @@ class ControlPanel(QMainWindow):
             getattr(self.ui, f"speed_reverse_{node_id}").released.connect(getattr(self, f"speed_stop_{node_id}"))
 
         ''' 滚珠 调0 归0 '''
-        self.ui.set_ballscrew_zero.clicked.connect(self.ballscrew_set_zero)
+        self.ui.set_ballscrew_zero.clicked.connect(self.GripperCalibration)
         self.ui.go_zero.clicked.connect(self.ballscrew_go_zero)
 
         ''' 线 适应 调0 '''
@@ -633,7 +642,7 @@ class ControlPanel(QMainWindow):
         self.robot.initialize_robot(1, change, next)
 
     ''' 丝杠 调零 '''
-    def ballscrew_set_zero(self):
+    def GripperCalibration(self):
         def start():
             self.ui.ballscrew_set_zero.setEnabled(False)
             self.show_status("Ballscrew is being setting zero ...")
@@ -650,7 +659,7 @@ class ControlPanel(QMainWindow):
         speed = int(self.ui.backward_speed.text()) if self.ui.backward_speed.text() != "" \
             else int(self.ui.backward_speed.placeholderText())
         
-        self.robot.ballscrew_set_zero(distance, velocity, speed, start, finish)
+        self.robot.GripperCalibration(distance, velocity, speed, start, finish)
     
     ''' 线 调零 '''
     def rope_force_adapt(self):
