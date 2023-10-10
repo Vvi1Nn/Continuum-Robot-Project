@@ -110,7 +110,7 @@ class ContinuumRobot():
         self.backbone_section_num = [9, 10, 10]
         self.backbone_d = 2.6
 
-        self.is_calibration = False
+        self.continuum_calibration = False
         self.rope_zero_position = [None, None, None, None, None, None, None, None, None] # 123456789
         self.rope_init_length = [None, None, None, None, None, None, None, None, None] # 123456789
         self.rope_total_length = [None, None, None, None, None, None, None, None, None] # 123456789
@@ -126,7 +126,7 @@ class ContinuumRobot():
         self.midside_world_coordinate = (None, None, None)
         self.inside_world_coordinate = (None, None, None)
 
-    def open_device(self) -> bool:
+    def InitUSBCAN(self) -> bool:
         if UsbCan.open_device():
             
             if not self.usbcan_0_is_start and self.usbcan_0.init_can() and self.usbcan_0.start_can():
@@ -139,7 +139,7 @@ class ContinuumRobot():
         
         return self.usbcan_0_is_start and self.usbcan_1_is_start
     
-    def initialize_robot(self, times: int, running_signal, finish_signal) -> None:
+    def InitRobot(self, times: int, running_signal, finish_signal) -> None:
         self.init_robot_thread = RobotInit(times=times, running_signal=running_signal, finish_signal=finish_signal)
         self.send_request_thread = SensorRequest()
 
@@ -193,6 +193,12 @@ class ContinuumRobot():
     def GripperCalibration(self, distance: int, velocity: int, speed: int, start, finish) -> None:
         self.gripper_calibration_thread = GripperCalibration(self, distance, velocity, speed, start_signal=start, finish_signal=finish)
         self.gripper_calibration_thread.start()
+
+    ''' 力传感器 零位标定
+    '''
+    def ForceSensorCalibration(self, force_list: list, num, start, finish):
+        self.force_sensor_calibration_thread = ForceSensorCalibration(self, force_list, num=num, start_signal=start, finish_signal=finish)
+        self.force_sensor_calibration_thread.start()
 
     def rope_force_adapt(self, i_f: int, m_f: int, o_f: int, i_pid: tuple, m_pid: tuple, o_pid: tuple, start, finish) -> None:
         self.rope_force_adapt_thread = ContinuumAttitudeAdjust(self, 
@@ -254,13 +260,12 @@ class ContinuumRobot():
         self.ballscrew_move_thread.start()
     
     def InitGripperActuator(self, control_mode: str):
-        if self.gripper_calibration:
-            if control_mode == "speed":
-                self.motor_10.set_control_mode("speed_control")
-                self.motor_10.set_speed(0, is_pdo=True)
-                self.motor_10.enable_operation(is_pdo=True)
-            elif control_mode == "position":
-                self.motor_10.set_control_mode("position_control")
+        if control_mode == "speed":
+            self.motor_10.set_control_mode("speed_control")
+            self.motor_10.set_speed(0, is_pdo=True)
+            self.motor_10.enable_operation(is_pdo=True)
+        elif control_mode == "position":
+            self.motor_10.set_control_mode("position_control")
     def MoveGripperAbsolute(self, point: float, velocity: float, /, *, is_close=False, is_wait=True):
         if self.gripper_calibration:
             if is_close: self.io.close_valve_4()
@@ -476,22 +481,16 @@ class ContinuumRobot():
         self.test_thread = Forward(self)
         self.test_thread.start()
 
-    def force_set_zero(self, force_list: list, num, start, finish):
-        self.force_zero_thread = ForceSetZero(force_list, num=num, robot=self, start_signal=start, finish_signal=finish)
-        self.force_zero_thread.start()
-    
     def back(self):
         self.back_thread = Back(robot=self)
         self.back_thread.start()
 
-    # def extend_outside_section(self):
-    #     self.extend_outside_thread = ExtendOustsideSection(self)
-    #     self.extend_outside_thread.start()
+    ''' Inside '''
     def ExtendInsideSection(self):
         self.inside_section_move_thread = InsideSectionConfigurationSpaceJacobianControl(self, s_d=1, kappa_d=0, phi_d=0)
         self.inside_section_move_thread.start()
     def ShortenInsideSection(self):
-        self.inside_section_move_thread = InsideSectionConfigurationSpaceJacobianControl(self, s_d=-1, kappa_d=0, phi_d=0)
+        self.inside_section_move_thread = InsideSectionConfigurationSpaceJacobianControl(self, s_d=-3, kappa_d=0, phi_d=0)
         self.inside_section_move_thread.start()
     def CurveInsideSection(self):
         self.inside_section_move_thread = InsideSectionConfigurationSpaceJacobianControl(self, s_d=0, kappa_d=0.001, phi_d=0)
@@ -509,9 +508,55 @@ class ContinuumRobot():
         self.inside_section_move_thread.stop()
         self.inside_section_move_thread.wait()
 
+    ''' Midside '''
+    def ExtendMidsideSection(self):
+        self.midside_section_move_thread = MidsideSectionConfigurationSpaceJacobianControl(self, s_d=2.5, kappa_d=0, phi_d=0)
+        self.midside_section_move_thread.start()
+    def ShortenMidsideSection(self):
+        self.midside_section_move_thread = MidsideSectionConfigurationSpaceJacobianControl(self, s_d=-3, kappa_d=0, phi_d=0)
+        self.midside_section_move_thread.start()
+    def CurveMidsideSection(self):
+        self.midside_section_move_thread = MidsideSectionConfigurationSpaceJacobianControl(self, s_d=0, kappa_d=0.001, phi_d=0)
+        self.midside_section_move_thread.start()
+    def StraightenMidsideSection(self):
+        self.midside_section_move_thread = MidsideSectionConfigurationSpaceJacobianControl(self, s_d=0, kappa_d=-0.001, phi_d=0)
+        self.midside_section_move_thread.start()
+    def RotateMidsideSectionClockwise(self):
+        self.midside_section_move_thread = MidsideSectionConfigurationSpaceJacobianControl(self, s_d=0, kappa_d=0, phi_d=0.25)
+        self.midside_section_move_thread.start()
+    def RotateMidsideSectionAntiClockwise(self):
+        self.midside_section_move_thread = MidsideSectionConfigurationSpaceJacobianControl(self, s_d=0, kappa_d=0, phi_d=-0.25)
+        self.midside_section_move_thread.start()
+    def StopMidsideSection(self):
+        self.midside_section_move_thread.stop()
+        self.midside_section_move_thread.wait()
+
+    ''' Outside '''
+    def ExtendOutsideSection(self):
+        self.outside_section_move_thread = OutsideSectionConfigurationSpaceJacobianControl(self, s_d=1, kappa_d=0, phi_d=0)
+        self.outside_section_move_thread.start()
+    def ShortenOutsideSection(self):
+        self.outside_section_move_thread = OutsideSectionConfigurationSpaceJacobianControl(self, s_d=-3, kappa_d=0, phi_d=0)
+        self.outside_section_move_thread.start()
+    def CurveOutsideSection(self):
+        self.outside_section_move_thread = OutsideSectionConfigurationSpaceJacobianControl(self, s_d=0, kappa_d=0.001, phi_d=0)
+        self.outside_section_move_thread.start()
+    def StraightenOutsideSection(self):
+        self.outside_section_move_thread = OutsideSectionConfigurationSpaceJacobianControl(self, s_d=0, kappa_d=-0.001, phi_d=0)
+        self.outside_section_move_thread.start()
+    def RotateOutsideSectionClockwise(self):
+        self.outside_section_move_thread = OutsideSectionConfigurationSpaceJacobianControl(self, s_d=0, kappa_d=0, phi_d=0.25)
+        self.outside_section_move_thread.start()
+    def RotateOutsideSectionAntiClockwise(self):
+        self.outside_section_move_thread = OutsideSectionConfigurationSpaceJacobianControl(self, s_d=0, kappa_d=0, phi_d=-0.25)
+        self.outside_section_move_thread.start()
+    def StopOutsideSection(self):
+        self.outside_section_move_thread.stop()
+        self.outside_section_move_thread.wait()
+
 
     ''' 标定 初始状态 曲率0 长度已知 '''
-    def calibration(self, bl_o: float, bl_m: float, bl_i: float):
+    def ContinuumCalibration(self, bl_o: float, bl_m: float, bl_i: float):
         self.rope_zero_position = [getattr(self, f"motor_{i}").current_position for i in range(1,10)]
 
         self.rope_init_length = [bl_o+bl_m+bl_i, bl_o+bl_m+bl_i, bl_o+bl_m+bl_i, 
@@ -527,7 +572,7 @@ class ContinuumRobot():
         self.backbone_curvature = [0, 0, 0] # in mid out
         self.backbone_rotation_angle = [0, 0, 0] # in mid out
 
-        self.is_calibration = True
+        self.continuum_calibration = True
 
     ''' 正运动学 '''
     def actuator_to_config(self, l_1: float, l_2: float, l_3: float):
@@ -903,7 +948,7 @@ class CANopenUpdate(QThread):
                                     velocity = getattr(self.robot, f"motor_{node_id}").current_speed * 440 / 12536.512440
                                     setattr(self.robot, f"rope_{node_id}_velocity", velocity)
                                 
-                                if self.robot.is_calibration:
+                                if self.robot.continuum_calibration:
                                     self.robot.rope_velocity[node_id-1] = speed * self.robot.VELOCITY_RATIO / self.robot.ROPE_RATIO
                                 
                                 self.show_rope.emit(self.robot.rope_is_set_zero, node_id)
@@ -971,7 +1016,7 @@ class CANopenUpdate(QThread):
                         print("\033[0;34m[NMT {}] {}\033[0m".format(node_id, CanOpenBusProcessor.node_dict[node_id].nmt_feedback))
                         self.status_signal.emit("[Node {}] Get NMT response, bus status is {}".format(node_id, label))
                    
-            if self.robot.is_calibration:
+            if self.robot.continuum_calibration:
                 for i in range(1,10):
                     self.robot.rope_total_length[i-1] = self.robot.rope_init_length[i-1] + (getattr(self.robot, f"motor_{i}").current_position - self.robot.rope_zero_position[i-1]) / self.robot.ROPE_RATIO
                 
@@ -1663,11 +1708,11 @@ class JointSpeed(QThread):
                 getattr(self.robot, f"motor_{node_id}").set_control_mode("position_control", check=False)
 
 ''' 传感器 调零 '''
-class ForceSetZero(QThread):
+class ForceSensorCalibration(QThread):
     __start_signal = pyqtSignal()
     __finish_signal = pyqtSignal()
 
-    def __init__(self, force_ref_list: list, /, *, num=100, robot: ContinuumRobot, start_signal, finish_signal) -> None:
+    def __init__(self, robot: ContinuumRobot, force_ref_list: list, /, *, num=100, start_signal, finish_signal) -> None:
         super().__init__()
 
         self.__is_stop = False
@@ -2730,6 +2775,9 @@ class TeleOperation(QThread):
     def stop(self):
         self.__is_stop = True
 
+
+
+''' 内节 运动学控制 '''
 class InsideSectionConfigurationSpaceJacobianControl(QThread):
     action = pyqtSignal()
     shutdown = pyqtSignal()
@@ -2750,51 +2798,71 @@ class InsideSectionConfigurationSpaceJacobianControl(QThread):
 
         self.__min_length = 44
         self.__max_length = 102
+
+        self.__min_curvature = 0.0001
+        self.__max_curvature = 0.03
     
     def run(self):
         self.action.emit()
 
-        if self.robot.is_calibration:
+        if self.robot.continuum_calibration:
             self.robot.InitTendonActuator("speed","1","2","3","4","5","6","7","8","9")
             self.robot.InitGripperActuator("speed")
 
-            # self.robot.SetAnchor("3", "open")
-            # self.robot.SetAnchor("2", "open")
-
-            # if self.__s_d == 0:
-            #     self.robot.SetAnchor("1", "close")
-            # elif self.__s_d < 0:
-            #     self.robot.SetAnchor("1", "open")
-            # else:
-            #     self.robot.SetAnchor("1", "close")
-
             while not self.__is_stop:
+                ''' 曲率 '''
+                # 曲率在范围内
+                if self.__min_curvature <= self.robot.backbone_curvature[0] <= self.__max_curvature:
+                    kappa_d = self.__kappa_d
+                # 曲率超出范围
+                else:
+                    if self.robot.backbone_curvature[0] < self.__min_curvature and self.__kappa_d >= 0:
+                        kappa_d = self.__kappa_d
+                    elif self.robot.backbone_curvature[0] > self.__max_curvature and self.__kappa_d <= 0:
+                        kappa_d = self.__kappa_d
+                    else: kappa_d = 0
+
+                ''' 角度 '''
+                phi_d = self.__phi_d
+                
+                ''' 判断backbone行为 '''
                 # backbone固定
                 if self.__s_d == 0:
-                    # 打开大爪
+                    ''' 爪 '''
                     self.robot.SetGripper("open")
-                    # 关闭小爪
                     self.robot.SetAnchor("1", "close")
                     self.robot.SetAnchor("2", "close")
                     self.robot.SetAnchor("3", "close")
-                    # 计算tendon速度
-                    l_1_d, l_2_d, l_3_d, l_4_d, l_5_d, l_6_d, l_7_d, l_8_d, l_9_d = self.robot.config_to_actuator_jacobian("inside", self.__s_d, self.__kappa_d, self.__phi_d)
-                    # tendon运动
-                    self.robot.MoveTendonSpeed(("1", l_1_d), ("2", l_2_d), ("3", l_3_d), ("4", l_4_d), ("5", l_5_d), ("6", l_6_d), ("7", l_7_d), ("8", l_8_d), ("9", l_9_d))
+                    ''' 长度 '''
+                    s_d = 0
+                    ''' 计算 '''
+                    l_1_d, l_2_d, l_3_d, \
+                        l_4_d, l_5_d, l_6_d, \
+                            l_7_d, l_8_d, l_9_d = self.robot.config_to_actuator_jacobian("inside", s_d, kappa_d, phi_d)
+                    ''' 运动 '''
+                    self.robot.MoveTendonSpeed(("1",l_1_d),("2",l_2_d),("3",l_3_d),
+                                               ("4",l_4_d),("5",l_5_d),("6",l_6_d),
+                                               ("7",l_7_d),("8",l_8_d),("9",l_9_d))
                 # backbone缩短
                 elif self.__s_d < 0:
+                    ''' 长度 '''
                     # 不超过最短极限 正常运动
                     if self.__min_length <= self.robot.backbone_length[0]:
-                        # 打开大爪
+                        ''' 爪 '''
                         self.robot.SetGripper("open")
-                        # 打开小爪
                         self.robot.SetAnchor("3", "open")
                         self.robot.SetAnchor("2", "open")
                         self.robot.SetAnchor("1", "open")
-                        # 计算tendon速度
-                        l_1_d, l_2_d, l_3_d, l_4_d, l_5_d, l_6_d, l_7_d, l_8_d, l_9_d = self.robot.config_to_actuator_jacobian("inside", self.__s_d, self.__kappa_d, self.__phi_d)
-                        # tendon运动
-                        self.robot.MoveTendonSpeed(("1", l_1_d), ("2", l_2_d), ("3", l_3_d), ("4", l_4_d), ("5", l_5_d), ("6", l_6_d), ("7", l_7_d), ("8", l_8_d), ("9", l_9_d))
+                        ''' 长度 '''
+                        s_d = self.__s_d
+                        ''' 计算 '''
+                        l_1_d, l_2_d, l_3_d, \
+                            l_4_d, l_5_d, l_6_d, \
+                                l_7_d, l_8_d, l_9_d = self.robot.config_to_actuator_jacobian("inside", s_d, kappa_d, phi_d)
+                        ''' 运动 '''
+                        self.robot.MoveTendonSpeed(("1",l_1_d),("2",l_2_d),("3",l_3_d),
+                                                   ("4",l_4_d),("5",l_5_d),("6",l_6_d),
+                                                   ("7",l_7_d),("8",l_8_d),("9",l_9_d)) 
                     # 超过最短极限 backbone停止运动 tendon保持运动
                     else:
                         # 如果爪1处于开启
@@ -2803,34 +2871,44 @@ class InsideSectionConfigurationSpaceJacobianControl(QThread):
                             self.robot.StopTendon("1","2","3","4","5","6","7","8","9")
                             # tendon速度模式
                             self.robot.InitTendonActuator("speed","1","2","3","4","5","6","7","8","9")
-                        # 打开大爪
+                        ''' 爪 '''
                         self.robot.SetGripper("open")
-                        # 关闭小爪
                         self.robot.SetAnchor("1", "close")
                         self.robot.SetAnchor("2", "close")
                         self.robot.SetAnchor("3", "close")
-                        # backbone速度置0 计算tendon速度
-                        l_1_d, l_2_d, l_3_d, l_4_d, l_5_d, l_6_d, l_7_d, l_8_d, l_9_d = self.robot.config_to_actuator_jacobian("inside", 0, self.__kappa_d, self.__phi_d)
-                        # tendon运动
-                        self.robot.MoveTendonSpeed(("1", l_1_d), ("2", l_2_d), ("3", l_3_d), ("4", l_4_d), ("5", l_5_d), ("6", l_6_d), ("7", l_7_d), ("8", l_8_d), ("9", l_9_d))
+                        ''' 长度 '''
+                        s_d = 0
+                        ''' 计算 '''
+                        l_1_d, l_2_d, l_3_d, \
+                            l_4_d, l_5_d, l_6_d, \
+                                l_7_d, l_8_d, l_9_d = self.robot.config_to_actuator_jacobian("inside", s_d, kappa_d, phi_d)
+                        ''' 运动 '''
+                        self.robot.MoveTendonSpeed(("1",l_1_d),("2",l_2_d),("3",l_3_d),
+                                                   ("4",l_4_d),("5",l_5_d),("6",l_6_d),
+                                                   ("7",l_7_d),("8",l_8_d),("9",l_9_d))
                 # backbone伸长
                 else:
+                    ''' 判断大爪范围 '''
                     # 大爪在运动范围内
                     if self.__min_point - 0.2 <= self.robot.ballscrew_position <= self.__max_point:
                         # backbone不超过最长极限 正常运动
                         if self.robot.backbone_length[0] <= self.__max_length:
-                            # 关闭大爪
+                            ''' 爪 '''
                             self.robot.SetGripper("close")
-                            # 打开小爪
                             self.robot.SetAnchor("3", "open")
                             self.robot.SetAnchor("2", "open")
                             self.robot.SetAnchor("1", "open")
-                            # 计算tendon速度
-                            l_1_d, l_2_d, l_3_d, l_4_d, l_5_d, l_6_d, l_7_d, l_8_d, l_9_d = self.robot.config_to_actuator_jacobian("inside", self.__s_d, self.__kappa_d, self.__phi_d)
-                            # tendon运动
-                            self.robot.MoveTendonSpeed(("1", l_1_d), ("2", l_2_d), ("3", l_3_d), ("4", l_4_d), ("5", l_5_d), ("6", l_6_d), ("7", l_7_d), ("8", l_8_d), ("9", l_9_d))
-                            # 大爪运动
-                            self.robot.MoveGripperSpeed(self.__s_d)
+                            ''' 长度 '''
+                            s_d = self.__s_d
+                            ''' 计算 '''
+                            l_1_d, l_2_d, l_3_d, \
+                                l_4_d, l_5_d, l_6_d, \
+                                    l_7_d, l_8_d, l_9_d = self.robot.config_to_actuator_jacobian("inside", s_d, kappa_d, phi_d)
+                            ''' 运动 '''
+                            self.robot.MoveTendonSpeed(("1",l_1_d),("2",l_2_d),("3",l_3_d),
+                                                       ("4",l_4_d),("5",l_5_d),("6",l_6_d),
+                                                       ("7",l_7_d),("8",l_8_d),("9",l_9_d)) # tendon运动
+                            self.robot.MoveGripperSpeed(s_d) # 大爪运动
                         # backbone超过最长极限
                         else:
                             # 大爪停止运动
@@ -2841,16 +2919,21 @@ class InsideSectionConfigurationSpaceJacobianControl(QThread):
                                 self.robot.StopTendon("1","2","3","4","5","6","7","8","9")
                                 # tendon速度模式
                                 self.robot.InitTendonActuator("speed","1","2","3","4","5","6","7","8","9")
-                            # 打开大爪
+                            ''' 爪 '''
                             self.robot.SetGripper("open")
-                            # 关闭小爪
                             self.robot.SetAnchor("1", "close")
                             self.robot.SetAnchor("2", "close")
                             self.robot.SetAnchor("3", "close")
-                            # backbone速度置0 计算tendon速度
-                            l_1_d, l_2_d, l_3_d, l_4_d, l_5_d, l_6_d, l_7_d, l_8_d, l_9_d = self.robot.config_to_actuator_jacobian("inside", 0, self.__kappa_d, self.__phi_d)
-                            # tendon运动
-                            self.robot.MoveTendonSpeed(("1", l_1_d), ("2", l_2_d), ("3", l_3_d), ("4", l_4_d), ("5", l_5_d), ("6", l_6_d), ("7", l_7_d), ("8", l_8_d), ("9", l_9_d))
+                            ''' 长度 '''
+                            s_d = 0
+                            ''' 计算 '''
+                            l_1_d, l_2_d, l_3_d, \
+                                l_4_d, l_5_d, l_6_d, \
+                                    l_7_d, l_8_d, l_9_d = self.robot.config_to_actuator_jacobian("inside", s_d, kappa_d, phi_d)
+                            ''' 运动 '''
+                            self.robot.MoveTendonSpeed(("1",l_1_d),("2",l_2_d),("3",l_3_d),
+                                                       ("4",l_4_d),("5",l_5_d),("6",l_6_d),
+                                                       ("7",l_7_d),("8",l_8_d),("9",l_9_d)) # tendon运动
                     # 大爪超出运动范围
                     else:
                         # 大爪停止运动
@@ -2887,6 +2970,388 @@ class InsideSectionConfigurationSpaceJacobianControl(QThread):
         self.robot.SetAnchor("2", "close")
         self.robot.SetAnchor("3", "close")
         self.robot.SetGripper("open")
+
+        # 拉紧
+        self.robot.InitTendonActuator("position","1","2","3","4","5","6","7","8","9")
+        for i in range(9,0,-1):
+            while getattr(self.robot, f"sensor_{i}").force > - 1.5:
+                self.robot.rope_move_rel(str(i), distance=-0.5, velocity=10)
+
+        self.shutdown.emit()
+    
+    def stop(self):
+        self.__is_stop = True
+
+
+''' 中节 运动学控制 '''
+class MidsideSectionConfigurationSpaceJacobianControl(QThread):
+    action = pyqtSignal()
+    shutdown = pyqtSignal()
+    
+    def __init__(self, robot: ContinuumRobot, /, *, s_d: float, kappa_d: float, phi_d: float) -> None:
+        super().__init__()
+
+        self.robot = robot
+
+        self.__s_d = s_d
+        self.__kappa_d = kappa_d
+        self.__phi_d = phi_d
+
+        self.__is_stop = False
+
+        self.__min_point = 227
+        self.__max_point = 237
+
+        self.__min_length = 51
+        self.__max_length = 169
+
+        self.__min_curvature = 0.0001
+        self.__max_curvature = 0.03
+    
+    def run(self):
+        self.action.emit()
+
+        if self.robot.continuum_calibration:
+            self.robot.InitTendonActuator("speed","1","2","3","4","5","6")
+            self.robot.InitGripperActuator("speed")
+
+            while not self.__is_stop:
+                ''' 曲率 '''
+                # 曲率在范围内
+                if self.__min_curvature <= self.robot.backbone_curvature[1] <= self.__max_curvature:
+                    kappa_d = self.__kappa_d
+                # 曲率超出范围
+                else:
+                    if self.robot.backbone_curvature[1] < self.__min_curvature and self.__kappa_d >= 0:
+                        kappa_d = self.__kappa_d
+                    elif self.robot.backbone_curvature[1] > self.__max_curvature and self.__kappa_d <= 0:
+                        kappa_d = self.__kappa_d
+                    else: kappa_d = 0
+
+                ''' 角度 '''
+                phi_d = self.__phi_d
+                
+                ''' 判断backbone行为 '''
+                # backbone固定
+                if self.__s_d == 0:
+                    ''' 爪 '''
+                    self.robot.SetGripper("open")
+                    self.robot.SetAnchor("1", "close")
+                    self.robot.SetAnchor("2", "close")
+                    self.robot.SetAnchor("3", "close")
+                    ''' 长度 '''
+                    s_d = 0
+                    ''' 计算 '''
+                    l_1_d, l_2_d, l_3_d, \
+                        l_4_d, l_5_d, l_6_d = self.robot.config_to_actuator_jacobian("midside", s_d, kappa_d, phi_d)
+                    ''' 运动 '''
+                    self.robot.MoveTendonSpeed(("1",l_1_d),("2",l_2_d),("3",l_3_d),
+                                               ("4",l_4_d),("5",l_5_d),("6",l_6_d))
+                # backbone缩短
+                elif self.__s_d < 0:
+                    ''' 长度 '''
+                    # 不超过最短极限 正常运动
+                    if self.__min_length <= self.robot.backbone_length[1]:
+                        ''' 爪 '''
+                        self.robot.SetGripper("open")
+                        self.robot.SetAnchor("3", "open")
+                        self.robot.SetAnchor("2", "open")
+                        ''' 长度 '''
+                        s_d = self.__s_d
+                        ''' 计算 '''
+                        l_1_d, l_2_d, l_3_d, \
+                            l_4_d, l_5_d, l_6_d = self.robot.config_to_actuator_jacobian("midside", s_d, kappa_d, phi_d)
+                        ''' 运动 '''
+                        self.robot.MoveTendonSpeed(("1",l_1_d),("2",l_2_d),("3",l_3_d),
+                                                   ("4",l_4_d),("5",l_5_d),("6",l_6_d)) 
+                    # 超过最短极限 backbone停止运动 tendon保持运动
+                    else:
+                        # 如果爪2处于开启
+                        if self.robot.io.output_2:
+                            # 先停止tendon运动
+                            self.robot.StopTendon("1","2","3","4","5","6")
+                            # tendon速度模式
+                            self.robot.InitTendonActuator("speed","1","2","3","4","5","6")
+                        ''' 爪 '''
+                        self.robot.SetGripper("open")
+                        self.robot.SetAnchor("1", "close")
+                        self.robot.SetAnchor("2", "close")
+                        self.robot.SetAnchor("3", "close")
+                        ''' 长度 '''
+                        s_d = 0
+                        ''' 计算 '''
+                        l_1_d, l_2_d, l_3_d, \
+                            l_4_d, l_5_d, l_6_d = self.robot.config_to_actuator_jacobian("midside", s_d, kappa_d, phi_d)
+                        ''' 运动 '''
+                        self.robot.MoveTendonSpeed(("1",l_1_d),("2",l_2_d),("3",l_3_d),
+                                                   ("4",l_4_d),("5",l_5_d),("6",l_6_d))
+                # backbone伸长
+                else:
+                    ''' 判断大爪范围 '''
+                    # 大爪在运动范围内
+                    if self.__min_point - 0.2 <= self.robot.ballscrew_position <= self.__max_point:
+                        # backbone不超过最长极限 正常运动
+                        if self.robot.backbone_length[1] <= self.__max_length:
+                            ''' 爪 '''
+                            self.robot.SetGripper("close")
+                            self.robot.SetAnchor("3", "open")
+                            self.robot.SetAnchor("2", "open")
+                            ''' 长度 '''
+                            s_d = self.__s_d
+                            ''' 计算 '''
+                            l_1_d, l_2_d, l_3_d, \
+                                l_4_d, l_5_d, l_6_d = self.robot.config_to_actuator_jacobian("midside", s_d, kappa_d, phi_d)
+                            ''' 运动 '''
+                            self.robot.MoveTendonSpeed(("1",l_1_d),("2",l_2_d),("3",l_3_d),
+                                                       ("4",l_4_d),("5",l_5_d),("6",l_6_d)) # tendon运动
+                            self.robot.MoveGripperSpeed(s_d) # 大爪运动
+                        # backbone超过最长极限
+                        else:
+                            # 大爪停止运动
+                            self.robot.MoveGripperSpeed(0)
+                            # 如果爪2处于开启
+                            if self.robot.io.output_2:
+                                # 先停止tendon运动
+                                self.robot.StopTendon("1","2","3","4","5","6")
+                                # tendon速度模式
+                                self.robot.InitTendonActuator("speed","1","2","3","4","5","6")
+                            ''' 爪 '''
+                            self.robot.SetGripper("open")
+                            self.robot.SetAnchor("1", "close")
+                            self.robot.SetAnchor("2", "close")
+                            self.robot.SetAnchor("3", "close")
+                            ''' 长度 '''
+                            s_d = 0
+                            ''' 计算 '''
+                            l_1_d, l_2_d, l_3_d, \
+                                l_4_d, l_5_d, l_6_d = self.robot.config_to_actuator_jacobian("midside", s_d, kappa_d, phi_d)
+                            ''' 运动 '''
+                            self.robot.MoveTendonSpeed(("1",l_1_d),("2",l_2_d),("3",l_3_d),
+                                                       ("4",l_4_d),("5",l_5_d),("6",l_6_d)) # tendon运动
+                    # 大爪超出运动范围
+                    else:
+                        # 大爪停止运动
+                        self.robot.StopGripper()
+                        # tendon停止运动
+                        self.robot.StopTendon("1","2","3","4","5","6")
+                        # 关闭小爪
+                        self.robot.SetAnchor("1", "close")
+                        self.robot.SetAnchor("2", "close")
+                        self.robot.SetAnchor("3", "close")
+                        # 打开大爪
+                        self.robot.SetGripper("open")
+                        # 大爪设置为位置模式
+                        self.robot.InitGripperActuator("position")
+                        # 大爪运动至min点 等待
+                        self.robot.MoveGripperAbsolute(self.__min_point, 10, is_close=False, is_wait=True)
+                        # 拉紧
+                        self.robot.InitTendonActuator("position","1","2","3","4","5","6")
+                        for i in range(6,0,-1):
+                            while getattr(self.robot, f"sensor_{i}").force > - 1.5:
+                                self.robot.rope_move_rel(str(i), distance=-0.5, velocity=10)
+                        # tendon速度模式
+                        self.robot.InitTendonActuator("speed","1","2","3","4","5","6")
+                        # 大爪速度模式
+                        self.robot.InitGripperActuator("speed")
+                        
+        
+        else: print("\033[0;31mPlease Calibration First ...\033[0m")
+
+        self.robot.StopTendon("1","2","3","4","5","6")
+        self.robot.StopGripper()
+
+        self.robot.SetAnchor("1", "close")
+        self.robot.SetAnchor("2", "close")
+        self.robot.SetAnchor("3", "close")
+        self.robot.SetGripper("open")
+
+        # 拉紧
+        self.robot.InitTendonActuator("position","1","2","3","4","5","6")
+        for i in range(6,0,-1):
+            while getattr(self.robot, f"sensor_{i}").force > - 1.5:
+                self.robot.rope_move_rel(str(i), distance=-0.5, velocity=10)
+
+        self.shutdown.emit()
+    
+    def stop(self):
+        self.__is_stop = True
+
+
+''' 外节 运动学控制 '''
+class OutsideSectionConfigurationSpaceJacobianControl(QThread):
+    action = pyqtSignal()
+    shutdown = pyqtSignal()
+    
+    def __init__(self, robot: ContinuumRobot, /, *, s_d: float, kappa_d: float, phi_d: float) -> None:
+        super().__init__()
+
+        self.robot = robot
+
+        self.__s_d = s_d
+        self.__kappa_d = kappa_d
+        self.__phi_d = phi_d
+
+        self.__is_stop = False
+
+        self.__min_point = 100
+        self.__max_point = 110
+
+        self.__min_length = 53
+        self.__max_length = 103
+
+        self.__min_curvature = 0.0001
+        self.__max_curvature = 0.03
+    
+    def run(self):
+        self.action.emit()
+
+        if self.robot.continuum_calibration:
+            self.robot.InitTendonActuator("speed","1","2","3")
+            self.robot.InitGripperActuator("speed")
+
+            while not self.__is_stop:
+                ''' 曲率 '''
+                # 曲率在范围内
+                if self.__min_curvature <= self.robot.backbone_curvature[2] <= self.__max_curvature:
+                    kappa_d = self.__kappa_d
+                # 曲率超出范围
+                else:
+                    if self.robot.backbone_curvature[2] < self.__min_curvature and self.__kappa_d >= 0:
+                        kappa_d = self.__kappa_d
+                    elif self.robot.backbone_curvature[2] > self.__max_curvature and self.__kappa_d <= 0:
+                        kappa_d = self.__kappa_d
+                    else: kappa_d = 0
+
+                ''' 角度 '''
+                phi_d = self.__phi_d
+                
+                ''' 判断backbone行为 '''
+                # backbone固定
+                if self.__s_d == 0:
+                    ''' 爪 '''
+                    self.robot.SetGripper("open")
+                    self.robot.SetAnchor("1", "close")
+                    self.robot.SetAnchor("2", "close")
+                    self.robot.SetAnchor("3", "close")
+                    ''' 长度 '''
+                    s_d = 0
+                    ''' 计算 '''
+                    l_1_d, l_2_d, l_3_d  = self.robot.config_to_actuator_jacobian("outside", s_d, kappa_d, phi_d)
+                    ''' 运动 '''
+                    self.robot.MoveTendonSpeed(("1",l_1_d),("2",l_2_d),("3",l_3_d))
+                # backbone缩短
+                elif self.__s_d < 0:
+                    ''' 长度 '''
+                    # 不超过最短极限 正常运动
+                    if self.__min_length <= self.robot.backbone_length[2]:
+                        ''' 爪 '''
+                        self.robot.SetGripper("open")
+                        self.robot.SetAnchor("3", "open")
+                        ''' 长度 '''
+                        s_d = self.__s_d
+                        ''' 计算 '''
+                        l_1_d, l_2_d, l_3_d = self.robot.config_to_actuator_jacobian("outside", s_d, kappa_d, phi_d)
+                        ''' 运动 '''
+                        self.robot.MoveTendonSpeed(("1",l_1_d),("2",l_2_d),("3",l_3_d)) 
+                    # 超过最短极限 backbone停止运动 tendon保持运动
+                    else:
+                        # 如果爪3处于开启
+                        if self.robot.io.output_3:
+                            # 先停止tendon运动
+                            self.robot.StopTendon("1","2","3")
+                            # tendon速度模式
+                            self.robot.InitTendonActuator("speed","1","2","3")
+                        ''' 爪 '''
+                        self.robot.SetGripper("open")
+                        self.robot.SetAnchor("1", "close")
+                        self.robot.SetAnchor("2", "close")
+                        self.robot.SetAnchor("3", "close")
+                        ''' 长度 '''
+                        s_d = 0
+                        ''' 计算 '''
+                        l_1_d, l_2_d, l_3_d = self.robot.config_to_actuator_jacobian("outside", s_d, kappa_d, phi_d)
+                        ''' 运动 '''
+                        self.robot.MoveTendonSpeed(("1",l_1_d),("2",l_2_d),("3",l_3_d))
+                # backbone伸长
+                else:
+                    ''' 判断大爪范围 '''
+                    # 大爪在运动范围内
+                    if self.__min_point - 0.2 <= self.robot.ballscrew_position <= self.__max_point:
+                        # backbone不超过最长极限 正常运动
+                        if self.robot.backbone_length[2] <= self.__max_length:
+                            ''' 爪 '''
+                            self.robot.SetGripper("close")
+                            self.robot.SetAnchor("3", "open")
+                            ''' 长度 '''
+                            s_d = self.__s_d
+                            ''' 计算 '''
+                            l_1_d, l_2_d, l_3_d = self.robot.config_to_actuator_jacobian("outside", s_d, kappa_d, phi_d)
+                            ''' 运动 '''
+                            self.robot.MoveTendonSpeed(("1",l_1_d),("2",l_2_d),("3",l_3_d)) # tendon运动
+                            self.robot.MoveGripperSpeed(s_d) # 大爪运动
+                        # backbone超过最长极限
+                        else:
+                            # 大爪停止运动
+                            self.robot.MoveGripperSpeed(0)
+                            # 如果爪3处于开启
+                            if self.robot.io.output_3:
+                                # 先停止tendon运动
+                                self.robot.StopTendon("1","2","3")
+                                # tendon速度模式
+                                self.robot.InitTendonActuator("speed","1","2","3")
+                            ''' 爪 '''
+                            self.robot.SetGripper("open")
+                            self.robot.SetAnchor("1", "close")
+                            self.robot.SetAnchor("2", "close")
+                            self.robot.SetAnchor("3", "close")
+                            ''' 长度 '''
+                            s_d = 0
+                            ''' 计算 '''
+                            l_1_d, l_2_d, l_3_d = self.robot.config_to_actuator_jacobian("outside", s_d, kappa_d, phi_d)
+                            ''' 运动 '''
+                            self.robot.MoveTendonSpeed(("1",l_1_d),("2",l_2_d),("3",l_3_d)) # tendon运动
+                    # 大爪超出运动范围
+                    else:
+                        # 大爪停止运动
+                        self.robot.StopGripper()
+                        # tendon停止运动
+                        self.robot.StopTendon("1","2","3")
+                        # 关闭小爪
+                        self.robot.SetAnchor("1", "close")
+                        self.robot.SetAnchor("2", "close")
+                        self.robot.SetAnchor("3", "close")
+                        # 打开大爪
+                        self.robot.SetGripper("open")
+                        # 大爪设置为位置模式
+                        self.robot.InitGripperActuator("position")
+                        # 大爪运动至min点 等待
+                        self.robot.MoveGripperAbsolute(self.__min_point, 10, is_close=False, is_wait=True)
+                        # 拉紧
+                        self.robot.InitTendonActuator("position","1","2","3")
+                        for i in range(3,0,-1):
+                            while getattr(self.robot, f"sensor_{i}").force > - 1.5:
+                                self.robot.rope_move_rel(str(i), distance=-0.5, velocity=10)
+                        # tendon速度模式
+                        self.robot.InitTendonActuator("speed","1","2","3")
+                        # 大爪速度模式
+                        self.robot.InitGripperActuator("speed")
+                        
+        
+        else: print("\033[0;31mPlease Calibration First ...\033[0m")
+
+        self.robot.StopTendon("1","2","3")
+        self.robot.StopGripper()
+
+        self.robot.SetAnchor("1", "close")
+        self.robot.SetAnchor("2", "close")
+        self.robot.SetAnchor("3", "close")
+        self.robot.SetGripper("open")
+
+        # 拉紧
+        self.robot.InitTendonActuator("position","1","2","3")
+        for i in range(3,0,-1):
+            while getattr(self.robot, f"sensor_{i}").force > - 1.5:
+                self.robot.rope_move_rel(str(i), distance=-0.5, velocity=10)
 
         self.shutdown.emit()
     
