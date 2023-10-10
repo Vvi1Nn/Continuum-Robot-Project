@@ -63,41 +63,58 @@ class ControlPanel(QMainWindow):
         self.ui.release_outside.pressed.connect(self.release_outside)
         self.ui.release_outside.released.connect(self.stop_outside)
 
-        self.ui.test_4.clicked.connect(lambda: self.robot.ballscrew_move(221, 10, is_close=False, is_relative=False))
-        self.ui.test_5.clicked.connect(lambda: self.robot.ballscrew_move(237, 10, is_close=False, is_relative=False))
-        self.ui.test_6.clicked.connect(lambda: self.robot.ballscrew_move(348, 10, is_close=False, is_relative=False))
-        self.ui.test_7.clicked.connect(lambda: self.robot.ballscrew_move(358, 10, is_close=False, is_relative=False))
+        # self.ui.test_4.clicked.connect(lambda: self.robot.ballscrew_move(221, 10, is_close=False, is_relative=False))
+        # self.ui.test_5.clicked.connect(lambda: self.robot.ballscrew_move(237, 10, is_close=False, is_relative=False))
+        # self.ui.test_6.clicked.connect(lambda: self.robot.ballscrew_move(348, 10, is_close=False, is_relative=False))
+        # self.ui.test_7.clicked.connect(lambda: self.robot.ballscrew_move(358, 10, is_close=False, is_relative=False))
 
         # self.ui.test_8.clicked.connect(self.force_test)
         # self.ui.test_9.clicked.connect(self.force_test_stop)
-        self.ui.test_8.pressed.connect(self.robot.CurveInsideSection)
-        self.ui.test_8.released.connect(self.robot.StopInsideSection)
+        
 
-        self.ui.test_9.pressed.connect(self.robot.StraightenInsideSection)
-        self.ui.test_9.released.connect(self.robot.StopInsideSection)
+        self.ui.test_1.clicked.connect(self.robot.ExtendInsideSection)
+        self.ui.test_2.clicked.connect(self.robot.ShortenInsideSection)
+        self.ui.test_3.clicked.connect(self.robot.StopInsideSection)
+        self.ui.test_4.pressed.connect(self.robot.CurveInsideSection)
+        self.ui.test_4.released.connect(self.robot.StopInsideSection)
+        self.ui.test_5.pressed.connect(self.robot.StraightenInsideSection)
+        self.ui.test_5.released.connect(self.robot.StopInsideSection)
+        self.ui.test_6.pressed.connect(self.robot.RotateInsideSectionClockwise)
+        self.ui.test_6.released.connect(self.robot.StopInsideSection)
+        self.ui.test_7.pressed.connect(self.robot.RotateInsideSectionAntiClockwise)
+        self.ui.test_7.released.connect(self.robot.StopInsideSection)
 
-        self.ui.test_10.pressed.connect(self.robot.RotateInsideSectionClockwise)
-        self.ui.test_10.released.connect(self.robot.StopInsideSection)
+        self.ui.test_8.clicked.connect(self.robot.ExtendMidsideSection)
+        self.ui.test_9.clicked.connect(self.robot.ShortenMidsideSection)
+        self.ui.test_10.clicked.connect(self.robot.StopMidsideSection)
+        self.ui.test_11.pressed.connect(self.robot.CurveMidsideSection)
+        self.ui.test_11.released.connect(self.robot.StopMidsideSection)
+        self.ui.test_12.pressed.connect(self.robot.StraightenMidsideSection)
+        self.ui.test_12.released.connect(self.robot.StopMidsideSection)
+        self.ui.test_13.pressed.connect(self.robot.RotateMidsideSectionClockwise)
+        self.ui.test_13.released.connect(self.robot.StopMidsideSection)
+        self.ui.test_14.pressed.connect(self.robot.RotateMidsideSectionAntiClockwise)
+        self.ui.test_14.released.connect(self.robot.StopMidsideSection)
 
-        # self.ui.test_10.clicked.connect(self.robot.extend_outside_section)
-        self.ui.test_11.clicked.connect(self.robot.ExtendInsideSection)
-        self.ui.test_12.clicked.connect(self.robot.ShortenInsideSection)
-        self.ui.test_13.clicked.connect(self.robot.StopInsideSection)
-
-        # self.ui.test_10.clicked.connect(self.force_set_zero)
-        # self.ui.test_10.clicked.connect(self.robot.compute_test)
+        self.ui.test_15.clicked.connect(self.robot.ExtendOutsideSection)
+        self.ui.test_16.clicked.connect(self.robot.ShortenOutsideSection)
+        self.ui.test_17.clicked.connect(self.robot.StopOutsideSection)
+        self.ui.test_18.pressed.connect(self.robot.CurveOutsideSection)
+        self.ui.test_18.released.connect(self.robot.StopOutsideSection)
+        self.ui.test_19.pressed.connect(self.robot.StraightenOutsideSection)
+        self.ui.test_19.released.connect(self.robot.StopOutsideSection)
+        self.ui.test_20.pressed.connect(self.robot.RotateOutsideSectionClockwise)
+        self.ui.test_20.released.connect(self.robot.StopOutsideSection)
+        self.ui.test_21.pressed.connect(self.robot.RotateOutsideSectionAntiClockwise)
+        self.ui.test_21.released.connect(self.robot.StopOutsideSection)
 
         # self.ui.test_11.clicked.connect(lambda: self.robot.rope_move("1", 3, 1, is_relative=True))
         # self.ui.test_12.clicked.connect(lambda: self.robot.rope_move("1", -3, 1, is_relative=True))
-        # self.ui.test_11.clicked.connect(self.robot.back)
-
-        # self.ui.test_13.clicked.connect(self.robot.forward)
 
         self.ui.pushButton.pressed.connect(self.robot.config_space_multi)
         self.ui.pushButton.released.connect(self.robot.config_space_stop)
         self.ui.teleoperation.clicked.connect(self.robot.teleoperation_thread.start)
 
-        
         
         self.show() # 显示界面
 
@@ -115,12 +132,12 @@ class ControlPanel(QMainWindow):
         ''' 打开设备 '''
         self.ui.bt_open_device.setEnabled(True)
         self.ui.bt_open_device.setText("Open Device")
-        self.ui.bt_open_device.clicked.connect(self.open_device)
+        self.ui.bt_open_device.clicked.connect(self.InitUSBCAN)
 
         ''' 初始化机器人 '''
         self.ui.bt_init_robot.setEnabled(False)
         self.ui.bt_init_robot.setText("Initialize Robot")
-        self.ui.bt_init_robot.clicked.connect(self.initialize_robot)
+        self.ui.bt_init_robot.clicked.connect(self.InitRobot)
 
         ''' 界面 '''
         self.ui.control.setEnabled(False)
@@ -251,13 +268,13 @@ class ControlPanel(QMainWindow):
         self.ui.set_rope_zero.clicked.connect(self.rope_set_zero)
 
         ''' 力 调0 '''
-        self.ui.set_sensor_zero.clicked.connect(self.force_set_zero)
+        self.ui.set_sensor_zero.clicked.connect(self.ForceSensorCalibration)
 
         ''' 伸 缩 '''
         self.ui.extension.clicked.connect(self.robot.forward)
         self.ui.retraction.clicked.connect(self.robot.back)
 
-        self.ui.bt_cali.clicked.connect(self.calibration)
+        self.ui.bt_cali.clicked.connect(self.ContinuumCalibration)
 
         self.ui.curve_forward_out.pressed.connect(lambda: self.robot.config_space("outside", "curve"))
         self.ui.curve_forward_out.released.connect(self.robot.config_space_stop)
@@ -607,8 +624,8 @@ class ControlPanel(QMainWindow):
 
 
     ''' 打开设备 '''
-    def open_device(self) -> None:
-        if self.robot.open_device():
+    def InitUSBCAN(self) -> None:
+        if self.robot.InitUSBCAN():
             self.ui.bt_open_device.setEnabled(False)
 
             self.ui.bt_init_robot.setEnabled(True)
@@ -617,7 +634,7 @@ class ControlPanel(QMainWindow):
         else: self.show_status("Open Device Failed")
     
     ''' 初始化机器人 '''
-    def initialize_robot(self) -> None:
+    def InitRobot(self) -> None:
         def change(status):
             if status:
                 self.ui.bt_init_robot.setEnabled(False)
@@ -639,7 +656,7 @@ class ControlPanel(QMainWindow):
             self.ui.start_adjust.setEnabled(True) # 调零
             self.ui.set_sensor_zero.setEnabled(True)
         
-        self.robot.initialize_robot(1, change, next)
+        self.robot.InitRobot(1, change, next)
 
     ''' 丝杠 调零 '''
     def GripperCalibration(self):
@@ -707,7 +724,7 @@ class ControlPanel(QMainWindow):
         self.robot.rope_set_zero()
     
     ''' 力 调零 '''
-    def force_set_zero(self):
+    def ForceSensorCalibration(self):
         def start():
             self.ui.set_sensor_zero.setEnabled(False)
             self.show_status("All sensors are being adapting force ...")
@@ -721,7 +738,7 @@ class ControlPanel(QMainWindow):
             box = getattr(self.ui, f"force_ref_{i}")
             force_list.append(float(box.text()) if box.text() != "" else float(box.placeholderText()))
         
-        self.robot.force_set_zero(force_list, 100, start, finish)
+        self.robot.ForceSensorCalibration(force_list, 100, start, finish)
 
 
     ''' 电机 速度 正 '''
@@ -856,11 +873,11 @@ class ControlPanel(QMainWindow):
         
         self.stretch_outide_thread.wait()
     
-    def calibration(self):
+    def ContinuumCalibration(self):
         bl_o = float(self.ui.outside_length.text()) if self.ui.outside_length.text() != "" else float(self.ui.outside_length.placeholderText())
         bl_m = float(self.ui.midside_length.text()) if self.ui.midside_length.text() != "" else float(self.ui.midside_length.placeholderText())
         bl_i = float(self.ui.inside_length.text()) if self.ui.inside_length.text() != "" else float(self.ui.inside_length.placeholderText())
-        self.robot.calibration(bl_o, bl_m, bl_i)
+        self.robot.ContinuumCalibration(bl_o, bl_m, bl_i)
     
     
     
