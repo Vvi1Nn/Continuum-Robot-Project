@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1437</width>
-    <height>1108</height>
+    <width>1118</width>
+    <height>829</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -201,7 +201,7 @@ QStackedWidget QTextBrowser {
           <string notr="true"/>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>4</number>
          </property>
          <widget class="QWidget" name="page_control">
           <layout class="QVBoxLayout" name="verticalLayout_7" stretch="2,8,8,3">
@@ -12355,6 +12355,92 @@ Zero</string>
            </item>
           </layout>
          </widget>
+         <widget class="QWidget" name="page_video">
+          <layout class="QVBoxLayout" name="verticalLayout_6" stretch="10,1">
+           <property name="spacing">
+            <number>10</number>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QGroupBox" name="groupBox_31">
+             <property name="title">
+              <string>Video</string>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_55">
+              <property name="spacing">
+               <number>0</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="label_video">
+                <property name="text">
+                 <string>No video stream</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_56">
+             <property name="spacing">
+              <number>15</number>
+             </property>
+             <item>
+              <widget class="QPushButton" name="bt_open_camera">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Open Camera</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="bt_close_camera">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Close Camera</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
         </widget>
        </item>
       </layout>
@@ -12367,7 +12453,7 @@ Zero</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1437</width>
+     <width>1118</width>
      <height>42</height>
     </rect>
    </property>
@@ -12379,6 +12465,7 @@ Zero</string>
     <addaction name="set_zero_panel"/>
     <addaction name="param_panel"/>
     <addaction name="kinematics_panel"/>
+    <addaction name="video_panel"/>
    </widget>
    <widget class="QMenu" name="menuJump">
     <property name="title">
@@ -12417,6 +12504,11 @@ Zero</string>
   <action name="kinematics_panel">
    <property name="text">
     <string>Kinematics</string>
+   </property>
+  </action>
+  <action name="video_panel">
+   <property name="text">
+    <string>Vedio</string>
    </property>
   </action>
  </widget>
