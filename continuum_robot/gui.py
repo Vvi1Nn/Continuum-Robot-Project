@@ -7,10 +7,13 @@
 from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtCore import QThread, pyqtSignal, QMutex
 
+from PyQt5.QtGui import QPixmap
+
 
 # 添加模块路径
 import sys, os, time, math
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 
 from continuum_robot.control_panel import Ui_MainWindow as Ui_ControlPanel
 
@@ -115,9 +118,12 @@ class ControlPanel(QMainWindow):
         self.ui.pushButton.released.connect(self.robot.config_space_stop)
         self.ui.teleoperation.clicked.connect(self.robot.teleoperation_thread.start)
 
-        
-        self.show() # 显示界面
+        self.ui.bt_open_camera.clicked.connect(self.OpenCamera)
+        self.ui.bt_close_camera.clicked.connect(self.robot.CloseCamera)
 
+
+        self.show() # 显示界面
+    
 
     ''' Jumping '''
     def signal_connect_slot(self) -> None:
@@ -125,6 +131,7 @@ class ControlPanel(QMainWindow):
         self.ui.control_panel.triggered.connect(lambda: self.ui.stackedWidget.setCurrentIndex(0))
         self.ui.set_zero_panel.triggered.connect(lambda: self.ui.stackedWidget.setCurrentIndex(1))
         self.ui.kinematics_panel.triggered.connect(lambda: self.ui.stackedWidget.setCurrentIndex(3))
+        self.ui.video_panel.triggered.connect(lambda: self.ui.stackedWidget.setCurrentIndex(4))
 
         self.ui.statusBar.setSizeGripEnabled(False)
         self.ui.statusBar.showMessage("Welcome to Continnum Robot Control Panel", 10000)
@@ -305,9 +312,6 @@ class ControlPanel(QMainWindow):
         self.ui.angle_back_in.pressed.connect(lambda: self.robot.config_space("inside", "rotate_anticlockwise"))
         self.ui.angle_back_in.released.connect(self.robot.config_space_stop)
         self.ui.reset_in.clicked.connect(lambda: self.robot.config_space("inside", "reset"))
-
-        
-
 
 
     ''' 显示 电机状态 '''
@@ -622,7 +626,6 @@ class ControlPanel(QMainWindow):
         #     exec("self.ui.rope_{}.setText('<span style=\"color:#00ff00;\">{}</span>')".format(id, round(self.robot.rope_total_length[id-1], 2)))
 
 
-
     ''' 打开设备 '''
     def InitUSBCAN(self) -> None:
         if self.robot.InitUSBCAN():
@@ -873,6 +876,7 @@ class ControlPanel(QMainWindow):
         
         self.stretch_outide_thread.wait()
     
+    ''' 标定 '''
     def ContinuumCalibration(self):
         bl_o = float(self.ui.outside_length.text()) if self.ui.outside_length.text() != "" else float(self.ui.outside_length.placeholderText())
         bl_m = float(self.ui.midside_length.text()) if self.ui.midside_length.text() != "" else float(self.ui.midside_length.placeholderText())
@@ -923,6 +927,16 @@ class ControlPanel(QMainWindow):
         # self.force_test_thread_7.wait()
         # self.force_test_thread_8.wait()
         # self.force_test_thread_9.wait()
+
+    ''' 相机 '''
+    def OpenCamera(self):
+        def update(image):
+            self.ui.label_video.setPixmap(QPixmap.fromImage(image)) # 往显示视频的Label里显示QImage
+        def clear():
+            self.ui.label_video.clear() # 清除label组件上的图片
+            self.ui.label_video.setText("No Video Stream")
+        self.ui.label_video.setScaledContents(True) # 自适应
+        self.robot.OpenCamera(update_slot=update, clear_slot=clear)
 
 
 
