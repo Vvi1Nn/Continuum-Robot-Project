@@ -111,7 +111,7 @@ class ControlPanel(QMainWindow):
         self.ui.test_21.pressed.connect(self.robot.RotateOutsideSectionAntiClockwise)
         self.ui.test_21.released.connect(self.robot.StopOutsideSection)
 
-        # self.ui.test_11.clicked.connect(lambda: self.robot.rope_move("1", 3, 1, is_relative=True))
+        self.ui.test_22.clicked.connect(self.robot.test)
         # self.ui.test_12.clicked.connect(lambda: self.robot.rope_move("1", -3, 1, is_relative=True))
 
         self.ui.pushButton.pressed.connect(self.robot.config_space_multi)
