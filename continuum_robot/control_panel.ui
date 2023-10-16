@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1118</width>
-    <height>829</height>
+    <width>1288</width>
+    <height>957</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -201,7 +201,7 @@ QStackedWidget QTextBrowser {
           <string notr="true"/>
          </property>
          <property name="currentIndex">
-          <number>4</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="page_control">
           <layout class="QVBoxLayout" name="verticalLayout_7" stretch="2,8,8,3">
@@ -5819,7 +5819,7 @@ Reset</string>
              </widget>
              <widget class="QWidget" name="tab_io">
               <attribute name="title">
-               <string>Magnetic Valve</string>
+               <string>Valve</string>
               </attribute>
               <layout class="QHBoxLayout" name="horizontalLayout_44" stretch="1,1,1,1">
                <property name="spacing">
@@ -6053,7 +6053,7 @@ Reset</string>
              </widget>
              <widget class="QWidget" name="tab_test">
               <attribute name="title">
-               <string>Advanced Test</string>
+               <string>Test</string>
               </attribute>
               <layout class="QHBoxLayout" name="horizontalLayout_46">
                <property name="spacing">
@@ -6095,23 +6095,6 @@ Reset</string>
                   <property name="bottomMargin">
                    <number>0</number>
                   </property>
-                  <item>
-                   <widget class="QPushButton" name="set_zero">
-                    <property name="enabled">
-                     <bool>false</bool>
-                    </property>
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
-                    <property name="text">
-                     <string>Ballscrew
-Set Zero</string>
-                    </property>
-                   </widget>
-                  </item>
                   <item>
                    <widget class="QPushButton" name="go_zero">
                     <property name="sizePolicy">
@@ -6155,6 +6138,9 @@ Home</string>
                   </property>
                   <item>
                    <widget class="QPushButton" name="stretch_inside">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -6168,6 +6154,9 @@ Home</string>
                   </item>
                   <item>
                    <widget class="QPushButton" name="release_inside">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -6181,6 +6170,9 @@ Home</string>
                   </item>
                   <item>
                    <widget class="QPushButton" name="stretch_midside">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -6194,6 +6186,9 @@ Home</string>
                   </item>
                   <item>
                    <widget class="QPushButton" name="release_midside">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -6207,6 +6202,9 @@ Home</string>
                   </item>
                   <item>
                    <widget class="QPushButton" name="stretch_outside">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -6220,6 +6218,9 @@ Home</string>
                   </item>
                   <item>
                    <widget class="QPushButton" name="release_outside">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -6260,6 +6261,9 @@ Home</string>
                   </property>
                   <item>
                    <widget class="QPushButton" name="extension">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -6274,6 +6278,9 @@ All</string>
                   </item>
                   <item>
                    <widget class="QPushButton" name="retraction">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -6696,6 +6703,9 @@ All</string>
                   </item>
                   <item>
                    <widget class="QPushButton" name="test_22">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -6709,6 +6719,9 @@ All</string>
                   </item>
                   <item>
                    <widget class="QPushButton" name="test_23">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -6722,6 +6735,9 @@ All</string>
                   </item>
                   <item>
                    <widget class="QPushButton" name="test_24">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -6735,6 +6751,9 @@ All</string>
                   </item>
                   <item>
                    <widget class="QPushButton" name="test_25">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -6775,6 +6794,9 @@ All</string>
                   </property>
                   <item>
                    <widget class="QPushButton" name="test_26">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -6788,6 +6810,9 @@ All</string>
                   </item>
                   <item>
                    <widget class="QPushButton" name="test_27">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -6801,6 +6826,9 @@ All</string>
                   </item>
                   <item>
                    <widget class="QPushButton" name="test_28">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -6814,6 +6842,9 @@ All</string>
                   </item>
                   <item>
                    <widget class="QPushButton" name="test_29">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -6827,6 +6858,9 @@ All</string>
                   </item>
                   <item>
                    <widget class="QPushButton" name="test_30">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                       <horstretch>0</horstretch>
@@ -6839,19 +6873,6 @@ All</string>
                    </widget>
                   </item>
                  </layout>
-                </widget>
-               </item>
-               <item>
-                <widget class="QPushButton" name="test">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="text">
-                  <string>TEST</string>
-                 </property>
                 </widget>
                </item>
               </layout>
@@ -7907,7 +7928,7 @@ All</string>
                <item>
                 <widget class="QGroupBox" name="groupBox_54">
                  <property name="title">
-                  <string>Rope 1</string>
+                  <string>Tendon 1</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
@@ -7954,7 +7975,7 @@ All</string>
                <item>
                 <widget class="QGroupBox" name="groupBox_55">
                  <property name="title">
-                  <string>Rope 2</string>
+                  <string>Tendon 2</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
@@ -8001,7 +8022,7 @@ All</string>
                <item>
                 <widget class="QGroupBox" name="groupBox_56">
                  <property name="title">
-                  <string>Rope 3</string>
+                  <string>Tendon 3</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
@@ -8048,7 +8069,7 @@ All</string>
                <item>
                 <widget class="QGroupBox" name="groupBox_57">
                  <property name="title">
-                  <string>Rope 4</string>
+                  <string>Tendon 4</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
@@ -8095,7 +8116,7 @@ All</string>
                <item>
                 <widget class="QGroupBox" name="groupBox_58">
                  <property name="title">
-                  <string>Rope 5</string>
+                  <string>Tendon 5</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
@@ -8142,7 +8163,7 @@ All</string>
                <item>
                 <widget class="QGroupBox" name="groupBox_59">
                  <property name="title">
-                  <string>Rope 6</string>
+                  <string>Tendon 6</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
@@ -8189,7 +8210,7 @@ All</string>
                <item>
                 <widget class="QGroupBox" name="groupBox_60">
                  <property name="title">
-                  <string>Rope 7</string>
+                  <string>Tendon 7</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
@@ -8236,7 +8257,7 @@ All</string>
                <item>
                 <widget class="QGroupBox" name="groupBox_61">
                  <property name="title">
-                  <string>Rope 8</string>
+                  <string>Tendon 8</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
@@ -8283,7 +8304,7 @@ All</string>
                <item>
                 <widget class="QGroupBox" name="groupBox_62">
                  <property name="title">
-                  <string>Rope 9</string>
+                  <string>Tendon 9</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
@@ -8330,7 +8351,7 @@ All</string>
                <item>
                 <widget class="QGroupBox" name="groupBox_53">
                  <property name="title">
-                  <string>Ballscrew</string>
+                  <string>Gripper</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
@@ -8555,9 +8576,9 @@ Reset</string>
           <zorder>control_all</zorder>
          </widget>
          <widget class="QWidget" name="page_zero">
-          <layout class="QVBoxLayout" name="verticalLayout_21" stretch="1,1,3">
+          <layout class="QVBoxLayout" name="verticalLayout_13" stretch="1,1,2,1">
            <property name="spacing">
-            <number>10</number>
+            <number>0</number>
            </property>
            <property name="leftMargin">
             <number>0</number>
@@ -8574,9 +8595,9 @@ Reset</string>
            <item>
             <widget class="QGroupBox" name="ballscrew_set_zero">
              <property name="title">
-              <string>1. Ballscrew Set Zero</string>
+              <string>1. Gripper</string>
              </property>
-             <layout class="QVBoxLayout" name="verticalLayout_20" stretch="1,5">
+             <layout class="QVBoxLayout" name="verticalLayout_20" stretch="5">
               <property name="spacing">
                <number>10</number>
               </property>
@@ -8593,17 +8614,7 @@ Reset</string>
                <number>0</number>
               </property>
               <item>
-               <widget class="QLabel" name="notice">
-                <property name="text">
-                 <string>【Please make sure the ballscrew is positioned behind the drive device and the claw is open !】</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="2,2,2,1">
+               <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="3,3,3,1">
                 <property name="spacing">
                  <number>10</number>
                 </property>
@@ -8787,7 +8798,7 @@ Reset</string>
                    </sizepolicy>
                   </property>
                   <property name="text">
-                   <string>Set Zero</string>
+                   <string>Start</string>
                   </property>
                  </widget>
                 </item>
@@ -8799,9 +8810,9 @@ Reset</string>
            <item>
             <widget class="QGroupBox" name="sensor_set_zero">
              <property name="title">
-              <string>2. Sensor Set Zero</string>
+              <string>2. Sensors</string>
              </property>
-             <layout class="QVBoxLayout" name="verticalLayout_140" stretch="1,5">
+             <layout class="QVBoxLayout" name="verticalLayout_140" stretch="5">
               <property name="spacing">
                <number>10</number>
               </property>
@@ -8817,16 +8828,6 @@ Reset</string>
               <property name="bottomMargin">
                <number>0</number>
               </property>
-              <item>
-               <widget class="QLabel" name="notice_3">
-                <property name="text">
-                 <string>【Please make sure all ropes are well positioned !】</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_52" stretch="2,2,2,2,2,2,2,2,2,2">
                 <property name="spacing">
@@ -9330,7 +9331,7 @@ Reset</string>
                    </sizepolicy>
                   </property>
                   <property name="text">
-                   <string>Set Zero</string>
+                   <string>Start</string>
                   </property>
                  </widget>
                 </item>
@@ -9342,7 +9343,7 @@ Reset</string>
            <item>
             <widget class="QGroupBox" name="rope_set_zero">
              <property name="title">
-              <string>3. Rope Set Zero</string>
+              <string>3. Tendons</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_139">
               <property name="spacing">
@@ -9361,46 +9362,20 @@ Reset</string>
                <number>0</number>
               </property>
               <item>
-               <layout class="QVBoxLayout" name="verticalLayout_138" stretch="1,10">
+               <layout class="QVBoxLayout" name="verticalLayout_138" stretch="10">
                 <property name="spacing">
                  <number>10</number>
                 </property>
-                <item>
-                 <widget class="QLabel" name="notice_2">
-                  <property name="text">
-                   <string>【Please make sure all segment continuum robot are straight and compacted, otherwise run adjust program !】</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_51" stretch="6,1">
                   <property name="spacing">
                    <number>10</number>
                   </property>
                   <item>
-                   <layout class="QVBoxLayout" name="verticalLayout_137" stretch="1,5">
+                   <layout class="QVBoxLayout" name="verticalLayout_137" stretch="5">
                     <property name="spacing">
                      <number>10</number>
                     </property>
-                    <item>
-                     <widget class="QPushButton" name="open_all_claw">
-                      <property name="enabled">
-                       <bool>false</bool>
-                      </property>
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <property name="text">
-                       <string>Open all small claws</string>
-                      </property>
-                     </widget>
-                    </item>
                     <item>
                      <layout class="QHBoxLayout" name="horizontalLayout_49" stretch="2,2,2,1">
                       <property name="spacing">
@@ -9459,7 +9434,7 @@ Reset</string>
                              <set>Qt::AlignCenter</set>
                             </property>
                             <property name="placeholderText">
-                             <string>5</string>
+                             <string>4</string>
                             </property>
                            </widget>
                           </item>
@@ -9919,7 +9894,7 @@ Reset</string>
                              <set>Qt::AlignCenter</set>
                             </property>
                             <property name="placeholderText">
-                             <string>5</string>
+                             <string>6</string>
                             </property>
                            </widget>
                           </item>
@@ -10113,25 +10088,7 @@ Reset</string>
                            </sizepolicy>
                           </property>
                           <property name="text">
-                           <string>Start
-Preload</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QPushButton" name="stop_adjust">
-                          <property name="enabled">
-                           <bool>false</bool>
-                          </property>
-                          <property name="sizePolicy">
-                           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                           </sizepolicy>
-                          </property>
-                          <property name="text">
-                           <string>Stop
-Preload</string>
+                           <string>Preload</string>
                           </property>
                          </widget>
                         </item>
@@ -10153,8 +10110,7 @@ Preload</string>
                      </sizepolicy>
                     </property>
                     <property name="text">
-                     <string>Set
-Zero</string>
+                     <string>Set</string>
                     </property>
                    </widget>
                   </item>
@@ -10165,14 +10121,213 @@ Zero</string>
              </layout>
             </widget>
            </item>
+           <item>
+            <widget class="QGroupBox" name="group_calibration">
+             <property name="title">
+              <string>4. Continuum</string>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_53" stretch="2,2,2,1">
+              <property name="spacing">
+               <number>10</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_143">
+                <property name="spacing">
+                 <number>10</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="tx_position_27">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>Outside Length (mm)</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="outside_length">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                  <property name="placeholderText">
+                   <string>51</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_152">
+                <property name="spacing">
+                 <number>10</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="tx_position_28">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>Midside Length (mm)</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="midside_length">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                  <property name="placeholderText">
+                   <string>49</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_153">
+                <property name="spacing">
+                 <number>10</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="tx_position_37">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>Inside Length (mm)</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="inside_length">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                  <property name="placeholderText">
+                   <string>42</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <widget class="QPushButton" name="bt_cali">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>Set</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
           </layout>
          </widget>
          <widget class="QWidget" name="page_param">
           <widget class="QGroupBox" name="param">
            <property name="geometry">
             <rect>
-             <x>270</x>
-             <y>130</y>
+             <x>30</x>
+             <y>60</y>
              <width>1011</width>
              <height>471</height>
             </rect>
@@ -10395,7 +10550,7 @@ Zero</string>
           </widget>
          </widget>
          <widget class="QWidget" name="page_kin">
-          <layout class="QVBoxLayout" name="verticalLayout_160" stretch="1,5,5,5,3">
+          <layout class="QVBoxLayout" name="verticalLayout_160" stretch="5,5,5,3">
            <property name="spacing">
             <number>0</number>
            </property>
@@ -10411,1277 +10566,6 @@ Zero</string>
            <property name="bottomMargin">
             <number>0</number>
            </property>
-           <item>
-            <widget class="QGroupBox" name="group_calibration">
-             <property name="title">
-              <string>Calibration</string>
-             </property>
-             <layout class="QHBoxLayout" name="horizontalLayout_53" stretch="2,2,2,1">
-              <property name="spacing">
-               <number>10</number>
-              </property>
-              <property name="leftMargin">
-               <number>0</number>
-              </property>
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-              <property name="rightMargin">
-               <number>0</number>
-              </property>
-              <property name="bottomMargin">
-               <number>0</number>
-              </property>
-              <item>
-               <layout class="QVBoxLayout" name="verticalLayout_143">
-                <property name="spacing">
-                 <number>10</number>
-                </property>
-                <property name="leftMargin">
-                 <number>0</number>
-                </property>
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="rightMargin">
-                 <number>0</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-                <item>
-                 <widget class="QLabel" name="tx_position_27">
-                  <property name="enabled">
-                   <bool>true</bool>
-                  </property>
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="text">
-                   <string>Outside Length (mm)</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="outside_length">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                  <property name="placeholderText">
-                   <string>51</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <layout class="QVBoxLayout" name="verticalLayout_152">
-                <property name="spacing">
-                 <number>10</number>
-                </property>
-                <property name="leftMargin">
-                 <number>0</number>
-                </property>
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="rightMargin">
-                 <number>0</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-                <item>
-                 <widget class="QLabel" name="tx_position_28">
-                  <property name="enabled">
-                   <bool>true</bool>
-                  </property>
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="text">
-                   <string>Midside Length (mm)</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="midside_length">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                  <property name="placeholderText">
-                   <string>49</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <layout class="QVBoxLayout" name="verticalLayout_153">
-                <property name="spacing">
-                 <number>10</number>
-                </property>
-                <property name="leftMargin">
-                 <number>0</number>
-                </property>
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="rightMargin">
-                 <number>0</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-                <item>
-                 <widget class="QLabel" name="tx_position_37">
-                  <property name="enabled">
-                   <bool>true</bool>
-                  </property>
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="text">
-                   <string>Inside Length (mm)</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="inside_length">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                  <property name="placeholderText">
-                   <string>42</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <widget class="QPushButton" name="bt_cali">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>Set Zero</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="QGroupBox" name="group_outside">
-             <property name="title">
-              <string>Outside</string>
-             </property>
-             <layout class="QHBoxLayout" name="horizontalLayout_54" stretch="2,2,2,2,1,1,1">
-              <property name="spacing">
-               <number>10</number>
-              </property>
-              <property name="leftMargin">
-               <number>0</number>
-              </property>
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-              <property name="rightMargin">
-               <number>0</number>
-              </property>
-              <property name="bottomMargin">
-               <number>0</number>
-              </property>
-              <item>
-               <layout class="QVBoxLayout" name="verticalLayout_157" stretch="1,1,1,1">
-                <property name="spacing">
-                 <number>0</number>
-                </property>
-                <property name="leftMargin">
-                 <number>0</number>
-                </property>
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="rightMargin">
-                 <number>0</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-                <item>
-                 <widget class="QLabel" name="tx_position_41">
-                  <property name="enabled">
-                   <bool>true</bool>
-                  </property>
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="text">
-                   <string>Rope (mm) (1,2,3)</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="length_1_o">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="length_2_o">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="length_3_o">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <layout class="QVBoxLayout" name="verticalLayout_159">
-                <property name="spacing">
-                 <number>0</number>
-                </property>
-                <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_156">
-                  <property name="spacing">
-                   <number>0</number>
-                  </property>
-                  <property name="leftMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="rightMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>0</number>
-                  </property>
-                  <item>
-                   <widget class="QLabel" name="tx_position_40">
-                    <property name="enabled">
-                     <bool>true</bool>
-                    </property>
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
-                    <property name="text">
-                     <string>Length (mm)</string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="length_out">
-                    <property name="text">
-                     <string>None</string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-                <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_154">
-                  <property name="spacing">
-                   <number>0</number>
-                  </property>
-                  <property name="leftMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="rightMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>0</number>
-                  </property>
-                  <item>
-                   <widget class="QLabel" name="tx_position_38">
-                    <property name="enabled">
-                     <bool>true</bool>
-                    </property>
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
-                    <property name="text">
-                     <string>Curvature (1/mm)</string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="curvature_out">
-                    <property name="text">
-                     <string>None</string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-                <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_155">
-                  <property name="spacing">
-                   <number>0</number>
-                  </property>
-                  <property name="leftMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="rightMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>0</number>
-                  </property>
-                  <item>
-                   <widget class="QLabel" name="tx_position_39">
-                    <property name="enabled">
-                     <bool>true</bool>
-                    </property>
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
-                    <property name="text">
-                     <string>Angle (degree)</string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="angle_out">
-                    <property name="text">
-                     <string>None</string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <layout class="QVBoxLayout" name="verticalLayout_158" stretch="1,1,1,1">
-                <property name="spacing">
-                 <number>0</number>
-                </property>
-                <property name="leftMargin">
-                 <number>0</number>
-                </property>
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="rightMargin">
-                 <number>0</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-                <item>
-                 <widget class="QLabel" name="tx_position_42">
-                  <property name="enabled">
-                   <bool>true</bool>
-                  </property>
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="text">
-                   <string>Local (mm) (x,y,z)</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="x_out_local">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="y_out_local">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="z_out_local">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <layout class="QVBoxLayout" name="verticalLayout_163" stretch="1,1,1,1">
-                <property name="spacing">
-                 <number>0</number>
-                </property>
-                <property name="leftMargin">
-                 <number>0</number>
-                </property>
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="rightMargin">
-                 <number>0</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-                <item>
-                 <widget class="QLabel" name="tx_position_43">
-                  <property name="enabled">
-                   <bool>true</bool>
-                  </property>
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="text">
-                   <string>World (mm) (x,y,z)</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="x_out_world">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="y_out_world">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="z_out_world">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <widget class="QFrame" name="frame_30">
-                <property name="frameShape">
-                 <enum>QFrame::StyledPanel</enum>
-                </property>
-                <property name="frameShadow">
-                 <enum>QFrame::Raised</enum>
-                </property>
-                <layout class="QVBoxLayout" name="verticalLayout_161">
-                 <property name="spacing">
-                  <number>10</number>
-                 </property>
-                 <property name="leftMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="topMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="rightMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="bottomMargin">
-                  <number>0</number>
-                 </property>
-                 <item>
-                  <widget class="QPushButton" name="curve_forward_out">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="text">
-                    <string>Curvature
-+</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="curve_back_out">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="text">
-                    <string>Curvature
--</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-              <item>
-               <widget class="QFrame" name="frame_31">
-                <property name="frameShape">
-                 <enum>QFrame::StyledPanel</enum>
-                </property>
-                <property name="frameShadow">
-                 <enum>QFrame::Raised</enum>
-                </property>
-                <layout class="QVBoxLayout" name="verticalLayout_162">
-                 <property name="spacing">
-                  <number>10</number>
-                 </property>
-                 <property name="leftMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="topMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="rightMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="bottomMargin">
-                  <number>0</number>
-                 </property>
-                 <item>
-                  <widget class="QPushButton" name="angle_forward_out">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="text">
-                    <string>Angle
-+</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="angle_back_out">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="text">
-                    <string>Angle
--</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="reset_out">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>Reset</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="QGroupBox" name="group_midside">
-             <property name="title">
-              <string>Midside</string>
-             </property>
-             <layout class="QHBoxLayout" name="horizontalLayout_58" stretch="2,2,2,2,2,1,1,1">
-              <property name="spacing">
-               <number>10</number>
-              </property>
-              <property name="leftMargin">
-               <number>0</number>
-              </property>
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-              <property name="rightMargin">
-               <number>0</number>
-              </property>
-              <property name="bottomMargin">
-               <number>0</number>
-              </property>
-              <item>
-               <layout class="QVBoxLayout" name="verticalLayout_200" stretch="1,1,1,1">
-                <property name="spacing">
-                 <number>0</number>
-                </property>
-                <property name="leftMargin">
-                 <number>0</number>
-                </property>
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="rightMargin">
-                 <number>0</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-                <item>
-                 <widget class="QLabel" name="tx_position_68">
-                  <property name="enabled">
-                   <bool>true</bool>
-                  </property>
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="text">
-                   <string>(4,5,6)</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="length_4_m">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="length_5_m">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="length_6_m">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <layout class="QVBoxLayout" name="verticalLayout_191" stretch="1,1,1,1">
-                <property name="spacing">
-                 <number>0</number>
-                </property>
-                <property name="leftMargin">
-                 <number>0</number>
-                </property>
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="rightMargin">
-                 <number>0</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-                <item>
-                 <widget class="QLabel" name="tx_position_62">
-                  <property name="enabled">
-                   <bool>true</bool>
-                  </property>
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="text">
-                   <string>(1,2,3)</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="length_1_m">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="length_2_m">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="length_3_m">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <layout class="QVBoxLayout" name="verticalLayout_192">
-                <property name="spacing">
-                 <number>0</number>
-                </property>
-                <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_193">
-                  <property name="spacing">
-                   <number>0</number>
-                  </property>
-                  <property name="leftMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="rightMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>0</number>
-                  </property>
-                  <item>
-                   <widget class="QLabel" name="tx_position_63">
-                    <property name="enabled">
-                     <bool>true</bool>
-                    </property>
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
-                    <property name="text">
-                     <string>Length</string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="length_mid">
-                    <property name="text">
-                     <string>None</string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-                <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_194">
-                  <property name="spacing">
-                   <number>0</number>
-                  </property>
-                  <property name="leftMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="rightMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>0</number>
-                  </property>
-                  <item>
-                   <widget class="QLabel" name="tx_position_64">
-                    <property name="enabled">
-                     <bool>true</bool>
-                    </property>
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
-                    <property name="text">
-                     <string>Curvature</string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="curvature_mid">
-                    <property name="text">
-                     <string>None</string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-                <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_195">
-                  <property name="spacing">
-                   <number>0</number>
-                  </property>
-                  <property name="leftMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="rightMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>0</number>
-                  </property>
-                  <item>
-                   <widget class="QLabel" name="tx_position_65">
-                    <property name="enabled">
-                     <bool>true</bool>
-                    </property>
-                    <property name="sizePolicy">
-                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                      <horstretch>0</horstretch>
-                      <verstretch>0</verstretch>
-                     </sizepolicy>
-                    </property>
-                    <property name="text">
-                     <string>Angle</string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="angle_mid">
-                    <property name="text">
-                     <string>None</string>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <layout class="QVBoxLayout" name="verticalLayout_196" stretch="1,1,1,1">
-                <property name="spacing">
-                 <number>0</number>
-                </property>
-                <property name="leftMargin">
-                 <number>0</number>
-                </property>
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="rightMargin">
-                 <number>0</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-                <item>
-                 <widget class="QLabel" name="tx_position_66">
-                  <property name="enabled">
-                   <bool>true</bool>
-                  </property>
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="text">
-                   <string>Local</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="x_mid_local">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="y_mid_local">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="z_mid_local">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <layout class="QVBoxLayout" name="verticalLayout_197" stretch="1,1,1,1">
-                <property name="spacing">
-                 <number>0</number>
-                </property>
-                <property name="leftMargin">
-                 <number>0</number>
-                </property>
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="rightMargin">
-                 <number>0</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-                <item>
-                 <widget class="QLabel" name="tx_position_67">
-                  <property name="enabled">
-                   <bool>true</bool>
-                  </property>
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="text">
-                   <string>World</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="x_mid_world">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="y_mid_world">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="z_mid_world">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignCenter</set>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <widget class="QFrame" name="frame_38">
-                <property name="frameShape">
-                 <enum>QFrame::StyledPanel</enum>
-                </property>
-                <property name="frameShadow">
-                 <enum>QFrame::Raised</enum>
-                </property>
-                <layout class="QVBoxLayout" name="verticalLayout_198">
-                 <property name="spacing">
-                  <number>10</number>
-                 </property>
-                 <property name="leftMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="topMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="rightMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="bottomMargin">
-                  <number>0</number>
-                 </property>
-                 <item>
-                  <widget class="QPushButton" name="curve_forward_mid">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="text">
-                    <string>Curvature
-+</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="curve_back_mid">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="text">
-                    <string>Curvature
--</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-              <item>
-               <widget class="QFrame" name="frame_39">
-                <property name="frameShape">
-                 <enum>QFrame::StyledPanel</enum>
-                </property>
-                <property name="frameShadow">
-                 <enum>QFrame::Raised</enum>
-                </property>
-                <layout class="QVBoxLayout" name="verticalLayout_199">
-                 <property name="spacing">
-                  <number>10</number>
-                 </property>
-                 <property name="leftMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="topMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="rightMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="bottomMargin">
-                  <number>0</number>
-                 </property>
-                 <item>
-                  <widget class="QPushButton" name="angle_forward_mid">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="text">
-                    <string>Angle
-+</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="angle_back_mid">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="text">
-                    <string>Angle
--</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="reset_mid">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>Reset</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
            <item>
             <widget class="QGroupBox" name="group_midside_2">
              <property name="title">
@@ -12195,6 +11079,91 @@ Zero</string>
                </layout>
               </item>
               <item>
+               <widget class="QFrame" name="frame_98">
+                <property name="frameShape">
+                 <enum>QFrame::StyledPanel</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Raised</enum>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_379">
+                 <property name="spacing">
+                  <number>10</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <widget class="QLabel" name="tx_position_125">
+                   <property name="enabled">
+                    <bool>true</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>S</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="length_forward_in">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>+</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="length_back_in">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>-</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="length_stop_in">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>Stop</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
                <widget class="QFrame" name="frame_40">
                 <property name="frameShape">
                  <enum>QFrame::StyledPanel</enum>
@@ -12219,6 +11188,25 @@ Zero</string>
                   <number>0</number>
                  </property>
                  <item>
+                  <widget class="QLabel" name="tx_position_123">
+                   <property name="enabled">
+                    <bool>true</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>Kappa</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
                   <widget class="QPushButton" name="curve_forward_in">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -12227,8 +11215,7 @@ Zero</string>
                     </sizepolicy>
                    </property>
                    <property name="text">
-                    <string>Curvature
-+</string>
+                    <string>+</string>
                    </property>
                   </widget>
                  </item>
@@ -12241,8 +11228,7 @@ Zero</string>
                     </sizepolicy>
                    </property>
                    <property name="text">
-                    <string>Curvature
--</string>
+                    <string>-</string>
                    </property>
                   </widget>
                  </item>
@@ -12274,6 +11260,25 @@ Zero</string>
                   <number>0</number>
                  </property>
                  <item>
+                  <widget class="QLabel" name="tx_position_124">
+                   <property name="enabled">
+                    <bool>true</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>Phi</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
                   <widget class="QPushButton" name="angle_forward_in">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -12282,8 +11287,7 @@ Zero</string>
                     </sizepolicy>
                    </property>
                    <property name="text">
-                    <string>Angle
-+</string>
+                    <string>+</string>
                    </property>
                   </widget>
                  </item>
@@ -12296,8 +11300,539 @@ Zero</string>
                     </sizepolicy>
                    </property>
                    <property name="text">
-                    <string>Angle
--</string>
+                    <string>-</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="group_midside">
+             <property name="title">
+              <string>Midside</string>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_58" stretch="2,2,2,2,2,1,1,1">
+              <property name="spacing">
+               <number>10</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_200" stretch="1,1,1,1">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="tx_position_68">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>(4,5,6)</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="length_4_m">
+                  <property name="text">
+                   <string>None</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="length_5_m">
+                  <property name="text">
+                   <string>None</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="length_6_m">
+                  <property name="text">
+                   <string>None</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_191" stretch="1,1,1,1">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="tx_position_62">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>(1,2,3)</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="length_1_m">
+                  <property name="text">
+                   <string>None</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="length_2_m">
+                  <property name="text">
+                   <string>None</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="length_3_m">
+                  <property name="text">
+                   <string>None</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_192">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_193">
+                  <property name="spacing">
+                   <number>0</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="tx_position_63">
+                    <property name="enabled">
+                     <bool>true</bool>
+                    </property>
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string>Length</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="length_mid">
+                    <property name="text">
+                     <string>None</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_194">
+                  <property name="spacing">
+                   <number>0</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="tx_position_64">
+                    <property name="enabled">
+                     <bool>true</bool>
+                    </property>
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string>Curvature</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="curvature_mid">
+                    <property name="text">
+                     <string>None</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_195">
+                  <property name="spacing">
+                   <number>0</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="tx_position_65">
+                    <property name="enabled">
+                     <bool>true</bool>
+                    </property>
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string>Angle</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="angle_mid">
+                    <property name="text">
+                     <string>None</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_196" stretch="1,1,1,1">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="tx_position_66">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>Local</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="x_mid_local">
+                  <property name="text">
+                   <string>None</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="y_mid_local">
+                  <property name="text">
+                   <string>None</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="z_mid_local">
+                  <property name="text">
+                   <string>None</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_197" stretch="1,1,1,1">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="tx_position_67">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>World</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="x_mid_world">
+                  <property name="text">
+                   <string>None</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="y_mid_world">
+                  <property name="text">
+                   <string>None</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="z_mid_world">
+                  <property name="text">
+                   <string>None</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <widget class="QFrame" name="frame_97">
+                <property name="frameShape">
+                 <enum>QFrame::StyledPanel</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Raised</enum>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_378">
+                 <property name="spacing">
+                  <number>10</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <widget class="QLabel" name="tx_position_122">
+                   <property name="enabled">
+                    <bool>true</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>S</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="length_forward_mid">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>+</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="length_back_mid">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>-</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="length_stop_mid">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>Stop</string>
                    </property>
                   </widget>
                  </item>
@@ -12305,16 +11840,755 @@ Zero</string>
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="reset_in">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
+               <widget class="QFrame" name="frame_38">
+                <property name="frameShape">
+                 <enum>QFrame::StyledPanel</enum>
                 </property>
-                <property name="text">
-                 <string>Reset</string>
+                <property name="frameShadow">
+                 <enum>QFrame::Raised</enum>
                 </property>
+                <layout class="QVBoxLayout" name="verticalLayout_198">
+                 <property name="spacing">
+                  <number>10</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <widget class="QLabel" name="tx_position_120">
+                   <property name="enabled">
+                    <bool>true</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>Kappa</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="curve_forward_mid">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>+</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="curve_back_mid">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>-</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <widget class="QFrame" name="frame_39">
+                <property name="frameShape">
+                 <enum>QFrame::StyledPanel</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Raised</enum>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_199">
+                 <property name="spacing">
+                  <number>10</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <widget class="QLabel" name="tx_position_121">
+                   <property name="enabled">
+                    <bool>true</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>Phi</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="angle_forward_mid">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>+</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="angle_back_mid">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>-</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="group_outside">
+             <property name="title">
+              <string>Outside</string>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_54" stretch="2,2,2,2,1,1,1">
+              <property name="spacing">
+               <number>10</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_157" stretch="1,1,1,1">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="tx_position_41">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>Rope (mm) (1,2,3)</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="length_1_o">
+                  <property name="text">
+                   <string>None</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="length_2_o">
+                  <property name="text">
+                   <string>None</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="length_3_o">
+                  <property name="text">
+                   <string>None</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_159">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_156">
+                  <property name="spacing">
+                   <number>0</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="tx_position_40">
+                    <property name="enabled">
+                     <bool>true</bool>
+                    </property>
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string>Length (mm)</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="length_out">
+                    <property name="text">
+                     <string>None</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_154">
+                  <property name="spacing">
+                   <number>0</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="tx_position_38">
+                    <property name="enabled">
+                     <bool>true</bool>
+                    </property>
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string>Curvature (1/mm)</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="curvature_out">
+                    <property name="text">
+                     <string>None</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_155">
+                  <property name="spacing">
+                   <number>0</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="tx_position_39">
+                    <property name="enabled">
+                     <bool>true</bool>
+                    </property>
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string>Angle (degree)</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="angle_out">
+                    <property name="text">
+                     <string>None</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_158" stretch="1,1,1,1">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="tx_position_42">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>Local (mm) (x,y,z)</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="x_out_local">
+                  <property name="text">
+                   <string>None</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="y_out_local">
+                  <property name="text">
+                   <string>None</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="z_out_local">
+                  <property name="text">
+                   <string>None</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QVBoxLayout" name="verticalLayout_163" stretch="1,1,1,1">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="tx_position_43">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>World (mm) (x,y,z)</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="x_out_world">
+                  <property name="text">
+                   <string>None</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="y_out_world">
+                  <property name="text">
+                   <string>None</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="z_out_world">
+                  <property name="text">
+                   <string>None</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <widget class="QFrame" name="frame_96">
+                <property name="frameShape">
+                 <enum>QFrame::StyledPanel</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Raised</enum>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_377">
+                 <property name="spacing">
+                  <number>10</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <widget class="QLabel" name="tx_position_119">
+                   <property name="enabled">
+                    <bool>true</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>S</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="length_forward_out">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>+</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="length_back_out">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>-</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="length_stop_out">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>Stop</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <widget class="QFrame" name="frame_30">
+                <property name="frameShape">
+                 <enum>QFrame::StyledPanel</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Raised</enum>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_161">
+                 <property name="spacing">
+                  <number>10</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <widget class="QLabel" name="tx_position_117">
+                   <property name="enabled">
+                    <bool>true</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>Kappa</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="curve_forward_out">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>+</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="curve_back_out">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>-</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <widget class="QFrame" name="frame_31">
+                <property name="frameShape">
+                 <enum>QFrame::StyledPanel</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Raised</enum>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_162">
+                 <property name="spacing">
+                  <number>10</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <widget class="QLabel" name="tx_position_118">
+                   <property name="enabled">
+                    <bool>true</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>Phi</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="angle_forward_out">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>+</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="angle_back_out">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>-</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </widget>
               </item>
              </layout>
@@ -12325,38 +12599,27 @@ Zero</string>
              <property name="title">
               <string>All</string>
              </property>
-             <widget class="QPushButton" name="pushButton">
-              <property name="geometry">
-               <rect>
-                <x>160</x>
-                <y>30</y>
-                <width>117</width>
-                <height>32</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>Test</string>
-              </property>
-             </widget>
-             <widget class="QPushButton" name="teleoperation">
-              <property name="geometry">
-               <rect>
-                <x>540</x>
-                <y>50</y>
-                <width>117</width>
-                <height>32</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>TeleOp</string>
-              </property>
-             </widget>
+             <layout class="QHBoxLayout" name="horizontalLayout_117">
+              <item>
+               <widget class="QPushButton" name="teleoperation">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string>TeleOp</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </widget>
            </item>
           </layout>
          </widget>
          <widget class="QWidget" name="page_video">
-          <layout class="QVBoxLayout" name="verticalLayout_6" stretch="10,1">
+          <layout class="QVBoxLayout" name="verticalLayout_6" stretch="1,10">
            <property name="spacing">
             <number>10</number>
            </property>
@@ -12372,6 +12635,39 @@ Zero</string>
            <property name="bottomMargin">
             <number>0</number>
            </property>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_56">
+             <property name="spacing">
+              <number>15</number>
+             </property>
+             <item>
+              <widget class="QPushButton" name="bt_open_camera">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Open Camera</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="bt_close_camera">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Close Camera</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
            <item>
             <widget class="QGroupBox" name="groupBox_31">
              <property name="title">
@@ -12406,39 +12702,6 @@ Zero</string>
              </layout>
             </widget>
            </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_56">
-             <property name="spacing">
-              <number>15</number>
-             </property>
-             <item>
-              <widget class="QPushButton" name="bt_open_camera">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="text">
-                <string>Open Camera</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="bt_close_camera">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="text">
-                <string>Close Camera</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
           </layout>
          </widget>
         </widget>
@@ -12453,7 +12716,7 @@ Zero</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1118</width>
+     <width>1288</width>
      <height>42</height>
     </rect>
    </property>
@@ -12493,12 +12756,12 @@ Zero</string>
   </action>
   <action name="param_panel">
    <property name="text">
-    <string>Set Parameter</string>
+    <string>Parameters</string>
    </property>
   </action>
   <action name="set_zero_panel">
    <property name="text">
-    <string>Set Zero</string>
+    <string>Calibration</string>
    </property>
   </action>
   <action name="kinematics_panel">
