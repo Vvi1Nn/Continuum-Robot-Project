@@ -2821,7 +2821,7 @@ class InsideSectionConfigurationSpaceJacobianControl(QThread):
         self.__max_point = 358
 
         self.__min_length = 44
-        self.__max_length = 170 # 102
+        self.__max_length = 102 # 170
 
         self.__min_curvature = 0.0001
         self.__max_curvature = 0.03
