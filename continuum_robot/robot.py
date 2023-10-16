@@ -24,7 +24,6 @@ from continuum_robot.processor import CanOpenBusProcessor
 from continuum_robot.motor import Motor
 from continuum_robot.io import IoModule
 from continuum_robot.sensor import Sensor
-from continuum_robot.joystick import Joystick
 
 
 class ContinuumRobot():
@@ -487,7 +486,6 @@ class ContinuumRobot():
     def forward(self):
         self.test_thread = Forward(self)
         self.test_thread.start()
-
     def back(self):
         self.back_thread = Back(robot=self)
         self.back_thread.start()
@@ -540,22 +538,22 @@ class ContinuumRobot():
 
     ''' Outside '''
     def ExtendOutsideSection(self):
-        self.outside_section_move_thread = OutsideSectionConfigurationSpaceJacobianControl(self, s_d=10, kappa_d=0, phi_d=0)
+        self.outside_section_move_thread = OutsideSectionConfigurationSpaceJacobianControl(self, s_d=5, kappa_d=0, phi_d=0)
         self.outside_section_move_thread.start()
     def ShortenOutsideSection(self):
-        self.outside_section_move_thread = OutsideSectionConfigurationSpaceJacobianControl(self, s_d=-10, kappa_d=0, phi_d=0)
+        self.outside_section_move_thread = OutsideSectionConfigurationSpaceJacobianControl(self, s_d=-5, kappa_d=0, phi_d=0)
         self.outside_section_move_thread.start()
     def CurveOutsideSection(self):
-        self.outside_section_move_thread = OutsideSectionConfigurationSpaceJacobianControl(self, s_d=0, kappa_d=0.001, phi_d=0)
+        self.outside_section_move_thread = OutsideSectionConfigurationSpaceJacobianControl(self, s_d=0, kappa_d=0.002, phi_d=0)
         self.outside_section_move_thread.start()
     def StraightenOutsideSection(self):
-        self.outside_section_move_thread = OutsideSectionConfigurationSpaceJacobianControl(self, s_d=0, kappa_d=-0.001, phi_d=0)
+        self.outside_section_move_thread = OutsideSectionConfigurationSpaceJacobianControl(self, s_d=0, kappa_d=-0.002, phi_d=0)
         self.outside_section_move_thread.start()
     def RotateOutsideSectionClockwise(self):
-        self.outside_section_move_thread = OutsideSectionConfigurationSpaceJacobianControl(self, s_d=0, kappa_d=0, phi_d=0.25)
+        self.outside_section_move_thread = OutsideSectionConfigurationSpaceJacobianControl(self, s_d=0, kappa_d=0, phi_d=0.5)
         self.outside_section_move_thread.start()
     def RotateOutsideSectionAntiClockwise(self):
-        self.outside_section_move_thread = OutsideSectionConfigurationSpaceJacobianControl(self, s_d=0, kappa_d=0, phi_d=-0.25)
+        self.outside_section_move_thread = OutsideSectionConfigurationSpaceJacobianControl(self, s_d=0, kappa_d=0, phi_d=-0.5)
         self.outside_section_move_thread.start()
     def StopOutsideSection(self):
         self.outside_section_move_thread.stop()
@@ -872,13 +870,7 @@ class ContinuumRobot():
         self.video_stream_thread.stop()
         self.video_stream_thread.wait()
 
-    def test(self):
-        target_position = 25600
-        profile_velocity = 100
-        self.motor_4.set_control_mode("position_control")
-        self.motor_4.set_position(target_position, velocity=profile_velocity, is_pdo=True)
-        self.motor_4.ready(is_pdo=True)
-        self.motor_4.action(is_immediate=False, is_relative=True, is_pdo=True)
+
 
 
 ''' CANopen 接收 数据处理 '''
@@ -1828,7 +1820,7 @@ class ForceSensorCalibration(QThread):
         self.__finish_signal.emit()
 
 
-''' 伸 '''
+
 class Forward(QThread):
     def __init__(self, robot: ContinuumRobot) -> None:
         
@@ -2150,8 +2142,6 @@ class Forward(QThread):
 
     def stop(self):
         self.__is_stop = True
-
-''' 缩 '''
 class Back(QThread):
     def __init__(self, robot: ContinuumRobot) -> None:
         super().__init__()
@@ -2296,8 +2286,6 @@ class Back(QThread):
     
     def stop(self):
         self.__is_stop = True
-
-
 
 
 class SingleSectionKinematics(QThread):
@@ -2608,7 +2596,6 @@ class SingleSectionKinematics(QThread):
     
     def stop(self):
         self.__is_stop = True
-
 class MultiSectionKinematics(QThread):
     def __init__(self, robot: ContinuumRobot, /, *, task_d=None, config_d=None, config=None) -> None:
         super().__init__()
@@ -2667,6 +2654,8 @@ class MultiSectionKinematics(QThread):
     def stop(self):
         self.__is_stop = True
 
+
+''' 遥操作 '''
 class TeleOperation(QThread):
     button_signal_0 = pyqtSignal(int)
     button_signal_1 = pyqtSignal(int)
@@ -2934,7 +2923,7 @@ class InsideSectionConfigurationSpaceJacobianControl(QThread):
                         # 拉紧
                         self.robot.InitTendonActuator("position","1","2","3","4","5","6","7","8","9")
                         for i in range(9,0,-1):
-                            if getattr(self.robot, f"sensor_{i}").force > - 0.1:
+                            if getattr(self.robot, f"sensor_{i}").force > - 0.25:
                                 while getattr(self.robot, f"sensor_{i}").force > - 0.5:
                                     self.robot.rope_move_rel(str(i), distance=-0.2, velocity=10)
                         # tendon速度模式
@@ -3009,7 +2998,7 @@ class InsideSectionConfigurationSpaceJacobianControl(QThread):
                         # # 拉紧
                         self.robot.InitTendonActuator("position","1","2","3","4","5","6","7","8","9")
                         for i in range(9,0,-1):
-                            if getattr(self.robot, f"sensor_{i}").force > - 0.1:
+                            if getattr(self.robot, f"sensor_{i}").force > - 0.25:
                                 while getattr(self.robot, f"sensor_{i}").force > - 0.5:
                                     self.robot.rope_move_rel(str(i), distance=-0.2, velocity=10)
                         # tendon速度模式
@@ -3031,8 +3020,8 @@ class InsideSectionConfigurationSpaceJacobianControl(QThread):
         # 拉紧
         self.robot.InitTendonActuator("position","1","2","3","4","5","6","7","8","9")
         for i in range(9,0,-1):
-            if getattr(self.robot, f"sensor_{i}").force > - 0.1:
-                while getattr(self.robot, f"sensor_{i}").force > - 1.0:
+            if getattr(self.robot, f"sensor_{i}").force > - 0.25:
+                while getattr(self.robot, f"sensor_{i}").force > - 0.5:
                     self.robot.rope_move_rel(str(i), distance=-0.2, velocity=10)
 
         self.shutdown.emit()
@@ -3167,7 +3156,7 @@ class MidsideSectionConfigurationSpaceJacobianControl(QThread):
                         # 拉紧
                         self.robot.InitTendonActuator("position","1","2","3","4","5","6")
                         for i in range(6,0,-1):
-                            if getattr(self.robot, f"sensor_{i}").force > - 0.1:
+                            if getattr(self.robot, f"sensor_{i}").force > - 0.25:
                                 while getattr(self.robot, f"sensor_{i}").force > - 0.5:
                                     self.robot.rope_move_rel(str(i), distance=-0.2, velocity=10)
                         # tendon速度模式
@@ -3237,7 +3226,7 @@ class MidsideSectionConfigurationSpaceJacobianControl(QThread):
                         # 拉紧
                         self.robot.InitTendonActuator("position","1","2","3","4","5","6")
                         for i in range(6,0,-1):
-                            if getattr(self.robot, f"sensor_{i}").force > - 0.1:
+                            if getattr(self.robot, f"sensor_{i}").force > - 0.25:
                                 while getattr(self.robot, f"sensor_{i}").force > - 0.5:
                                     self.robot.rope_move_rel(str(i), distance=-0.2, velocity=10)
                         # tendon速度模式
@@ -3259,7 +3248,7 @@ class MidsideSectionConfigurationSpaceJacobianControl(QThread):
         # 拉紧
         self.robot.InitTendonActuator("position","1","2","3","4","5","6")
         for i in range(6,0,-1):
-            if getattr(self.robot, f"sensor_{i}").force > - 0.1:
+            if getattr(self.robot, f"sensor_{i}").force > - 0.25:
                 while getattr(self.robot, f"sensor_{i}").force > - 0.5:
                     self.robot.rope_move_rel(str(i), distance=-0.2, velocity=10)
 
@@ -3388,8 +3377,8 @@ class OutsideSectionConfigurationSpaceJacobianControl(QThread):
                         # 拉紧
                         self.robot.InitTendonActuator("position","1","2","3")
                         for i in range(3,0,-1):
-                            if getattr(self.robot, f"sensor_{i}").force > - 0.1:
-                                while getattr(self.robot, f"sensor_{i}").force > - 0.5:
+                            if getattr(self.robot, f"sensor_{i}").force > - 0.5:
+                                while getattr(self.robot, f"sensor_{i}").force > - 1:
                                     self.robot.rope_move_rel(str(i), distance=-0.2, velocity=10)
                         # tendon速度模式
                         self.robot.InitTendonActuator("speed","1","2","3")
@@ -3452,8 +3441,8 @@ class OutsideSectionConfigurationSpaceJacobianControl(QThread):
                         # 拉紧
                         self.robot.InitTendonActuator("position","1","2","3")
                         for i in range(3,0,-1):
-                            if getattr(self.robot, f"sensor_{i}").force > - 0.1:
-                                while getattr(self.robot, f"sensor_{i}").force > - 0.5:
+                            if getattr(self.robot, f"sensor_{i}").force > - 0.5:
+                                while getattr(self.robot, f"sensor_{i}").force > - 1:
                                     self.robot.rope_move_rel(str(i), distance=-0.2, velocity=10)
                         # tendon速度模式
                         self.robot.InitTendonActuator("speed","1","2","3")
@@ -3474,8 +3463,8 @@ class OutsideSectionConfigurationSpaceJacobianControl(QThread):
         # 拉紧
         self.robot.InitTendonActuator("position","1","2","3")
         for i in range(3,0,-1):
-            if getattr(self.robot, f"sensor_{i}").force > - 0.1:
-                while getattr(self.robot, f"sensor_{i}").force > - 0.5:
+            if getattr(self.robot, f"sensor_{i}").force > - 0.5:
+                while getattr(self.robot, f"sensor_{i}").force > - 1:
                     self.robot.rope_move_rel(str(i), distance=-0.2, velocity=10)
 
         self.shutdown.emit()
