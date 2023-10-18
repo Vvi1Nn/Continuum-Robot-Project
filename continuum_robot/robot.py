@@ -870,7 +870,23 @@ class ContinuumRobot():
         self.video_stream_thread.stop()
         self.video_stream_thread.wait()
 
+    def test_forward(self):
+        self.motor_4.set_control_mode("position_control")
+        time.sleep(0.001)
+        self.motor_4.set_position(25600, velocity=50, is_pdo=True)
+        time.sleep(0.001)
+        self.motor_4.ready(is_pdo=True)
+        time.sleep(0.001)
+        self.motor_4.action(is_immediate=False, is_relative=True, is_pdo=True)
 
+    def test_back(self):
+        self.motor_4.set_control_mode("position_control")
+        time.sleep(0.001)
+        self.motor_4.set_position(-25600, velocity=50, is_pdo=True)
+        time.sleep(0.001)
+        self.motor_4.ready(is_pdo=True)
+        time.sleep(0.001)
+        self.motor_4.action(is_immediate=False, is_relative=True, is_pdo=True)
 
 
 ''' CANopen 接收 数据处理 '''
@@ -2810,7 +2826,7 @@ class InsideSectionConfigurationSpaceJacobianControl(QThread):
         self.__max_point = 358
 
         self.__min_length = 44
-        self.__max_length = 102 # 170
+        self.__max_length = 170
 
         self.__min_curvature = 0.0001
         self.__max_curvature = 0.03
@@ -3053,7 +3069,7 @@ class MidsideSectionConfigurationSpaceJacobianControl(QThread):
         self.__max_length = 169
 
         self.__min_curvature = 0.0001
-        self.__max_curvature = 0.03
+        self.__max_curvature = 0.04
     
     def run(self):
         self.action.emit()
@@ -3281,7 +3297,7 @@ class OutsideSectionConfigurationSpaceJacobianControl(QThread):
         self.__max_length = 170 #153
 
         self.__min_curvature = 0.0001
-        self.__max_curvature = 0.03
+        self.__max_curvature = 0.05
     
     def run(self):
         self.action.emit()
