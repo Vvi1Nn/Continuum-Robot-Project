@@ -6704,7 +6704,7 @@ All</string>
                   <item>
                    <widget class="QPushButton" name="test_22">
                     <property name="enabled">
-                     <bool>false</bool>
+                     <bool>true</bool>
                     </property>
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -6720,7 +6720,7 @@ All</string>
                   <item>
                    <widget class="QPushButton" name="test_23">
                     <property name="enabled">
-                     <bool>false</bool>
+                     <bool>true</bool>
                     </property>
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -6736,7 +6736,7 @@ All</string>
                   <item>
                    <widget class="QPushButton" name="test_24">
                     <property name="enabled">
-                     <bool>false</bool>
+                     <bool>true</bool>
                     </property>
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -6752,7 +6752,7 @@ All</string>
                   <item>
                    <widget class="QPushButton" name="test_25">
                     <property name="enabled">
-                     <bool>false</bool>
+                     <bool>true</bool>
                     </property>
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
@@ -12746,7 +12746,7 @@ Reset</string>
   </action>
   <action name="control_panel">
    <property name="text">
-    <string>Control</string>
+    <string>Basic Control</string>
    </property>
   </action>
   <action name="jump_control">
@@ -12756,7 +12756,7 @@ Reset</string>
   </action>
   <action name="param_panel">
    <property name="text">
-    <string>Parameters</string>
+    <string>Parameters Setting</string>
    </property>
   </action>
   <action name="set_zero_panel">
@@ -12766,12 +12766,12 @@ Reset</string>
   </action>
   <action name="kinematics_panel">
    <property name="text">
-    <string>Kinematics</string>
+    <string>Kinematics Control</string>
    </property>
   </action>
   <action name="video_panel">
    <property name="text">
-    <string>Vedio</string>
+    <string>Vedio stream</string>
    </property>
   </action>
  </widget>
