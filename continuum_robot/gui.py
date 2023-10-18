@@ -117,6 +117,11 @@ class ControlPanel(QMainWindow):
 
         self.ui.bt_open_camera.clicked.connect(self.OpenCamera)
         self.ui.bt_close_camera.clicked.connect(self.robot.CloseCamera)
+        
+        self.ui.test_22.clicked.connect(self.robot.test_forward)
+        self.ui.test_23.clicked.connect(self.robot.test_back)
+        self.ui.test_24.clicked.connect(lambda: self.robot.rope_move("4", 10, 1, is_relative=True))
+        self.ui.test_25.clicked.connect(lambda: self.robot.rope_move("4", -10, 1, is_relative=True))
 
 
         self.show() # 显示界面
