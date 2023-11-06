@@ -9434,7 +9434,7 @@ Reset</string>
                              <set>Qt::AlignCenter</set>
                             </property>
                             <property name="placeholderText">
-                             <string>4</string>
+                             <string>2</string>
                             </property>
                            </widget>
                           </item>
@@ -9664,7 +9664,7 @@ Reset</string>
                              <set>Qt::AlignCenter</set>
                             </property>
                             <property name="placeholderText">
-                             <string>5</string>
+                             <string>3</string>
                             </property>
                            </widget>
                           </item>
@@ -9894,7 +9894,7 @@ Reset</string>
                              <set>Qt::AlignCenter</set>
                             </property>
                             <property name="placeholderText">
-                             <string>6</string>
+                             <string>5</string>
                             </property>
                            </widget>
                           </item>
@@ -10190,7 +10190,7 @@ Reset</string>
                    <set>Qt::AlignCenter</set>
                   </property>
                   <property name="placeholderText">
-                   <string>51</string>
+                   <string>96</string>
                   </property>
                  </widget>
                 </item>
@@ -10244,7 +10244,7 @@ Reset</string>
                    <set>Qt::AlignCenter</set>
                   </property>
                   <property name="placeholderText">
-                   <string>49</string>
+                   <string>95.5</string>
                   </property>
                  </widget>
                 </item>
@@ -10298,7 +10298,7 @@ Reset</string>
                    <set>Qt::AlignCenter</set>
                   </property>
                   <property name="placeholderText">
-                   <string>42</string>
+                   <string>92</string>
                   </property>
                  </widget>
                 </item>
