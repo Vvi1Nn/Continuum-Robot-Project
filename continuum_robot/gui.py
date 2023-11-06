@@ -35,14 +35,14 @@ class ControlPanel(QMainWindow):
 
         self.robot = ContinuumRobot()
         
-        self.robot.read_canopen_thread.show_motor_status.connect(self.show_motor_status)
-        self.robot.read_canopen_thread.show_motor_original.connect(self.show_motor_original)
-        self.robot.read_canopen_thread.show_motor_mode.connect(self.show_motor_mode)
-        self.robot.read_canopen_thread.show_switch.connect(self.show_switch)
-        self.robot.read_canopen_thread.status_signal.connect(self.show_status)
-        self.robot.read_canopen_thread.show_ballscrew.connect(self.show_ballscrew)
-        self.robot.read_canopen_thread.show_rope.connect(self.show_rope)
-        self.robot.read_canopen_thread.show_kinematics.connect(self.show_kinematics)
+        self.robot.status_update_thread.show_motor_status.connect(self.show_motor_status)
+        self.robot.status_update_thread.show_motor_original.connect(self.show_motor_original)
+        self.robot.status_update_thread.show_motor_mode.connect(self.show_motor_mode)
+        self.robot.status_update_thread.show_switch.connect(self.show_switch)
+        self.robot.status_update_thread.status_signal.connect(self.show_status)
+        self.robot.status_update_thread.show_gripper.connect(self.show_gripper)
+        self.robot.status_update_thread.show_rope.connect(self.show_rope)
+        self.robot.status_update_thread.show_kinematics.connect(self.show_kinematics)
 
         self.robot.io.show_valve.connect(self.show_valve)
 
@@ -270,7 +270,7 @@ class ControlPanel(QMainWindow):
 
         ''' 滚珠 调0 归0 '''
         self.ui.set_ballscrew_zero.clicked.connect(self.GripperCalibration)
-        self.ui.go_zero.clicked.connect(self.ballscrew_go_zero)
+        self.ui.go_zero.clicked.connect(self.GripperHome)
 
         ''' 线 适应 调0 '''
         self.ui.start_adjust.clicked.connect(self.rope_force_adapt)
@@ -578,13 +578,13 @@ class ControlPanel(QMainWindow):
     def show_status(self, message) -> None:
         self.ui.statusBar.showMessage(message, 5000)
     
-    ''' 显示 滚珠丝杠 '''
-    def show_ballscrew(self, is_zero):
+    ''' 显示 夹爪 '''
+    def show_gripper(self, is_zero):
         if is_zero:
-            color = "#00ff00" if self.robot.ballscrew_position >= 0 else "#ff0000"
+            color = "#00ff00" if self.robot.gripper_position >= 0 else "#ff0000"
 
-            self.ui.ballscrew.setText("<span style=\"color:{};\">{}</span>".format(color, round(self.robot.ballscrew_position, 2)))
-            self.ui.ballscrew_v.setText("<span style=\"color:{};\">{}</span>".format(color, round(self.robot.ballscrew_velocity, 2)))
+            self.ui.ballscrew.setText("<span style=\"color:{};\">{}</span>".format(color, round(self.robot.gripper_position, 2)))
+            self.ui.ballscrew_v.setText("<span style=\"color:{};\">{}</span>".format(color, round(self.robot.gripper_velocity, 2)))
         else:
             self.ui.ballscrew.setText("<span style=\"color:#ff0000;\">No Zero</span>")
             self.ui.ballscrew_v.setText("<span style=\"color:#ff0000;\">No Zero</span>")
@@ -820,7 +820,7 @@ class ControlPanel(QMainWindow):
         exec(f"def speed_stop_{node_id}(self): self.speed_stop_factory({node_id})")
 
     ''' 电机10 归零 '''
-    def ballscrew_go_zero(self):
+    def GripperHome(self):
         def start():
             self.ui.go_zero.setEnabled(False)
             self.show_status("Ballscrew is backing to zero ...")
@@ -829,7 +829,7 @@ class ControlPanel(QMainWindow):
             self.ui.go_zero.setEnabled(True)
             self.show_status("Ballscrew is backed to zero !")
         
-        self.robot.ballscrew_go_zero(300, start, finish)
+        self.robot.GripperHome(300, start, finish)
    
     
     ''' 缩放 内段 线 '''
