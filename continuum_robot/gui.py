@@ -118,8 +118,6 @@ class ControlPanel(QMainWindow):
         self.ui.bt_open_camera.clicked.connect(self.OpenCamera)
         self.ui.bt_close_camera.clicked.connect(self.robot.CloseCamera)
         
-        self.ui.test_22.clicked.connect(self.robot.test_forward)
-        self.ui.test_23.clicked.connect(self.robot.test_back)
         self.ui.test_24.clicked.connect(lambda: self.robot.rope_move("4", 10, 1, is_relative=True))
         self.ui.test_25.clicked.connect(lambda: self.robot.rope_move("4", -10, 1, is_relative=True))
 
@@ -270,18 +268,15 @@ class ControlPanel(QMainWindow):
 
         ''' 滚珠 调0 归0 '''
         self.ui.set_ballscrew_zero.clicked.connect(self.GripperCalibration)
-        self.ui.go_zero.clicked.connect(self.GripperHome)
+        self.ui.go_zero.clicked.connect(self.homingGripper)
 
         ''' 线 适应 调0 '''
         self.ui.start_adjust.clicked.connect(self.rope_force_adapt)
         self.ui.set_rope_zero.clicked.connect(self.rope_set_zero)
 
         ''' 力 调0 '''
-        self.ui.set_sensor_zero.clicked.connect(self.ForceSensorCalibration)
+        self.ui.set_sensor_zero.clicked.connect(self.calibrateForceSensor)
 
-        ''' 伸 缩 '''
-        self.ui.extension.clicked.connect(self.robot.forward)
-        self.ui.retraction.clicked.connect(self.robot.back)
 
         self.ui.bt_cali.clicked.connect(self.ContinuumCalibration)
 
@@ -762,7 +757,7 @@ class ControlPanel(QMainWindow):
         self.robot.rope_set_zero()
     
     ''' 力 调零 '''
-    def ForceSensorCalibration(self):
+    def calibrateForceSensor(self):
         def start():
             self.ui.set_sensor_zero.setEnabled(False)
             self.show_status("All sensors are being adapting force ...")
@@ -776,7 +771,7 @@ class ControlPanel(QMainWindow):
             box = getattr(self.ui, f"force_ref_{i}")
             force_list.append(float(box.text()) if box.text() != "" else float(box.placeholderText()))
         
-        self.robot.ForceSensorCalibration(force_list, 100, start, finish)
+        self.robot.calibrateForceSensor(force_list, 100, start, finish)
 
 
     ''' 电机 速度 正 '''
@@ -820,7 +815,7 @@ class ControlPanel(QMainWindow):
         exec(f"def speed_stop_{node_id}(self): self.speed_stop_factory({node_id})")
 
     ''' 电机10 归零 '''
-    def GripperHome(self):
+    def homingGripper(self):
         def start():
             self.ui.go_zero.setEnabled(False)
             self.show_status("Ballscrew is backing to zero ...")
@@ -829,7 +824,7 @@ class ControlPanel(QMainWindow):
             self.ui.go_zero.setEnabled(True)
             self.show_status("Ballscrew is backed to zero !")
         
-        self.robot.GripperHome(300, start, finish)
+        self.robot.homingGripper(300, start, finish)
    
     
     ''' 缩放 内段 线 '''
