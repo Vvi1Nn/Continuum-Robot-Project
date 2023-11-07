@@ -51,21 +51,6 @@ class ControlPanel(QMainWindow):
         self.signal_connect_slot()
 
         ''' 高级测试 '''
-        self.ui.stretch_inside.pressed.connect(self.stretch_inside)
-        self.ui.stretch_inside.released.connect(self.stop_inside)
-        self.ui.release_inside.pressed.connect(self.release_inside)
-        self.ui.release_inside.released.connect(self.stop_inside)
-
-        self.ui.stretch_midside.pressed.connect(self.stretch_midside)
-        self.ui.stretch_midside.released.connect(self.stop_midside)
-        self.ui.release_midside.pressed.connect(self.release_midside)
-        self.ui.release_midside.released.connect(self.stop_midside)
-
-        self.ui.stretch_outside.pressed.connect(self.stretch_outside)
-        self.ui.stretch_outside.released.connect(self.stop_outside)
-        self.ui.release_outside.pressed.connect(self.release_outside)
-        self.ui.release_outside.released.connect(self.stop_outside)
-
         # self.ui.test_4.clicked.connect(lambda: self.robot.ballscrew_move(221, 10, is_close=False, is_relative=False))
         # self.ui.test_5.clicked.connect(lambda: self.robot.ballscrew_move(237, 10, is_close=False, is_relative=False))
         # self.ui.test_6.clicked.connect(lambda: self.robot.ballscrew_move(348, 10, is_close=False, is_relative=False))
@@ -75,41 +60,41 @@ class ControlPanel(QMainWindow):
         # self.ui.test_9.clicked.connect(self.force_test_stop)
         
 
-        self.ui.test_1.clicked.connect(self.robot.ExtendInsideSection)
-        self.ui.test_2.clicked.connect(self.robot.ShortenInsideSection)
-        self.ui.test_3.clicked.connect(self.robot.StopInsideSection)
-        self.ui.test_4.pressed.connect(self.robot.CurveInsideSection)
-        self.ui.test_4.released.connect(self.robot.StopInsideSection)
-        self.ui.test_5.pressed.connect(self.robot.StraightenInsideSection)
-        self.ui.test_5.released.connect(self.robot.StopInsideSection)
-        self.ui.test_6.pressed.connect(self.robot.RotateInsideSectionClockwise)
-        self.ui.test_6.released.connect(self.robot.StopInsideSection)
-        self.ui.test_7.pressed.connect(self.robot.RotateInsideSectionAntiClockwise)
-        self.ui.test_7.released.connect(self.robot.StopInsideSection)
+        # self.ui.test_1.clicked.connect(self.robot.ExtendInsideSection)
+        # self.ui.test_2.clicked.connect(self.robot.ShortenInsideSection)
+        # self.ui.test_3.clicked.connect(self.robot.StopInsideSection)
+        # self.ui.test_4.pressed.connect(self.robot.CurveInsideSection)
+        # self.ui.test_4.released.connect(self.robot.StopInsideSection)
+        # self.ui.test_5.pressed.connect(self.robot.StraightenInsideSection)
+        # self.ui.test_5.released.connect(self.robot.StopInsideSection)
+        # self.ui.test_6.pressed.connect(self.robot.RotateInsideSectionClockwise)
+        # self.ui.test_6.released.connect(self.robot.StopInsideSection)
+        # self.ui.test_7.pressed.connect(self.robot.RotateInsideSectionAntiClockwise)
+        # self.ui.test_7.released.connect(self.robot.StopInsideSection)
 
-        self.ui.test_8.clicked.connect(self.robot.ExtendMidsideSection)
-        self.ui.test_9.clicked.connect(self.robot.ShortenMidsideSection)
-        self.ui.test_10.clicked.connect(self.robot.StopMidsideSection)
-        self.ui.test_11.pressed.connect(self.robot.CurveMidsideSection)
-        self.ui.test_11.released.connect(self.robot.StopMidsideSection)
-        self.ui.test_12.pressed.connect(self.robot.StraightenMidsideSection)
-        self.ui.test_12.released.connect(self.robot.StopMidsideSection)
-        self.ui.test_13.pressed.connect(self.robot.RotateMidsideSectionClockwise)
-        self.ui.test_13.released.connect(self.robot.StopMidsideSection)
-        self.ui.test_14.pressed.connect(self.robot.RotateMidsideSectionAntiClockwise)
-        self.ui.test_14.released.connect(self.robot.StopMidsideSection)
+        # self.ui.test_8.clicked.connect(self.robot.ExtendMidsideSection)
+        # self.ui.test_9.clicked.connect(self.robot.ShortenMidsideSection)
+        # self.ui.test_10.clicked.connect(self.robot.StopMidsideSection)
+        # self.ui.test_11.pressed.connect(self.robot.CurveMidsideSection)
+        # self.ui.test_11.released.connect(self.robot.StopMidsideSection)
+        # self.ui.test_12.pressed.connect(self.robot.StraightenMidsideSection)
+        # self.ui.test_12.released.connect(self.robot.StopMidsideSection)
+        # self.ui.test_13.pressed.connect(self.robot.RotateMidsideSectionClockwise)
+        # self.ui.test_13.released.connect(self.robot.StopMidsideSection)
+        # self.ui.test_14.pressed.connect(self.robot.RotateMidsideSectionAntiClockwise)
+        # self.ui.test_14.released.connect(self.robot.StopMidsideSection)
 
-        self.ui.test_15.clicked.connect(self.robot.ExtendOutsideSection)
-        self.ui.test_16.clicked.connect(self.robot.ShortenOutsideSection)
-        self.ui.test_17.clicked.connect(self.robot.StopOutsideSection)
-        self.ui.test_18.pressed.connect(self.robot.CurveOutsideSection)
-        self.ui.test_18.released.connect(self.robot.StopOutsideSection)
-        self.ui.test_19.pressed.connect(self.robot.StraightenOutsideSection)
-        self.ui.test_19.released.connect(self.robot.StopOutsideSection)
-        self.ui.test_20.pressed.connect(self.robot.RotateOutsideSectionClockwise)
-        self.ui.test_20.released.connect(self.robot.StopOutsideSection)
-        self.ui.test_21.pressed.connect(self.robot.RotateOutsideSectionAntiClockwise)
-        self.ui.test_21.released.connect(self.robot.StopOutsideSection)
+        # self.ui.test_15.clicked.connect(self.robot.ExtendOutsideSection)
+        # self.ui.test_16.clicked.connect(self.robot.ShortenOutsideSection)
+        # self.ui.test_17.clicked.connect(self.robot.StopOutsideSection)
+        # self.ui.test_18.pressed.connect(self.robot.CurveOutsideSection)
+        # self.ui.test_18.released.connect(self.robot.StopOutsideSection)
+        # self.ui.test_19.pressed.connect(self.robot.StraightenOutsideSection)
+        # self.ui.test_19.released.connect(self.robot.StopOutsideSection)
+        # self.ui.test_20.pressed.connect(self.robot.RotateOutsideSectionClockwise)
+        # self.ui.test_20.released.connect(self.robot.StopOutsideSection)
+        # self.ui.test_21.pressed.connect(self.robot.RotateOutsideSectionAntiClockwise)
+        # self.ui.test_21.released.connect(self.robot.StopOutsideSection)
 
         # self.ui.test_12.clicked.connect(lambda: self.robot.rope_move("1", -3, 1, is_relative=True))
 
@@ -118,8 +103,8 @@ class ControlPanel(QMainWindow):
         self.ui.bt_open_camera.clicked.connect(self.OpenCamera)
         self.ui.bt_close_camera.clicked.connect(self.robot.CloseCamera)
         
-        self.ui.test_24.clicked.connect(lambda: self.robot.rope_move("4", 10, 1, is_relative=True))
-        self.ui.test_25.clicked.connect(lambda: self.robot.rope_move("4", -10, 1, is_relative=True))
+        # self.ui.test_24.clicked.connect(lambda: self.robot.rope_move("4", 10, 1, is_relative=True))
+        # self.ui.test_25.clicked.connect(lambda: self.robot.rope_move("4", -10, 1, is_relative=True))
 
 
         self.show() # 显示界面
@@ -130,6 +115,7 @@ class ControlPanel(QMainWindow):
         ''' 菜单 '''
         self.ui.control_panel.triggered.connect(lambda: self.ui.stackedWidget.setCurrentIndex(0))
         self.ui.set_zero_panel.triggered.connect(lambda: self.ui.stackedWidget.setCurrentIndex(1))
+        self.ui.param_panel.triggered.connect(lambda: self.ui.stackedWidget.setCurrentIndex(2))
         self.ui.kinematics_panel.triggered.connect(lambda: self.ui.stackedWidget.setCurrentIndex(3))
         self.ui.video_panel.triggered.connect(lambda: self.ui.stackedWidget.setCurrentIndex(4))
 
@@ -278,37 +264,12 @@ class ControlPanel(QMainWindow):
         self.ui.set_sensor_zero.clicked.connect(self.calibrateForceSensor)
 
 
-        self.ui.bt_cali.clicked.connect(self.ContinuumCalibration)
+        self.ui.bt_cali.clicked.connect(self.calibrateContinuum)
 
-        # self.ui.curve_forward_out.pressed.connect(lambda: self.robot.config_space("outside", "curve"))
-        # self.ui.curve_forward_out.released.connect(self.robot.config_space_stop)
-        # self.ui.curve_back_out.pressed.connect(lambda: self.robot.config_space("outside", "straighten"))
-        # self.ui.curve_back_out.released.connect(self.robot.config_space_stop)
-        # self.ui.angle_forward_out.pressed.connect(lambda: self.robot.config_space("outside", "rotate_clockwise"))
-        # self.ui.angle_forward_out.released.connect(self.robot.config_space_stop)
-        # self.ui.angle_back_out.pressed.connect(lambda: self.robot.config_space("outside", "rotate_anticlockwise"))
-        # self.ui.angle_back_out.released.connect(self.robot.config_space_stop)
-
-        # self.ui.curve_forward_mid.pressed.connect(lambda: self.robot.config_space("midside", "curve"))
-        # self.ui.curve_forward_mid.released.connect(self.robot.config_space_stop)
-        # self.ui.curve_back_mid.pressed.connect(lambda: self.robot.config_space("midside", "straighten"))
-        # self.ui.curve_back_mid.released.connect(self.robot.config_space_stop)
-        # self.ui.angle_forward_mid.pressed.connect(lambda: self.robot.config_space("midside", "rotate_clockwise"))
-        # self.ui.angle_forward_mid.released.connect(self.robot.config_space_stop)
-        # self.ui.angle_back_mid.pressed.connect(lambda: self.robot.config_space("midside", "rotate_anticlockwise"))
-        # self.ui.angle_back_mid.released.connect(self.robot.config_space_stop)
-
-        # self.ui.curve_forward_in.pressed.connect(lambda: self.robot.config_space("inside", "curve"))
-        # self.ui.curve_forward_in.released.connect(self.robot.config_space_stop)
-        # self.ui.curve_back_in.pressed.connect(lambda: self.robot.config_space("inside", "straighten"))
-        # self.ui.curve_back_in.released.connect(self.robot.config_space_stop)
-        # self.ui.angle_forward_in.pressed.connect(lambda: self.robot.config_space("inside", "rotate_clockwise"))
-        # self.ui.angle_forward_in.released.connect(self.robot.config_space_stop)
-        # self.ui.angle_back_in.pressed.connect(lambda: self.robot.config_space("inside", "rotate_anticlockwise"))
-        # self.ui.angle_back_in.released.connect(self.robot.config_space_stop)
-
-        self.ui.length_forward_in.clicked.connect(self.robot.ExtendInsideSection)
-        self.ui.length_back_in.clicked.connect(self.robot.ShortenInsideSection)
+        # self.ui.length_forward_in.clicked.connect(self.robot.ExtendInsideSection)
+        # self.ui.length_back_in.clicked.connect(self.robot.ShortenInsideSection)
+        self.ui.length_forward_in.clicked.connect(self.extendInsideSection)
+        self.ui.length_back_in.clicked.connect(self.shortenInsideSection)
         self.ui.length_stop_in.clicked.connect(self.robot.StopInsideSection)
         self.ui.curve_forward_in.pressed.connect(self.robot.CurveInsideSection)
         self.ui.curve_forward_in.released.connect(self.robot.StopInsideSection)
@@ -826,137 +787,28 @@ class ControlPanel(QMainWindow):
         
         self.robot.homingGripper(300, start, finish)
    
-    
-    ''' 缩放 内段 线 '''
-    def stretch_inside(self):
-        self.stretch_inside_thread = StretchInsideThread(-50, self.robot.motor_7, self.robot.motor_8, self.robot.motor_9)
 
-        self.force_test_thread_1 = JointForceFollow(self.robot.motor_1, self.robot.sensor_1, force_ref=5, kp=10, ki=0, kd=0)
-        self.force_test_thread_2 = JointForceFollow(self.robot.motor_2, self.robot.sensor_2, force_ref=5, kp=10, ki=0, kd=0)
-        self.force_test_thread_3 = JointForceFollow(self.robot.motor_3, self.robot.sensor_3, force_ref=5, kp=10, ki=0, kd=0)
-        
-        self.force_test_thread_4 = JointForceFollow(self.robot.motor_4, self.robot.sensor_4, force_ref=5, kp=10, ki=0, kd=0)
-        self.force_test_thread_5 = JointForceFollow(self.robot.motor_5, self.robot.sensor_5, force_ref=5, kp=10, ki=0, kd=0)
-        self.force_test_thread_6 = JointForceFollow(self.robot.motor_6, self.robot.sensor_6, force_ref=5, kp=10, ki=0, kd=0)
-
-        self.stretch_inside_thread.start()
-        self.force_test_thread_1.start()
-        self.force_test_thread_2.start()
-        self.force_test_thread_3.start()
-        self.force_test_thread_4.start()
-        self.force_test_thread_5.start()
-        self.force_test_thread_6.start()
-    def release_inside(self):
-        self.stretch_inside_thread = StretchInsideThread(50, self.robot.motor_7, self.robot.motor_8, self.robot.motor_9)
-        self.stretch_inside_thread.start()
-    def stop_inside(self):
-        self.stretch_inside_thread.stop()
-        self.force_test_thread_1.stop()
-        self.force_test_thread_2.stop()
-        self.force_test_thread_3.stop()
-        self.force_test_thread_4.stop()
-        self.force_test_thread_5.stop()
-        self.force_test_thread_6.stop()
-        self.stretch_inside_thread.wait()
-        self.force_test_thread_1.wait()
-        self.force_test_thread_2.wait()
-        self.force_test_thread_3.wait()
-        self.force_test_thread_4.wait()
-        self.force_test_thread_5.wait()
-        self.force_test_thread_6.wait()
-
-
-    ''' 缩放 中段 线 '''
-    def stretch_midside(self):
-        self.stretch_midside_thread = StretchMidsideThread(-50, self.robot.motor_4, self.robot.motor_5, self.robot.motor_6)
-        
-        self.force_test_thread_1 = JointForceFollow(self.robot.motor_1, self.robot.sensor_1, force_ref=5, kp=10, ki=0, kd=0)
-        self.force_test_thread_2 = JointForceFollow(self.robot.motor_2, self.robot.sensor_2, force_ref=5, kp=10, ki=0, kd=0)
-        self.force_test_thread_3 = JointForceFollow(self.robot.motor_3, self.robot.sensor_3, force_ref=5, kp=10, ki=0, kd=0)
-        
-        self.stretch_midside_thread.start()
-        self.force_test_thread_1.start()
-        self.force_test_thread_2.start()
-        self.force_test_thread_3.start()
-    def release_midside(self):
-        self.stretch_midside_thread = StretchMidsideThread(50, self.robot.motor_4, self.robot.motor_5, self.robot.motor_6)
-        
-        self.stretch_midside_thread.start()
-    def stop_midside(self):
-        self.stretch_midside_thread.stop()
-        self.force_test_thread_1.stop()
-        self.force_test_thread_2.stop()
-        self.force_test_thread_3.stop()
-        self.stretch_midside_thread.wait()
-        self.force_test_thread_1.wait()
-        self.force_test_thread_2.wait()
-        self.force_test_thread_3.wait()
-    
-    ''' 缩放 外段 线 '''
-    def stretch_outside(self):
-        self.stretch_outide_thread = StretchOutsideThread(-50, 
-            self.robot.motor_1, self.robot.motor_2, self.robot.motor_3)
-        self.stretch_outide_thread.start()
-    def release_outside(self):
-        self.stretch_outide_thread = StretchOutsideThread(50, 
-            self.robot.motor_1, self.robot.motor_2, self.robot.motor_3)
-        self.stretch_outide_thread.start()
-    def stop_outside(self):
-        self.stretch_outide_thread.stop()
-        
-        self.stretch_outide_thread.wait()
-    
     ''' 标定 '''
-    def ContinuumCalibration(self):
+    def calibrateContinuum(self):
         bl_o = float(self.ui.outside_length.text()) if self.ui.outside_length.text() != "" else float(self.ui.outside_length.placeholderText())
         bl_m = float(self.ui.midside_length.text()) if self.ui.midside_length.text() != "" else float(self.ui.midside_length.placeholderText())
         bl_i = float(self.ui.inside_length.text()) if self.ui.inside_length.text() != "" else float(self.ui.inside_length.placeholderText())
-        self.robot.ContinuumCalibration(bl_o, bl_m, bl_i)
-    
-    
-    
-    def force_test(self):
-        self.force_test_thread_1 = JointForceFollow(self.motor_1, self.sensor_1, force_ref=5, kp=5, ki=0, kd=0)
-        self.force_test_thread_2 = JointForceFollow(self.motor_2, self.sensor_2, force_ref=5, kp=5, ki=0, kd=0)
-        self.force_test_thread_3 = JointForceFollow(self.motor_3, self.sensor_3, force_ref=5, kp=5, ki=0, kd=0)
-        
-        self.force_test_thread_4 = JointForceFollow(self.motor_4, self.sensor_4, force_ref=5, kp=5, ki=0, kd=0)
-        self.force_test_thread_5 = JointForceFollow(self.motor_5, self.sensor_5, force_ref=5, kp=5, ki=0, kd=0)
-        self.force_test_thread_6 = JointForceFollow(self.motor_6, self.sensor_6, force_ref=5, kp=5, ki=0, kd=0)
-        
-        # self.force_test_thread_7 = JointForceFollow(self.motor_7, self.sensor_7, force_ref=10, kp=5, ki=0, kd=1)
-        # self.force_test_thread_8 = JointForceFollow(self.motor_8, self.sensor_8, force_ref=10, kp=5, ki=0, kd=1)
-        # self.force_test_thread_9 = JointForceFollow(self.motor_9, self.sensor_9, force_ref=10, kp=5, ki=0, kd=1)
-        
-        self.force_test_thread_1.start()
-        self.force_test_thread_2.start()
-        self.force_test_thread_3.start()
-        self.force_test_thread_4.start()
-        self.force_test_thread_5.start()
-        self.force_test_thread_6.start()
-        # self.force_test_thread_7.start()
-        # self.force_test_thread_8.start()
-        # self.force_test_thread_9.start()
-    def force_test_stop(self):
-        self.force_test_thread_1.stop()
-        self.force_test_thread_2.stop()
-        self.force_test_thread_3.stop()
-        self.force_test_thread_4.stop()
-        self.force_test_thread_5.stop()
-        self.force_test_thread_6.stop()
-        # self.force_test_thread_7.stop()
-        # self.force_test_thread_8.stop()
-        # self.force_test_thread_9.stop()
+        self.robot.calibrateContinuum(bl_o, bl_m, bl_i)
 
-        self.force_test_thread_1.wait()
-        self.force_test_thread_2.wait()
-        self.force_test_thread_3.wait()
-        self.force_test_thread_4.wait()
-        self.force_test_thread_5.wait()
-        self.force_test_thread_6.wait()
-        # self.force_test_thread_7.wait()
-        # self.force_test_thread_8.wait()
-        # self.force_test_thread_9.wait()
+    def extendInsideSection(self):
+        print((float(self.ui.ref_inside.text()), float(self.ui.ref_midside.text()), float(self.ui.ref_outside.text())))
+        self.robot.ExtendInsideSection(s_d = float(self.ui.s_d.text()),
+                                       ref=(float(self.ui.ref_inside.text()), float(self.ui.ref_midside.text()), float(self.ui.ref_outside.text())),
+                                       kp=(float(self.ui.kp_inside.text()), float(self.ui.kp_midside.text()), float(self.ui.kp_outside.text())),
+                                       ki=(float(self.ui.ki_inside.text()), float(self.ui.ki_midside.text()), float(self.ui.ki_outside.text())),
+                                       kd=(float(self.ui.kd_inside.text()), float(self.ui.kd_midside.text()), float(self.ui.kd_outside.text())))
+    def shortenInsideSection(self):
+        self.robot.ShortenInsideSection(s_d = float(self.ui.s_d.text()),
+                                       ref=(float(self.ui.ref_inside.text()), float(self.ui.ref_midside.text()), float(self.ui.ref_outside.text())),
+                                       kp=(float(self.ui.kp_inside.text()), float(self.ui.kp_midside.text()), float(self.ui.kp_outside.text())),
+                                       ki=(float(self.ui.ki_inside.text()), float(self.ui.ki_midside.text()), float(self.ui.ki_outside.text())),
+                                       kd=(float(self.ui.kd_inside.text()), float(self.ui.kd_midside.text()), float(self.ui.kd_outside.text())))
+
 
     ''' 相机 '''
     def OpenCamera(self):
@@ -973,246 +825,6 @@ class ControlPanel(QMainWindow):
 '''
     测试
 '''
-class StretchInsideThread(QThread):
-    __start_signal = pyqtSignal()
-    __finish_signal = pyqtSignal()
-    
-    def __init__(self, speed: int, 
-                #  motor_1: Motor, 
-                #  motor_2: Motor, 
-                #  motor_3: Motor, 
-                #  motor_4: Motor, 
-                #  motor_5: Motor, 
-                #  motor_6: Motor, 
-                 motor_7: Motor, 
-                 motor_8: Motor, 
-                 motor_9: Motor, 
-                 /, *, start_signal=None, finish_signal=None) -> None:
-        
-        super().__init__()
-
-        self.__is_stop = False
-
-        # self.__motor_1 = motor_1
-        # self.__motor_2 = motor_2
-        # self.__motor_3 = motor_3
-
-        # self.__motor_4 = motor_4
-        # self.__motor_5 = motor_5
-        # self.__motor_6 = motor_6
-
-        self.__motor_7 = motor_7
-        self.__motor_8 = motor_8
-        self.__motor_9 = motor_9
-
-        self.__speed = speed
-
-        if start_signal != None and finish_signal != None:
-            self.__start_signal.connect(start_signal)
-            self.__finish_signal.connect(finish_signal)
-    
-    def run(self):
-        self.__start_signal.emit()
-
-        # while not self.__motor_1.set_control_mode("speed_control", check=False): time.sleep(0.1)
-        # while not self.__motor_2.set_control_mode("speed_control", check=False): time.sleep(0.1)
-        # while not self.__motor_3.set_control_mode("speed_control", check=False): time.sleep(0.1)
-        # while not self.__motor_4.set_control_mode("speed_control", check=False): time.sleep(0.1)
-        # while not self.__motor_5.set_control_mode("speed_control", check=False): time.sleep(0.1)
-        # while not self.__motor_6.set_control_mode("speed_control", check=False): time.sleep(0.1)
-        while not self.__motor_7.set_control_mode("speed_control", check=False): time.sleep(0.1)
-        while not self.__motor_8.set_control_mode("speed_control", check=False): time.sleep(0.1)
-        while not self.__motor_9.set_control_mode("speed_control", check=False): time.sleep(0.1)
-
-        # self.__motor_1.set_speed(self.__speed, is_pdo=True)
-        # self.__motor_2.set_speed(self.__speed, is_pdo=True)
-        # self.__motor_3.set_speed(self.__speed, is_pdo=True)
-        # self.__motor_4.set_speed(self.__speed, is_pdo=True)
-        # self.__motor_5.set_speed(self.__speed, is_pdo=True)
-        # self.__motor_6.set_speed(self.__speed, is_pdo=True)
-        self.__motor_7.set_speed(self.__speed, is_pdo=True)
-        self.__motor_8.set_speed(self.__speed, is_pdo=True)
-        self.__motor_9.set_speed(self.__speed, is_pdo=True)
-
-        # self.__motor_1.halt(is_pdo=True)
-        # self.__motor_2.halt(is_pdo=True)
-        # self.__motor_3.halt(is_pdo=True)
-        # self.__motor_4.halt(is_pdo=True)
-        # self.__motor_5.halt(is_pdo=True)
-        # self.__motor_6.halt(is_pdo=True)
-        self.__motor_7.halt(is_pdo=True)
-        self.__motor_8.halt(is_pdo=True)
-        self.__motor_9.halt(is_pdo=True)
-        
-        while not self.__is_stop:
-            # self.__motor_1.enable_operation(is_pdo=True)
-            # self.__motor_2.enable_operation(is_pdo=True)
-            # self.__motor_3.enable_operation(is_pdo=True)
-            # self.__motor_4.enable_operation(is_pdo=True)
-            # self.__motor_5.enable_operation(is_pdo=True)
-            # self.__motor_6.enable_operation(is_pdo=True)
-            self.__motor_7.enable_operation(is_pdo=True)
-            self.__motor_8.enable_operation(is_pdo=True)
-            self.__motor_9.enable_operation(is_pdo=True)
-    
-    def stop(self):
-        self.__is_stop = True
-
-        # self.__motor_1.set_speed(0, is_pdo=True)
-        # self.__motor_2.set_speed(0, is_pdo=True)
-        # self.__motor_3.set_speed(0, is_pdo=True)
-        # self.__motor_4.set_speed(0, is_pdo=True)
-        # self.__motor_5.set_speed(0, is_pdo=True)
-        # self.__motor_6.set_speed(0, is_pdo=True)
-        self.__motor_7.set_speed(0, is_pdo=True)
-        self.__motor_8.set_speed(0, is_pdo=True)
-        self.__motor_9.set_speed(0, is_pdo=True)
-
-        # self.__motor_1.disable_operation(is_pdo=True)
-        # self.__motor_2.disable_operation(is_pdo=True)
-        # self.__motor_3.disable_operation(is_pdo=True)
-        # self.__motor_4.disable_operation(is_pdo=True)
-        # self.__motor_5.disable_operation(is_pdo=True)
-        # self.__motor_6.disable_operation(is_pdo=True)
-        self.__motor_7.disable_operation(is_pdo=True)
-        self.__motor_8.disable_operation(is_pdo=True)
-        self.__motor_9.disable_operation(is_pdo=True)
-
-class StretchMidsideThread(QThread):
-    __start_signal = pyqtSignal()
-    __finish_signal = pyqtSignal()
-    
-    def __init__(self, speed: int, 
-                 motor_1: Motor, 
-                 motor_2: Motor, 
-                 motor_3: Motor, 
-                #  motor_4: Motor, 
-                #  motor_5: Motor, 
-                #  motor_6: Motor,
-                 /, *, start_signal=None, finish_signal=None) -> None:
-        
-        super().__init__()
-
-        self.__is_stop = False
-
-        self.__motor_1 = motor_1
-        self.__motor_2 = motor_2
-        self.__motor_3 = motor_3
-
-        # self.__motor_4 = motor_4
-        # self.__motor_5 = motor_5
-        # self.__motor_6 = motor_6
-
-        self.__speed = speed
-
-        if start_signal != None and finish_signal != None:
-            self.__start_signal.connect(start_signal)
-            self.__finish_signal.connect(finish_signal)
-    
-    def run(self):
-        self.__start_signal.emit()
-
-        while not self.__motor_1.set_control_mode("speed_control", check=False): time.sleep(0.1)
-        while not self.__motor_2.set_control_mode("speed_control", check=False): time.sleep(0.1)
-        while not self.__motor_3.set_control_mode("speed_control", check=False): time.sleep(0.1)
-        # while not self.__motor_4.set_control_mode("speed_control", check=False): time.sleep(0.1)
-        # while not self.__motor_5.set_control_mode("speed_control", check=False): time.sleep(0.1)
-        # while not self.__motor_6.set_control_mode("speed_control", check=False): time.sleep(0.1)
-
-        self.__motor_1.set_speed(self.__speed, is_pdo=True)
-        self.__motor_2.set_speed(self.__speed, is_pdo=True)
-        self.__motor_3.set_speed(self.__speed, is_pdo=True)
-        # self.__motor_4.set_speed(self.__speed, is_pdo=True)
-        # self.__motor_5.set_speed(self.__speed, is_pdo=True)
-        # self.__motor_6.set_speed(self.__speed, is_pdo=True)
-
-        self.__motor_1.halt(is_pdo=True)
-        self.__motor_2.halt(is_pdo=True)
-        self.__motor_3.halt(is_pdo=True)
-        # self.__motor_4.halt(is_pdo=True)
-        # self.__motor_5.halt(is_pdo=True)
-        # self.__motor_6.halt(is_pdo=True)
-        
-        while not self.__is_stop:
-            self.__motor_1.enable_operation(is_pdo=True)
-            self.__motor_2.enable_operation(is_pdo=True)
-            self.__motor_3.enable_operation(is_pdo=True)
-            # self.__motor_4.enable_operation(is_pdo=True)
-            # self.__motor_5.enable_operation(is_pdo=True)
-            # self.__motor_6.enable_operation(is_pdo=True)
-    
-    def stop(self):
-        self.__is_stop = True
-
-        self.__motor_1.set_speed(0, is_pdo=True)
-        self.__motor_2.set_speed(0, is_pdo=True)
-        self.__motor_3.set_speed(0, is_pdo=True)
-        # self.__motor_4.set_speed(0, is_pdo=True)
-        # self.__motor_5.set_speed(0, is_pdo=True)
-        # self.__motor_6.set_speed(0, is_pdo=True)
-
-        self.__motor_1.disable_operation(is_pdo=True)
-        self.__motor_2.disable_operation(is_pdo=True)
-        self.__motor_3.disable_operation(is_pdo=True)
-        # self.__motor_4.disable_operation(is_pdo=True)
-        # self.__motor_5.disable_operation(is_pdo=True)
-        # self.__motor_6.disable_operation(is_pdo=True)
-
-class StretchOutsideThread(QThread):
-    __start_signal = pyqtSignal()
-    __finish_signal = pyqtSignal()
-    
-    def __init__(self, speed: int, 
-                 motor_1: Motor, 
-                 motor_2: Motor, 
-                 motor_3: Motor, 
-                 /, *, start_signal=None, finish_signal=None) -> None:
-        
-        super().__init__()
-
-        self.__is_stop = False
-
-        self.__motor_1 = motor_1
-        self.__motor_2 = motor_2
-        self.__motor_3 = motor_3
-
-        self.__speed = speed
-
-        if start_signal != None and finish_signal != None:
-            self.__start_signal.connect(start_signal)
-            self.__finish_signal.connect(finish_signal)
-    
-    def run(self):
-        self.__start_signal.emit()
-
-        while not self.__motor_1.set_control_mode("speed_control", check=False): time.sleep(0.1)
-        while not self.__motor_2.set_control_mode("speed_control", check=False): time.sleep(0.1)
-        while not self.__motor_3.set_control_mode("speed_control", check=False): time.sleep(0.1)
-
-        self.__motor_1.set_speed(self.__speed, is_pdo=True)
-        self.__motor_2.set_speed(self.__speed, is_pdo=True)
-        self.__motor_3.set_speed(self.__speed, is_pdo=True)
-
-        self.__motor_1.halt(is_pdo=True)
-        self.__motor_2.halt(is_pdo=True)
-        self.__motor_3.halt(is_pdo=True)
-
-        while not self.__is_stop:
-            self.__motor_1.enable_operation(is_pdo=True)
-            self.__motor_2.enable_operation(is_pdo=True)
-            self.__motor_3.enable_operation(is_pdo=True)
-    
-    def stop(self):
-        self.__is_stop = True
-
-        self.__motor_1.set_speed(0, is_pdo=True)
-        self.__motor_2.set_speed(0, is_pdo=True)
-        self.__motor_3.set_speed(0, is_pdo=True)
-
-        self.__motor_1.disable_operation(is_pdo=True)
-        self.__motor_2.disable_operation(is_pdo=True)
-        self.__motor_3.disable_operation(is_pdo=True)
-
 class JointForceFollow(QThread):
     __start_signal = pyqtSignal()
     __finish_signal = pyqtSignal()
