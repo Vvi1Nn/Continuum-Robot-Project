@@ -1,11 +1,12 @@
 # -*- coding:utf-8 -*-
 
 
-''' gui.py GUI v4.4 '''
+''' gui.py GUI v5.0 '''
 
 
+import typing
 from PyQt5.QtWidgets import QMainWindow
-from PyQt5.QtCore import QThread, pyqtSignal, QMutex
+from PyQt5.QtCore import QObject, QThread, pyqtSignal, QMutex
 
 from PyQt5.QtGui import QPixmap
 
@@ -34,67 +35,14 @@ class ControlPanel(QMainWindow):
         self.ui.setupUi(self)
 
         self.robot = ContinuumRobot()
-        
-        self.robot.status_update_thread.show_motor_status.connect(self.show_motor_status)
-        self.robot.status_update_thread.show_motor_original.connect(self.show_motor_original)
-        self.robot.status_update_thread.show_motor_mode.connect(self.show_motor_mode)
-        self.robot.status_update_thread.show_switch.connect(self.show_switch)
-        self.robot.status_update_thread.status_signal.connect(self.show_status)
-        self.robot.status_update_thread.show_gripper.connect(self.show_gripper)
-        self.robot.status_update_thread.show_rope.connect(self.show_rope)
-        self.robot.status_update_thread.show_kinematics.connect(self.show_kinematics)
 
-        self.robot.io.show_valve.connect(self.show_valve)
-
-        self.robot.read_sensor_thread.show_force.connect(self.show_force)
+        self.initParameterTable()
         
+        self.connectMenu()
+        self.connectUserSignal()
         self.signal_connect_slot()
 
         ''' 高级测试 '''
-        # self.ui.test_4.clicked.connect(lambda: self.robot.ballscrew_move(221, 10, is_close=False, is_relative=False))
-        # self.ui.test_5.clicked.connect(lambda: self.robot.ballscrew_move(237, 10, is_close=False, is_relative=False))
-        # self.ui.test_6.clicked.connect(lambda: self.robot.ballscrew_move(348, 10, is_close=False, is_relative=False))
-        # self.ui.test_7.clicked.connect(lambda: self.robot.ballscrew_move(358, 10, is_close=False, is_relative=False))
-
-        # self.ui.test_8.clicked.connect(self.force_test)
-        # self.ui.test_9.clicked.connect(self.force_test_stop)
-        
-
-        # self.ui.test_1.clicked.connect(self.robot.ExtendInsideSection)
-        # self.ui.test_2.clicked.connect(self.robot.ShortenInsideSection)
-        # self.ui.test_3.clicked.connect(self.robot.StopInsideSection)
-        # self.ui.test_4.pressed.connect(self.robot.CurveInsideSection)
-        # self.ui.test_4.released.connect(self.robot.StopInsideSection)
-        # self.ui.test_5.pressed.connect(self.robot.StraightenInsideSection)
-        # self.ui.test_5.released.connect(self.robot.StopInsideSection)
-        # self.ui.test_6.pressed.connect(self.robot.RotateInsideSectionClockwise)
-        # self.ui.test_6.released.connect(self.robot.StopInsideSection)
-        # self.ui.test_7.pressed.connect(self.robot.RotateInsideSectionAntiClockwise)
-        # self.ui.test_7.released.connect(self.robot.StopInsideSection)
-
-        # self.ui.test_8.clicked.connect(self.robot.ExtendMidsideSection)
-        # self.ui.test_9.clicked.connect(self.robot.ShortenMidsideSection)
-        # self.ui.test_10.clicked.connect(self.robot.StopMidsideSection)
-        # self.ui.test_11.pressed.connect(self.robot.CurveMidsideSection)
-        # self.ui.test_11.released.connect(self.robot.StopMidsideSection)
-        # self.ui.test_12.pressed.connect(self.robot.StraightenMidsideSection)
-        # self.ui.test_12.released.connect(self.robot.StopMidsideSection)
-        # self.ui.test_13.pressed.connect(self.robot.RotateMidsideSectionClockwise)
-        # self.ui.test_13.released.connect(self.robot.StopMidsideSection)
-        # self.ui.test_14.pressed.connect(self.robot.RotateMidsideSectionAntiClockwise)
-        # self.ui.test_14.released.connect(self.robot.StopMidsideSection)
-
-        # self.ui.test_15.clicked.connect(self.robot.ExtendOutsideSection)
-        # self.ui.test_16.clicked.connect(self.robot.ShortenOutsideSection)
-        # self.ui.test_17.clicked.connect(self.robot.StopOutsideSection)
-        # self.ui.test_18.pressed.connect(self.robot.CurveOutsideSection)
-        # self.ui.test_18.released.connect(self.robot.StopOutsideSection)
-        # self.ui.test_19.pressed.connect(self.robot.StraightenOutsideSection)
-        # self.ui.test_19.released.connect(self.robot.StopOutsideSection)
-        # self.ui.test_20.pressed.connect(self.robot.RotateOutsideSectionClockwise)
-        # self.ui.test_20.released.connect(self.robot.StopOutsideSection)
-        # self.ui.test_21.pressed.connect(self.robot.RotateOutsideSectionAntiClockwise)
-        # self.ui.test_21.released.connect(self.robot.StopOutsideSection)
 
         # self.ui.test_12.clicked.connect(lambda: self.robot.rope_move("1", -3, 1, is_relative=True))
 
@@ -110,27 +58,45 @@ class ControlPanel(QMainWindow):
         self.show() # 显示界面
     
 
-    ''' Jumping '''
-    def signal_connect_slot(self) -> None:
-        ''' 菜单 '''
-        self.ui.control_panel.triggered.connect(lambda: self.ui.stackedWidget.setCurrentIndex(0))
-        self.ui.set_zero_panel.triggered.connect(lambda: self.ui.stackedWidget.setCurrentIndex(1))
-        self.ui.param_panel.triggered.connect(lambda: self.ui.stackedWidget.setCurrentIndex(2))
-        self.ui.kinematics_panel.triggered.connect(lambda: self.ui.stackedWidget.setCurrentIndex(3))
-        self.ui.video_panel.triggered.connect(lambda: self.ui.stackedWidget.setCurrentIndex(4))
+    def connectMenu(self) -> None:
+        self.ui.control_basic.triggered.connect(lambda: self.ui.pages.setCurrentIndex(0))
+        self.ui.control_kinematics.triggered.connect(lambda: self.ui.pages.setCurrentIndex(1))
+        self.ui.control_video_stream.triggered.connect(lambda: self.ui.pages.setCurrentIndex(2))
+        self.ui.control_motor.triggered.connect(lambda: self.ui.pages.setCurrentIndex(3))
+        self.ui.control_valve.triggered.connect(lambda: self.ui.pages.setCurrentIndex(4))
+        self.ui.control_test.triggered.connect(lambda: self.ui.pages.setCurrentIndex(5))
 
+        self.ui.settings_force_sensor_calibration.triggered.connect(lambda: self.ui.pages.setCurrentIndex(6))
+        self.ui.settings_continuum_calibration.triggered.connect(lambda: self.ui.pages.setCurrentIndex(7))
+        self.ui.settings_parameter_table.triggered.connect(lambda: self.ui.pages.setCurrentIndex(8))
+
+        self.ui.pages.setCurrentIndex(0)
+    
+    def connectUserSignal(self):
+        self.robot.show_motor_status.connect(self.show_motor_status)
+        self.robot.show_motor_original.connect(self.show_motor_original)
+        self.robot.show_motor_mode.connect(self.show_motor_mode)
+        self.robot.show_switch.connect(self.show_switch)
+        self.robot.status_signal.connect(self.show_status)
+        self.robot.show_gripper.connect(self.show_gripper)
+        self.robot.show_rope.connect(self.show_rope)
+        self.robot.show_kinematics.connect(self.show_kinematics)
+
+        self.robot.io.show_valve.connect(self.show_valve)
+
+        self.robot.show_force.connect(self.show_force)
+
+    def signal_connect_slot(self) -> None:
         self.ui.statusBar.setSizeGripEnabled(False)
         self.ui.statusBar.showMessage("Welcome to Continnum Robot Control Panel", 10000)
         
         ''' 打开设备 '''
         self.ui.bt_open_device.setEnabled(True)
-        self.ui.bt_open_device.setText("Open Device")
-        self.ui.bt_open_device.clicked.connect(self.InitUSBCAN)
+        self.ui.bt_open_device.clicked.connect(self.initUsbCan)
 
         ''' 初始化机器人 '''
         self.ui.bt_init_robot.setEnabled(False)
-        self.ui.bt_init_robot.setText("Initialize Robot")
-        self.ui.bt_init_robot.clicked.connect(self.InitRobot)
+        self.ui.bt_init_robot.clicked.connect(self.initRobot)
 
         ''' 界面 '''
         self.ui.control.setEnabled(False)
@@ -252,9 +218,11 @@ class ControlPanel(QMainWindow):
             getattr(self.ui, f"speed_reverse_{node_id}").pressed.connect(getattr(self, f"speed_reverse_{node_id}"))
             getattr(self.ui, f"speed_reverse_{node_id}").released.connect(getattr(self, f"speed_stop_{node_id}"))
 
-        ''' 滚珠 调0 归0 '''
-        self.ui.set_ballscrew_zero.clicked.connect(self.GripperCalibration)
-        self.ui.go_zero.clicked.connect(self.homingGripper)
+        ''' 
+            Gripper 
+        '''
+        self.ui.calibrate_gripper.clicked.connect(self.calibrateGripper)
+        self.ui.homing_gripper.clicked.connect(self.homingGripper)
 
         ''' 线 适应 调0 '''
         self.ui.start_adjust.clicked.connect(self.rope_force_adapt)
@@ -271,13 +239,17 @@ class ControlPanel(QMainWindow):
         self.ui.length_forward_in.clicked.connect(self.extendInsideSection)
         self.ui.length_back_in.clicked.connect(self.shortenInsideSection)
         self.ui.length_stop_in.clicked.connect(self.robot.StopInsideSection)
-        self.ui.curve_forward_in.pressed.connect(self.robot.CurveInsideSection)
+        # self.ui.curve_forward_in.pressed.connect(self.robot.CurveInsideSection)
+        self.ui.curve_forward_in.pressed.connect(self.curveInsideSection)
         self.ui.curve_forward_in.released.connect(self.robot.StopInsideSection)
-        self.ui.curve_back_in.pressed.connect(self.robot.StraightenInsideSection)
+        # self.ui.curve_back_in.pressed.connect(self.robot.StraightenInsideSection)
+        self.ui.curve_back_in.pressed.connect(self.straightenInsideSection)
         self.ui.curve_back_in.released.connect(self.robot.StopInsideSection)
-        self.ui.angle_forward_in.pressed.connect(self.robot.RotateInsideSectionClockwise)
+        # self.ui.angle_forward_in.pressed.connect(self.robot.RotateInsideSectionClockwise)
+        self.ui.angle_forward_in.pressed.connect(self.rotateInsideSectionClockwise)
         self.ui.angle_forward_in.released.connect(self.robot.StopInsideSection)
-        self.ui.angle_back_in.pressed.connect(self.robot.RotateInsideSectionAntiClockwise)
+        # self.ui.angle_back_in.pressed.connect(self.robot.RotateInsideSectionAntiClockwise)
+        self.ui.angle_back_in.pressed.connect(self.rotateInsideSectionAntiClockwise)
         self.ui.angle_back_in.released.connect(self.robot.StopInsideSection)
 
         self.ui.length_forward_mid.clicked.connect(self.robot.ExtendMidsideSection)
@@ -617,18 +589,37 @@ class ControlPanel(QMainWindow):
         #     exec("self.ui.rope_{}.setText('<span style=\"color:#00ff00;\">{}</span>')".format(id, round(self.robot.rope_total_length[id-1], 2)))
 
 
-    ''' 打开设备 '''
-    def InitUSBCAN(self) -> None:
-        if self.robot.InitUSBCAN():
+    ''' 初始化设备 '''
+    def initUsbCan(self):
+        class UpdateStatus(QThread):
+            def __init__(self, robot: ContinuumRobot) -> None:
+                super().__init__()
+                self.robot = robot
+            def run(self):
+                self.robot.updateStatus()
+        class UpdateForce(QThread):
+            def __init__(self, robot: ContinuumRobot) -> None:
+                super().__init__()
+                self.robot = robot
+            def run(self):
+                self.robot.updateForce()
+
+        if self.robot.initUsbCan():
+            self.update_status_thread = UpdateStatus(self.robot)
+            self.update_force_thread = UpdateForce(self.robot)
+
+            self.update_status_thread.start()
+            self.update_force_thread.start()
+
             self.ui.bt_open_device.setEnabled(False)
 
             self.ui.bt_init_robot.setEnabled(True)
 
             self.show_status("Open Device !!!")
         else: self.show_status("Open Device Failed")
-    
+        
     ''' 初始化机器人 '''
-    def InitRobot(self) -> None:
+    def initRobot(self) -> None:
         def change(status):
             if status:
                 self.ui.bt_init_robot.setEnabled(False)
@@ -636,7 +627,6 @@ class ControlPanel(QMainWindow):
             else:
                 self.ui.bt_init_robot.setEnabled(True)
                 self.show_status("Something is wrong in the progress of Initializing Robot, please try again.")
-        
         def next():
             self.ui.bt_init_robot.setEnabled(False)
             self.show_status("Robot is ready, Control is launch !!!")
@@ -646,31 +636,54 @@ class ControlPanel(QMainWindow):
             self.ui.status.setEnabled(True)
             self.ui.param.setEnabled(True)
 
-            self.ui.set_ballscrew_zero.setEnabled(True) # 调零
+            self.ui.calibrate_gripper.setEnabled(True) # 调零
             self.ui.start_adjust.setEnabled(True) # 调零
             self.ui.set_sensor_zero.setEnabled(True)
-        
-        self.robot.InitRobot(1, change, next)
 
-    ''' 丝杠 调零 '''
-    def GripperCalibration(self):
-        def start():
-            self.ui.ballscrew_set_zero.setEnabled(False)
-            self.show_status("Ballscrew is being setting zero ...")
+        self.robot.robot_init_start.connect(change)
+        self.robot.robot_init_end.connect(next)
         
-        def finish():
-            self.ui.ballscrew_set_zero.setEnabled(True)
+        class InitRobot(QThread):
+            def __init__(self, robot: ContinuumRobot) -> None:
+                super().__init__()
+                self.robot = robot
+            def run(self):
+                self.robot.initRobot()
+        class SendSensorRequest(QThread):
+            def __init__(self, robot: ContinuumRobot) -> None:
+                super().__init__()
+                self.robot = robot
+            def run(self):
+                self.robot.sendSensorRequest()
+
+        self.init_robot_thread = InitRobot(self.robot)
+        self.send_sensor_request = SendSensorRequest(self.robot)
+
+        self.init_robot_thread.start()
+        self.send_sensor_request.start()
+
+    ''' 标定夹爪 '''
+    def calibrateGripper(self):
+        def start():
+            self.ui.calibrate_gripper.setEnabled(False)
+            self.show_status("Ballscrew is being setting zero ...")
+        def end():
+            self.ui.calibrate_gripper.setEnabled(True)
             self.show_status("Ballscrew is set zero !")
             self.ui.ballscrew.setText("<span style=\"color:#00ff00;\">Zero</span>")
         
-        distance = float(self.ui.forward_distance.text()) if self.ui.forward_distance.text() != "" \
-            else float(self.ui.forward_distance.placeholderText())
-        velocity = int(self.ui.forward_velocity.text()) if self.ui.forward_velocity.text() != "" \
-            else int(self.ui.forward_velocity.placeholderText())
-        speed = int(self.ui.backward_speed.text()) if self.ui.backward_speed.text() != "" \
-            else int(self.ui.backward_speed.placeholderText())
-        
-        self.robot.GripperCalibration(distance, velocity, speed, start, finish)
+        self.robot.gripper_calibration_start.connect(start)
+        self.robot.gripper_calibration_end.connect(end)
+
+        class GripperCalibration(QThread):
+            def __init__(self, robot: ContinuumRobot) -> None:
+                super().__init__()
+                self.robot = robot
+            def run(self):
+                self.robot.calibrateGripper()
+
+        self.gripper_calibration_thread = GripperCalibration(self.robot)
+        self.gripper_calibration_thread.start()
     
     ''' 线 调零 '''
     def rope_force_adapt(self):
@@ -775,40 +788,34 @@ class ControlPanel(QMainWindow):
     for node_id in range(1,11):
         exec(f"def speed_stop_{node_id}(self): self.speed_stop_factory({node_id})")
 
-    ''' 电机10 归零 '''
+    ''' 夹爪归零 '''
     def homingGripper(self):
         def start():
-            self.ui.go_zero.setEnabled(False)
+            self.ui.homing_gripper.setEnabled(False)
             self.show_status("Ballscrew is backing to zero ...")
-        
-        def finish():
-            self.ui.go_zero.setEnabled(True)
+        def end():
+            self.ui.homing_gripper.setEnabled(True)
             self.show_status("Ballscrew is backed to zero !")
-        
-        self.robot.homingGripper(300, start, finish)
-   
 
+        self.robot.gripper_homing_start.connect(start)
+        self.robot.gripper_homing_end.connect(end)
+
+        class GripperCalibration(QThread):
+            def __init__(self, robot: ContinuumRobot) -> None:
+                super().__init__()
+                self.robot = robot
+            def run(self):
+                self.robot.homingGripper()
+
+        self.gripper_homing_thread = GripperCalibration(self.robot)
+        self.gripper_homing_thread.start()
+   
     ''' 标定 '''
     def calibrateContinuum(self):
         bl_o = float(self.ui.outside_length.text()) if self.ui.outside_length.text() != "" else float(self.ui.outside_length.placeholderText())
         bl_m = float(self.ui.midside_length.text()) if self.ui.midside_length.text() != "" else float(self.ui.midside_length.placeholderText())
         bl_i = float(self.ui.inside_length.text()) if self.ui.inside_length.text() != "" else float(self.ui.inside_length.placeholderText())
         self.robot.calibrateContinuum(bl_o, bl_m, bl_i)
-
-    def extendInsideSection(self):
-        print((float(self.ui.ref_inside.text()), float(self.ui.ref_midside.text()), float(self.ui.ref_outside.text())))
-        self.robot.ExtendInsideSection(s_d = float(self.ui.s_d.text()),
-                                       ref=(float(self.ui.ref_inside.text()), float(self.ui.ref_midside.text()), float(self.ui.ref_outside.text())),
-                                       kp=(float(self.ui.kp_inside.text()), float(self.ui.kp_midside.text()), float(self.ui.kp_outside.text())),
-                                       ki=(float(self.ui.ki_inside.text()), float(self.ui.ki_midside.text()), float(self.ui.ki_outside.text())),
-                                       kd=(float(self.ui.kd_inside.text()), float(self.ui.kd_midside.text()), float(self.ui.kd_outside.text())))
-    def shortenInsideSection(self):
-        self.robot.ShortenInsideSection(s_d = float(self.ui.s_d.text()),
-                                       ref=(float(self.ui.ref_inside.text()), float(self.ui.ref_midside.text()), float(self.ui.ref_outside.text())),
-                                       kp=(float(self.ui.kp_inside.text()), float(self.ui.kp_midside.text()), float(self.ui.kp_outside.text())),
-                                       ki=(float(self.ui.ki_inside.text()), float(self.ui.ki_midside.text()), float(self.ui.ki_outside.text())),
-                                       kd=(float(self.ui.kd_inside.text()), float(self.ui.kd_midside.text()), float(self.ui.kd_outside.text())))
-
 
     ''' 相机 '''
     def OpenCamera(self):
@@ -822,73 +829,74 @@ class ControlPanel(QMainWindow):
 
 
 
-'''
-    测试
-'''
-class JointForceFollow(QThread):
-    __start_signal = pyqtSignal()
-    __finish_signal = pyqtSignal()
+
+    def extendInsideSection(self):
+        self.robot.moveInsideSection(s_d=float(self.ui.s_d.text()) if self.ui.s_d.text()!="" else 0.0,
+                                     kappa_d=0.0,
+                                     phi_d=0.0,
+                                     ref=(float(self.ui.ref_inside.text()), float(self.ui.ref_midside.text()), float(self.ui.ref_outside.text())),
+                                     kp=(float(self.ui.kp_inside.text()), float(self.ui.kp_midside.text()), float(self.ui.kp_outside.text())),
+                                     ki=(float(self.ui.ki_inside.text()), float(self.ui.ki_midside.text()), float(self.ui.ki_outside.text())),
+                                     kd=(float(self.ui.kd_inside.text()), float(self.ui.kd_midside.text()), float(self.ui.kd_outside.text())))
+    def shortenInsideSection(self):
+        self.robot.moveInsideSection(s_d=-abs(float(self.ui.s_d.text())) if self.ui.s_d.text()!="" else 0.0,
+                                     kappa_d=0.0,
+                                     phi_d=0.0,
+                                     ref=(float(self.ui.ref_inside.text()), float(self.ui.ref_midside.text()), float(self.ui.ref_outside.text())),
+                                     kp=(float(self.ui.kp_inside.text()), float(self.ui.kp_midside.text()), float(self.ui.kp_outside.text())),
+                                     ki=(float(self.ui.ki_inside.text()), float(self.ui.ki_midside.text()), float(self.ui.ki_outside.text())),
+                                     kd=(float(self.ui.kd_inside.text()), float(self.ui.kd_midside.text()), float(self.ui.kd_outside.text())))
+    def curveInsideSection(self):
+        self.robot.moveInsideSection(s_d=0.0,
+                                     kappa_d=float(self.ui.kappa_d.text()) if self.ui.kappa_d.text()!="" else 0.0,
+                                     phi_d=0.0,
+                                     ref=(float(self.ui.ref_inside.text()), float(self.ui.ref_midside.text()), float(self.ui.ref_outside.text())),
+                                     kp=(float(self.ui.kp_inside.text()), float(self.ui.kp_midside.text()), float(self.ui.kp_outside.text())),
+                                     ki=(float(self.ui.ki_inside.text()), float(self.ui.ki_midside.text()), float(self.ui.ki_outside.text())),
+                                     kd=(float(self.ui.kd_inside.text()), float(self.ui.kd_midside.text()), float(self.ui.kd_outside.text())))
+    def straightenInsideSection(self):
+        self.robot.moveInsideSection(s_d=0.0,
+                                     kappa_d=-abs(float(self.ui.kappa_d.text())) if self.ui.kappa_d.text()!="" else 0.0,
+                                     phi_d=0.0,
+                                     ref=(float(self.ui.ref_inside.text()), float(self.ui.ref_midside.text()), float(self.ui.ref_outside.text())),
+                                     kp=(float(self.ui.kp_inside.text()), float(self.ui.kp_midside.text()), float(self.ui.kp_outside.text())),
+                                     ki=(float(self.ui.ki_inside.text()), float(self.ui.ki_midside.text()), float(self.ui.ki_outside.text())),
+                                     kd=(float(self.ui.kd_inside.text()), float(self.ui.kd_midside.text()), float(self.ui.kd_outside.text())))
+    def rotateInsideSectionClockwise(self):
+        self.robot.moveInsideSection(s_d=0.0,
+                                     kappa_d=0.0,
+                                     phi_d=float(self.ui.phi_d.text()) if self.ui.phi_d.text()!="" else 0.0,
+                                     ref=(float(self.ui.ref_inside.text()), float(self.ui.ref_midside.text()), float(self.ui.ref_outside.text())),
+                                     kp=(float(self.ui.kp_inside.text()), float(self.ui.kp_midside.text()), float(self.ui.kp_outside.text())),
+                                     ki=(float(self.ui.ki_inside.text()), float(self.ui.ki_midside.text()), float(self.ui.ki_outside.text())),
+                                     kd=(float(self.ui.kd_inside.text()), float(self.ui.kd_midside.text()), float(self.ui.kd_outside.text())))
+    def rotateInsideSectionAntiClockwise(self):
+        self.robot.moveInsideSection(s_d=0.0,
+                                     kappa_d=0.0,
+                                     phi_d=-abs(float(self.ui.phi_d.text())) if self.ui.phi_d.text()!="" else 0.0,
+                                     ref=(float(self.ui.ref_inside.text()), float(self.ui.ref_midside.text()), float(self.ui.ref_outside.text())),
+                                     kp=(float(self.ui.kp_inside.text()), float(self.ui.kp_midside.text()), float(self.ui.kp_outside.text())),
+                                     ki=(float(self.ui.ki_inside.text()), float(self.ui.ki_midside.text()), float(self.ui.ki_outside.text())),
+                                     kd=(float(self.ui.kd_inside.text()), float(self.ui.kd_midside.text()), float(self.ui.kd_outside.text())))
+    def moveInsideSection(self):
+        self.robot.moveInsideSection(s_d=float(self.ui.s_d.text()) if self.ui.s_d.text()!="" else 0.0,
+                                     kappa_d=float(self.ui.kappa_d.text()) if self.ui.kappa_d.text()!="" else 0.0,
+                                     phi_d=float(self.ui.phi_d.text()) if self.ui.phi_d.text()!="" else 0.0,
+                                     ref=(float(self.ui.ref_inside.text()), float(self.ui.ref_midside.text()), float(self.ui.ref_outside.text())),
+                                     kp=(float(self.ui.kp_inside.text()), float(self.ui.kp_midside.text()), float(self.ui.kp_outside.text())),
+                                     ki=(float(self.ui.ki_inside.text()), float(self.ui.ki_midside.text()), float(self.ui.ki_outside.text())),
+                                     kd=(float(self.ui.kd_inside.text()), float(self.ui.kd_midside.text()), float(self.ui.kd_outside.text())))
     
-    def __init__(self, motor: Motor, sensor: Sensor, 
-                 /, *, force_ref: int, kp: int, ki: int, kd: int, start_signal=None, finish_signal=None) -> None:
+    def initParameterTable(self):
+        for i in range(self.ui.tableWidget.rowCount()):
+            try: self.ui.tableWidget.item(i, 0).setText(str(self.robot.PARAMETER[self.ui.tableWidget.verticalHeaderItem(i).text()]))
+            except: print("No item")
         
-        super().__init__()
+        def updateParameter(row, column):
+            try:
+                variable = self.ui.tableWidget.verticalHeaderItem(row).text()
+                self.robot.PARAMETER[variable] = float(self.ui.tableWidget.item(row, column).text())
+                print("\033[0;32m[Parameter] {} = {}\033[0m".format(variable, self.robot.PARAMETER[variable]))
+            except: print("No item")
 
-        self.__is_stop = False
-
-        self.__motor = motor
-        self.__sensor = sensor
-
-        self.__force_ref = force_ref
-        
-        self.__kp = kp
-        self.__ki = ki
-        self.__kd = kd
-
-        self.__current_error = 0
-        self.__last_error = 0
-        self.__error_integral = 0
-
-        if start_signal != None and finish_signal != None:
-            self.__start_signal.connect(start_signal)
-            self.__finish_signal.connect(finish_signal)
-    
-    def run(self):
-        print("im in !!")
-        self.__start_signal.emit()
-
-        self.__motor.set_control_mode("speed_control", check=False)
-        
-        self.__motor.halt(is_pdo=True)
-
-        self.__motor.set_speed(0, is_pdo=True)
-
-        self.__motor.enable_operation(is_pdo=True)
-
-        while not self.__is_stop:
-            if self.__sensor.force < 0:
-                self.__last_error = self.__current_error
-                
-                self.__current_error = abs(self.__sensor.force) - self.__force_ref
-
-                kp_out = self.__current_error * self.__kp
-                
-                self.__error_integral += self.__current_error * self.__ki
-
-                kd_out = (self.__current_error - self.__last_error) * self.__kd
-
-                speed = kp_out + self.__error_integral + kd_out
-
-                print("force = {} speed = {}".format(round(self.__sensor.force, 2), int(speed)))
-
-                self.__motor.set_speed(int(speed), is_pdo=True, log=False)
-                # self.__motor.enable_operation(is_pdo=True)
-            
-
-    
-    def stop(self):
-        self.__is_stop = True
-
-        self.__motor.set_speed(0, is_pdo=True)
-
-        self.__motor.disable_operation(is_pdo=True)
+        self.ui.tableWidget.cellChanged.connect(updateParameter)
