@@ -29,12 +29,12 @@ class Sensor():
 
     ''' 绑定 '''
     @staticmethod
-    def link_device(device) -> None:
+    def linkDevice(device) -> None:
         Sensor.device = device
     
     ''' 发送请求 '''
     def send_request(self) -> bool:
-        return self.device.send(self.__node_id, [Sensor.msg], data_len="sensor")
+        return self.device.sendMsg(self.__node_id, [Sensor.msg], data_len="sensor")
 
     ''' 调零 '''
     def set_zero(self, num=100):
