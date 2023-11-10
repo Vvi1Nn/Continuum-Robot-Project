@@ -3,14 +3,11 @@
 
 ''' io.py IO模块 '''
 
+import time
 
 from PyQt5.QtCore import pyqtSignal, QObject
 
-# 添加模块路径
-import sys, os, time
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from continuum_robot.processor import CanOpenBusProcessor
+from processor import CanOpenBusProcessor
 
 
 class IoModule(CanOpenBusProcessor, QObject):
@@ -54,7 +51,7 @@ class IoModule(CanOpenBusProcessor, QObject):
     
     ''' 检查总线 '''
     def check_bus_status(self, /, *, times=1, log=False) -> bool:
-        if super().check_bus_status(times=times, log=log):
+        if super().checkBusStatus(times=times, log=log):
             print("\033[0;32m[IO {}] BUS OK\033[0m".format(self.node_id))
             return True
         else:
@@ -88,7 +85,7 @@ class IoModule(CanOpenBusProcessor, QObject):
     def start_device(self, /, *, times=3, check=False, delay=0.5, log=False) -> bool:
         if self.__is_initialized:
             while times != 0:
-                if self.start_pdo(times=1, check=check, delay=delay, log=log):
+                if self.startPDO(times=1, check=check, delay=delay, log=log):
                     print("\033[0;32m[IO {}] DEVICE START\033[0m".format(self.node_id))
                     return True
                 else:
@@ -106,7 +103,7 @@ class IoModule(CanOpenBusProcessor, QObject):
     ''' 停止 PDO '''
     def stop_device(self, /, *, times=3, check=False, delay=0.5, log=False) -> bool:
         while times != 0:
-            if self.stop_pdo(times=1, check=check, delay=delay, log=log):
+            if self.stopPDO(times=1, check=check, delay=delay, log=log):
                 print("\033[0;32m[IO {}] DEVICE STOP\033[0m".format(self.node_id))
                 return True
             else:
@@ -133,7 +130,7 @@ class IoModule(CanOpenBusProcessor, QObject):
                 value_str = "1" + value_str if getattr(self, f"output_{i}") else "0" + value_str
             
             while times != 0:
-                if self.rpdo("1", int(value_str, 2), format=8):
+                if self.sendRPDO("1", int(value_str, 2), format=8):
                     self.show_valve.emit() # 向外发送信号 提示更新状态显示
 
                     if log: print("\033[0;32m[IO {}] OUTPUT STATUS: {}\033[0m".format(self.node_id, value_str))
