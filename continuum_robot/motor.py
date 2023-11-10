@@ -4,15 +4,7 @@
 ''' motor.py '''
 
 
-import time
-
-from PyQt5.QtCore import QThread, pyqtSignal
-
-# 添加模块路径
-import sys, os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from continuum_robot.processor import CanOpenBusProcessor
+from processor import CanOpenBusProcessor
 
 
 class Motor(CanOpenBusProcessor):
@@ -100,7 +92,7 @@ class Motor(CanOpenBusProcessor):
     
     ''' 检查总线状态 '''
     def check_bus_status(self, /, *, log=False) -> bool:
-        if super().check_bus_status(log=log):
+        if super().checkBusStatus(log=log):
             print("\033[0;32m[Motor {}] BUS OK\033[0m".format(self.node_id))
             return True
         else:
@@ -112,7 +104,7 @@ class Motor(CanOpenBusProcessor):
     ''' 获取伺服状态 SDO '''
     def get_servo_status(self, /, *, times=1, log=False) -> str:
         while times != 0:
-            ret = self.sdo_read("status_word", format=4) 
+            ret = self.readSDO("status_word", format=4) 
 
             if ret != None:
                 value = ret[0] # 读取状态字数据中的第1个hex即可
@@ -141,13 +133,13 @@ class Motor(CanOpenBusProcessor):
             while times != 0:
             # PDO
                 if is_pdo:
-                    if self.rpdo("1", Motor.CONTROL_WORD[label], format=4):
+                    if self.sendRPDO("1", Motor.CONTROL_WORD[label], format=4):
                         if log: print("\033[0;32m[Motor {}] set servo status: {}\033[0m".format(self.node_id, label))
                         return True
                     
                 # SDO
                 else:
-                    if self.sdo_write_16("control_word", Motor.CONTROL_WORD[label], check=check, delay=delay):
+                    if self.writeSDO("control_word", Motor.CONTROL_WORD[label], "16", check=check, delay=delay):
                         if log: print("\033[0;32m[Motor {}] set servo: {}\033[0m".format(self.node_id, label))
                         return True
                 
@@ -235,7 +227,7 @@ class Motor(CanOpenBusProcessor):
 
     ''' 开启PDO '''
     def start_pdo(self, /, *, times=1, check=False, delay=0.5, log=False) -> bool:
-        if super().start_pdo(times=times, check=check, delay=delay, log=log):
+        if super().startPDO(times=times, check=check, delay=delay, log=log):
             print("\033[0;32m[Motor {}] PDO START\033[0m".format(self.node_id))
             return True
         else:
@@ -244,7 +236,7 @@ class Motor(CanOpenBusProcessor):
 
     ''' 关闭PDO '''
     def stop_pdo(self, /, *, times=1, check=False, delay=0.5, log=False) -> bool:
-        if super().stop_pdo(times=times, check=check, delay=delay, log=log):
+        if super().stopPDO(times=times, check=check, delay=delay, log=log):
             print("\033[0;32m[Motor {}] PDO STOP\033[0m".format(self.node_id))
             return True
         else:
@@ -256,81 +248,66 @@ class Motor(CanOpenBusProcessor):
     ''' 控制模式 '''
     def set_control_mode(self, mode=control_mode, /, *, times=1, log=True, check=True, delay=0.5) -> bool:
         while times != 0:
-            if self.sdo_write_8("control_mode", Motor.CONTROL_MODE[mode], check=check, delay=delay):
+            if self.writeSDO("control_mode", Motor.CONTROL_MODE[mode], "8", check=check, delay=delay):
                 if log: print("\033[0;32m[Motor {}] control mode: {}\033[0m".format(self.node_id, mode))
-                else: pass
                 return True
             else:
                 times -= 1
                 if log: print("\033[0;33m[Motor {}] setting control mode ...\033[0m".format(self.node_id))
-                else: pass
         else:
             if log: print("\033[0;31m[Motor {}] set control mode failed\033[0m".format(self.node_id))
-            else: pass
             return False
     
     ''' 加速度 '''
     def set_profile_acceleration(self, value=profile_acceleration, /, *, times=1, log=True, check=True, delay=0.5) -> bool:
         while times != 0:
-            if self.sdo_write_32("acceleration", value, check=check, delay=delay):
+            if self.writeSDO("acceleration", value, "32", check=check, delay=delay):
                 if log: print("\033[0;32m[Motor {}] acceleration: {}\033[0m".format(self.node_id, value))
-                else: pass
                 return True
             else:
                 times -= 1
                 if log: print("\033[0;33m[Motor {}] setting acceleration ...\033[0m".format(self.node_id))
-                else: pass
         else:
             if log: print("\033[0;31m[Motor {}] set acceleration failed\033[0m".format(self.node_id))
-            else: pass
             return False
 
     ''' 减速度 '''
     def set_profile_deceleration(self, value=profile_deceleration, /, *, times=1, log=True, check=True, delay=0.5) -> bool:
         while times != 0:
-            if self.sdo_write_32("deceleration", value, check=check, delay=delay):
+            if self.writeSDO("deceleration", value, "32", check=check, delay=delay):
                 if log: print("\033[0;32m[Motor {}] deceleration: {}\033[0m".format(self.node_id, value))
-                else: pass
                 return True
             else:
                 times -= 1
                 if log: print("\033[0;33m[Motor {}] setting deceleration ...\033[0m".format(self.node_id))
-                else: pass
         else:
             if log: print("\033[0;31m[Motor {}] set deceleration failed\033[0m".format(self.node_id))
-            else: pass
             return False
 
     ''' 急停 减速度 '''
     def set_quick_stop_deceleration(self, value=quick_stop_deceleration, /, *, times=1, log=True, check=True, delay=0.5) -> bool:
         while times != 0:
-            if self.sdo_write_32("quick_stop_deceleration", value, check=check, delay=delay):
+            if self.writeSDO("quick_stop_deceleration", value, "32", check=check, delay=delay):
                 if log: print("\033[0;32m[Motor {}] quick stop deceleration: {}\033[0m".format(self.node_id, value))
-                else: pass
                 return True
             else:
                 times -= 1
                 if log: print("\033[0;33m[Motor {}] setting quick stop deceleration ...\033[0m".format(self.node_id))
-                else: pass
         else:
             if log: print("\033[0;31m[Motor {}] set quick stop deceleration failed\033[0m".format(self.node_id))
-            else: pass
             return False
 
     ''' 曲线 '''
     def set_motion_profile_type(self, value=motion_profile_type, /, *, times=1, log=True, check=True, delay=0.5) -> bool:
         while times != 0:
-            if self.sdo_write_32("motion_profile_type", Motor.MOTION_TYPE[value], check=check, delay=delay):
+            if self.writeSDO("motion_profile_type", Motor.MOTION_TYPE[value], "32", check=check, delay=delay):
                 if log: print("\033[0;32m[Motor {}] motion profile type: {}\033[0m".format(self.node_id, value))
-                else: pass
                 return True
             else:
                 times -= 1
                 if log: print("\033[0;33m[Motor {}] setting motion profile type ...\033[0m".format(self.node_id))
-                else: pass
         else:
             if log: print("\033[0;31m[Motor {}] set motion profile type failed\033[0m".format(self.node_id))
-            else: pass
             return False
 
 
@@ -338,15 +315,16 @@ class Motor(CanOpenBusProcessor):
     ''' 速度 '''
     def set_speed(self, speed: int, /, *, is_pdo=False, times=1, log=True, check=True, delay=0.5) -> bool:
         if self.permission:
-            if speed > self.max_speed: speed = self.max_speed
-            elif speed < self.min_speed: speed = self.min_speed
-            else: pass
-            self.target_speed = speed
+            # if speed > self.max_speed: speed = self.max_speed
+            # elif speed < self.min_speed: speed = self.min_speed
+            # else: pass
+            # self.target_speed = speed
+            self.target_speed = max(min(speed, self.max_speed), self.min_speed)
             
             # PDO
             if is_pdo:
                 while times != 0:
-                    if self.rpdo("3", self.target_speed):
+                    if self.sendRPDO("3", self.target_speed):
                         if log: print("\033[0;32m[Motor {}] target speed: {}\033[0m".format(self.node_id, self.target_speed))
                         return True
                     else:
@@ -358,7 +336,7 @@ class Motor(CanOpenBusProcessor):
             # SDO
             else:
                 while times != 0:
-                    if self.sdo_write_32("target_speed", self.target_speed, check=check, delay=delay):
+                    if self.writeSDO("target_speed", self.target_speed, "32", check=check, delay=delay):
                         if log: print("\033[0;32m[Motor {}] target speed: {}\033[0m".format(self.node_id, self.target_speed))
                         return True
                     else:
@@ -377,7 +355,7 @@ class Motor(CanOpenBusProcessor):
             # PDO
             if is_pdo:
                 while times != 0:
-                    if self.rpdo("2", position, velocity):
+                    if self.sendRPDO("2", position, velocity):
                         if log: print("\033[0;32m[Motor {}] target position: {}, target velocity: {}\033[0m".format(self.node_id, position, velocity))
                         return True
                     else:
@@ -389,8 +367,8 @@ class Motor(CanOpenBusProcessor):
             # SDO
             else:
                 while times != 0:
-                    if self.sdo_write_32("target_position", position, check=check, delay=delay) \
-                    and self.sdo_write_32("velocity", velocity, check=check, delay=delay):
+                    if self.writeSDO("target_position", position, "32", check=check, delay=delay) \
+                    and self.writeSDO("velocity", velocity, "32", check=check, delay=delay):
                         if log: print("\033[0;32m[Motor {}] target position: {}, target velocity: {}\033[0m".format(self.node_id, position, velocity))
                         return True
                     else:
