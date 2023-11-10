@@ -15,15 +15,13 @@ import pygame
 
 import cv2
 
-# 添加模块路径
-import sys, os, time
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import time, json
 
-from continuum_robot.usbcan import UsbCan
-from continuum_robot.processor import CanOpenBusProcessor
-from continuum_robot.motor import Motor
+from usbcan import UsbCan
+from processor import CanOpenBusProcessor
+from motor import Motor
 from continuum_robot.io import IoModule
-from continuum_robot.sensor import Sensor
+from sensor import Sensor
 
 
 class ContinuumRobot(QObject):
@@ -63,17 +61,19 @@ class ContinuumRobot(QObject):
     def __init__(self) -> None:
         QObject.__init__(self)
 
-        self.usbcan_0 = UsbCan.set_device_type(type="USBCAN2", index="0").is_show_log(False)("0")
-        self.usbcan_1 = UsbCan.set_device_type(type="USBCAN2", index="0").is_show_log(False)("1")
+        with open('robot_parameter.json', 'r') as file: self.PARAMETER = json.load(file) # 加载参数
 
-        self.usbcan_0.set_timer("250K")
-        self.usbcan_1.set_timer("1000K")
+        self.usbcan_0 = UsbCan.setDeviceType(type="USBCAN2", index="0").isShowLog(False)("0")
+        self.usbcan_1 = UsbCan.setDeviceType(type="USBCAN2", index="0").isShowLog(False)("1")
+
+        self.usbcan_0.setTimer("250K")
+        self.usbcan_1.setTimer("1000K")
 
         self.usbcan_0_is_start = False
         self.usbcan_1_is_start = False
 
-        CanOpenBusProcessor.link_device(self.usbcan_0)
-        Sensor.link_device(self.usbcan_1)
+        CanOpenBusProcessor.linkDevice(self.usbcan_0)
+        Sensor.linkDevice(self.usbcan_1)
 
         self.motor_1 = Motor(1, speed_range=[-400,400])
         self.motor_2 = Motor(2, speed_range=[-400,400])
@@ -86,6 +86,19 @@ class ContinuumRobot(QObject):
         self.motor_9 = Motor(9, speed_range=[-400,400])
         self.motor_10 = Motor(10, speed_range=[-400,400])
 
+        self.MOTOR = {
+            "1":  self.motor_1,
+            "2":  self.motor_2,
+            "3":  self.motor_3,
+            "4":  self.motor_4,
+            "5":  self.motor_5,
+            "6":  self.motor_6,
+            "7":  self.motor_7,
+            "8":  self.motor_8,
+            "9":  self.motor_9,
+            "10": self.motor_10,
+        }
+
         self.sensor_1 = Sensor(1)
         self.sensor_2 = Sensor(2)
         self.sensor_3 = Sensor(3)
@@ -96,6 +109,19 @@ class ContinuumRobot(QObject):
         self.sensor_8 = Sensor(8)
         self.sensor_9 = Sensor(9)
         self.sensor_10 = Sensor(10)
+
+        self.SENSOR = {
+            "1":  self.sensor_1,
+            "2":  self.sensor_2,
+            "3":  self.sensor_3,
+            "4":  self.sensor_4,
+            "5":  self.sensor_5,
+            "6":  self.sensor_6,
+            "7":  self.sensor_7,
+            "8":  self.sensor_8,
+            "9":  self.sensor_9,
+            "10": self.sensor_10,
+        }
 
         self.io = IoModule(11)
 
@@ -163,7 +189,7 @@ class ContinuumRobot(QObject):
         self.status_signal.emit("CANopen Update Thread Started !")
         
         while True:
-            ret = CanOpenBusProcessor.device.read_buffer(1, wait_time=0)
+            ret = CanOpenBusProcessor.device.readBuffer(1, wait_time=0)
             
             if ret != None:
                 [num, msg] = ret
@@ -367,11 +393,14 @@ class ContinuumRobot(QObject):
         self.status_signal.emit("CANopen Update Thread Stopped.")
 
     def updateForce(self):
-        print("Sensor Resolve Thread Started")
+        print("Update Force Thread Started")
         
         while True:
-            ret = Sensor.device.read_buffer(1, wait_time=0)
+            start_time = time.time()
 
+            for sensor in Sensor.sensor_dict.values(): send_success = sensor.send_request()
+
+            ret = Sensor.device.readBuffer(10, wait_time=0)
             if ret != None:
                 [num, msg] = ret
                 
@@ -380,21 +409,21 @@ class ContinuumRobot(QObject):
                         and msg[i].Data[1] == Sensor.msg[1] \
                         and msg[i].Data[6] == Sensor.msg[2] \
                         and msg[i].Data[7] == Sensor.msg[3]:
-                        
-                        # Sensor
                         if msg[i].ID in Sensor.sensor_dict.keys():
                             Sensor.sensor_dict[msg[i].ID].original_data = self.__hex_list_to_float([msg[i].Data[j] for j in range(2, 6)])
 
                             Sensor.sensor_dict[msg[i].ID].force = (self.__hex_list_to_float([msg[i].Data[j] for j in range(2, 6)]) - Sensor.sensor_dict[msg[i].ID].zero) / 2
                         
                             self.show_force.emit(msg[i].ID)
+            
+            time.sleep(max(1 / self.PARAMETER["sensor_sampling_frequency"] - (time.time() - start_time), 0))
         
-        print("Sensor Resolve Thread Stopped")
+        print("Update Force Thread Stopped")
     
     def initUsbCan(self) -> bool:
-        if UsbCan.open_device():
-            if not self.usbcan_0_is_start and self.usbcan_0.init_can() and self.usbcan_0.start_can(): self.usbcan_0_is_start = True
-            if not self.usbcan_1_is_start and self.usbcan_1.init_can() and self.usbcan_1.start_can(): self.usbcan_1_is_start = True
+        if UsbCan.openDevice():
+            if not self.usbcan_0_is_start and self.usbcan_0.initChannel() and self.usbcan_0.startChannel(): self.usbcan_0_is_start = True
+            if not self.usbcan_1_is_start and self.usbcan_1.initChannel() and self.usbcan_1.startChannel(): self.usbcan_1_is_start = True
         return self.usbcan_0_is_start and self.usbcan_1_is_start
    
     def initRobot(self, times=1):
@@ -440,15 +469,6 @@ class ContinuumRobot(QObject):
                 break
             else: times -= 1
         else: self.robot_init_start.emit(False)
-
-    def sendSensorRequest(self):
-        print("Sensor Request Sending")
-        while True:
-            start_time = time.time()
-            for sensor in Sensor.sensor_dict.values():
-                send_success = sensor.send_request()
-            time.sleep(max(1 / self.PARAMETER["sensor_sampling_frequency"] - (time.time() - start_time), 0))
-        print("Sensor Request Thread Stopped")
     
     def shut_down_all(self):
         for motor in Motor.motor_dict.values():
