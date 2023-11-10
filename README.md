@@ -1,41 +1,19 @@
-# Continuum Robot Project
-龙骨式原位无损检测连续体机器人技术研究工程代码
-
-功能介绍如下
-
-## CAN卡
-设备为致远电子的USBCAN-II，支持Linux驱动和二次开发，可实现CAN总线与主机之间的CANopen协议的通讯。
-
-该部分的程序均存放在`usbcan`文件夹，包含以下模块：
-
-### 固定参数字典
-`param_device.py`: 设备参数，如设备型号、设备索引、通道号。
-
-`param_init.py`: 初始化参数，包含有波特率、收发模式等通讯前的协议确定。
-
-`param_transmit.py`: 发送参数，包含从设备向CAN总线发送消息的参数。
-
-`param.py`: 调用该模块即可实现所有字典的访问！
-
-### 特定参数结构体
-`struct.py`: 集成了二次开发API所需要使用的结构体。
-
-### 二次开发库
-`function.py`: 将二次开发API集成进Class中。
-
-## 步进电机
-设备为和利时的闭环步进一体机，支持CANopen协议讯通。
-
-该部分的程序均存放在`motor`文件夹，包含以下模块：
-
-### 通讯协议
-`protocol`: 控制电机所需要的所有协议参数，包括对象字典、SDO和PDO通讯的CAN-ID、收发命令的CMD。
-
-### 消息生成
-`msg_generation.py`: 电机控制信号的生成，即COB-ID和8个字节的消息数据。
-
-### 消息解析
-`msg_resolution.py`: 解析通过USBCAN接收的消息。
-
-### 电机控制
-`function.py`: 电机控制函数。
+# 贵航连续体机器人项目工程代码
+文件夹`continuum_robot`为肌腱驱动连续体，文件夹`maxon_motor_epos2`为旋转进给机构。
+## continuum_robot
+`libusbcan.so` 致远电子的USBCAN-II动态库。
+`usbcan.py` 致远电子的USBCAN-II功能函数。
+`canopen.py` CANopen协议下，发送消息的生成函数。
+`processor.py` CANopen协议下，总线的处理函数。
+`motor.py` 和利时步进电机CANopen协议的功能函数。
+`sensor.py` 坤维科技拉压传感器功能函数。
+`io.py` 广成科技CANopen协议的IO模块功能函数。
+`joystick.py` 罗技Extreme 3D操作杆功能函数。
+`control_panel.ui` Qt设计师UI设计文件。
+`control_panel.py` Qt设计师UI的python代码。
+`gui.py` 上位机函数。
+`robot.py` 机器人功能。
+`start.py` 入口。
+`robot_paramter.json` 机器人参数
+## maxon_motor_epos2
+略
