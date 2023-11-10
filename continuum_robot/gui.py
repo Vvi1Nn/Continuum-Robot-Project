@@ -4,27 +4,17 @@
 ''' gui.py GUI v5.0 '''
 
 
-import typing
 from PyQt5.QtWidgets import QMainWindow
-from PyQt5.QtCore import QObject, QThread, pyqtSignal, QMutex
+from PyQt5.QtCore import QThread
 
 from PyQt5.QtGui import QPixmap
 
+import math
 
-# 添加模块路径
-import sys, os, time, math
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-
-from continuum_robot.control_panel import Ui_MainWindow as Ui_ControlPanel
-
-from continuum_robot.motor import Motor
-from continuum_robot.io import IoModule
-from continuum_robot.sensor import Sensor
-
-from continuum_robot.robot import ContinuumRobot
-
-
+from control_panel import Ui_MainWindow as Ui_ControlPanel
+from motor import Motor
+from sensor import Sensor
+from robot import ContinuumRobot
 
 
 class ControlPanel(QMainWindow):
@@ -40,7 +30,7 @@ class ControlPanel(QMainWindow):
         
         self.connectMenu()
         self.connectUserSignal()
-        self.signal_connect_slot()
+        self.connectButton()
 
         ''' 高级测试 '''
 
@@ -86,7 +76,7 @@ class ControlPanel(QMainWindow):
 
         self.robot.show_force.connect(self.show_force)
 
-    def signal_connect_slot(self) -> None:
+    def connectButton(self) -> None:
         self.ui.statusBar.setSizeGripEnabled(False)
         self.ui.statusBar.showMessage("Welcome to Continnum Robot Control Panel", 10000)
         
@@ -431,6 +421,7 @@ class ControlPanel(QMainWindow):
 
         if control_mode == "position_control": mode_str = "<span style=\"color:#00ff00;\">POSITION</span>"
         elif control_mode == "speed_control": mode_str = "<span style=\"color:#00ff00;\">SPEED</span>"
+        else: mode_str = "<span style=\"color:#ff0000;\">None</span>"
         
         getattr(self.ui, f"mode_{node_id}").setText(mode_str)
     
@@ -649,18 +640,9 @@ class ControlPanel(QMainWindow):
                 self.robot = robot
             def run(self):
                 self.robot.initRobot()
-        class SendSensorRequest(QThread):
-            def __init__(self, robot: ContinuumRobot) -> None:
-                super().__init__()
-                self.robot = robot
-            def run(self):
-                self.robot.sendSensorRequest()
 
         self.init_robot_thread = InitRobot(self.robot)
-        self.send_sensor_request = SendSensorRequest(self.robot)
-
         self.init_robot_thread.start()
-        self.send_sensor_request.start()
 
     ''' 标定夹爪 '''
     def calibrateGripper(self):
