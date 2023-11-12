@@ -5,7 +5,7 @@
 
 
 from PyQt5.QtWidgets import QMainWindow
-from PyQt5.QtCore import QThread
+from PyQt5.QtCore import QThread, QRunnable, QThreadPool
 
 from PyQt5.QtGui import QPixmap
 
@@ -18,18 +18,30 @@ from robot import ContinuumRobot
 
 
 class ControlPanel(QMainWindow):
+    
+    class RobotFunctionThread(QThread):
+        def __init__(self, fn, *args, **kwargs) -> None:
+            super().__init__()
+            self.fn = fn
+            self.args = args
+            self.kwargs = kwargs
+        def run(self):
+            self.fn(*self.args, **self.kwargs)
+    
     def __init__(self) -> None:
         super().__init__()
         
         self.ui = Ui_ControlPanel()
         self.ui.setupUi(self)
 
+        # self.thread_pool = QThreadPool()
+
         self.robot = ContinuumRobot()
 
         self.initParameterTable()
         
         self.connectMenu()
-        self.connectUserSignal()
+        self.connectCustomSignal()
         self.connectButton()
 
         ''' 高级测试 '''
@@ -62,7 +74,7 @@ class ControlPanel(QMainWindow):
 
         self.ui.pages.setCurrentIndex(0)
     
-    def connectUserSignal(self):
+    def connectCustomSignal(self):
         self.robot.show_motor_status.connect(self.show_motor_status)
         self.robot.show_motor_original.connect(self.show_motor_original)
         self.robot.show_motor_mode.connect(self.show_motor_mode)
@@ -582,22 +594,9 @@ class ControlPanel(QMainWindow):
 
     ''' 初始化设备 '''
     def initUsbCan(self):
-        class UpdateStatus(QThread):
-            def __init__(self, robot: ContinuumRobot) -> None:
-                super().__init__()
-                self.robot = robot
-            def run(self):
-                self.robot.updateStatus()
-        class UpdateForce(QThread):
-            def __init__(self, robot: ContinuumRobot) -> None:
-                super().__init__()
-                self.robot = robot
-            def run(self):
-                self.robot.updateForce()
-
         if self.robot.initUsbCan():
-            self.update_status_thread = UpdateStatus(self.robot)
-            self.update_force_thread = UpdateForce(self.robot)
+            self.update_status_thread = self.RobotFunctionThread(self.robot.updateStatus)
+            self.update_force_thread = self.RobotFunctionThread(self.robot.updateForce)
 
             self.update_status_thread.start()
             self.update_force_thread.start()
@@ -634,14 +633,7 @@ class ControlPanel(QMainWindow):
         self.robot.robot_init_start.connect(change)
         self.robot.robot_init_end.connect(next)
         
-        class InitRobot(QThread):
-            def __init__(self, robot: ContinuumRobot) -> None:
-                super().__init__()
-                self.robot = robot
-            def run(self):
-                self.robot.initRobot()
-
-        self.init_robot_thread = InitRobot(self.robot)
+        self.init_robot_thread = self.RobotFunctionThread(self.robot.initRobot)
         self.init_robot_thread.start()
 
     ''' 标定夹爪 '''
@@ -657,14 +649,7 @@ class ControlPanel(QMainWindow):
         self.robot.gripper_calibration_start.connect(start)
         self.robot.gripper_calibration_end.connect(end)
 
-        class GripperCalibration(QThread):
-            def __init__(self, robot: ContinuumRobot) -> None:
-                super().__init__()
-                self.robot = robot
-            def run(self):
-                self.robot.calibrateGripper()
-
-        self.gripper_calibration_thread = GripperCalibration(self.robot)
+        self.gripper_calibration_thread = self.RobotFunctionThread(self.robot.calibrateGripper)
         self.gripper_calibration_thread.start()
     
     ''' 线 调零 '''
@@ -712,22 +697,20 @@ class ControlPanel(QMainWindow):
     def rope_set_zero(self):
         self.robot.rope_set_zero()
     
-    ''' 力 调零 '''
+    ''' 标定传感器 '''
     def calibrateForceSensor(self):
         def start():
             self.ui.set_sensor_zero.setEnabled(False)
             self.show_status("All sensors are being adapting force ...")
-
-        def finish():
+        def end():
             self.ui.set_sensor_zero.setEnabled(True)
             self.show_status("All sensors are set zero !")
-        
-        force_list = []
-        for i in range(1,10):
-            box = getattr(self.ui, f"force_ref_{i}")
-            force_list.append(float(box.text()) if box.text() != "" else float(box.placeholderText()))
-        
-        self.robot.calibrateForceSensor(force_list, 100, start, finish)
+
+        self.robot.sensor_calibration_start.connect(start)
+        self.robot.sensor_calibration_end.connect(end)
+
+        self.sensor_calibration_thread = self.RobotFunctionThread(self.robot.calibrateForceSensor)
+        self.sensor_calibration_thread.start()
 
 
     ''' 电机 速度 正 '''
@@ -782,14 +765,7 @@ class ControlPanel(QMainWindow):
         self.robot.gripper_homing_start.connect(start)
         self.robot.gripper_homing_end.connect(end)
 
-        class GripperCalibration(QThread):
-            def __init__(self, robot: ContinuumRobot) -> None:
-                super().__init__()
-                self.robot = robot
-            def run(self):
-                self.robot.homingGripper()
-
-        self.gripper_homing_thread = GripperCalibration(self.robot)
+        self.gripper_homing_thread = self.RobotFunctionThread(self.robot.homingGripper)
         self.gripper_homing_thread.start()
    
     ''' 标定 '''
@@ -882,3 +858,4 @@ class ControlPanel(QMainWindow):
             except: print("No item")
 
         self.ui.tableWidget.cellChanged.connect(updateParameter)
+
