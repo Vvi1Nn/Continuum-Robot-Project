@@ -104,7 +104,7 @@ class Motor(CanOpenBusProcessor):
     ''' 获取伺服状态 SDO '''
     def get_servo_status(self, /, *, times=1, log=False) -> str:
         while times != 0:
-            ret = self.readSDO("status_word", format=4) 
+            ret = self.readSDO("status_word", format=4)
 
             if ret != None:
                 value = ret[0] # 读取状态字数据中的第1个hex即可
