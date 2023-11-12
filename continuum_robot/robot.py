@@ -35,6 +35,24 @@ class ContinuumRobot(QObject):
         "gripper_calibration_backward_velocity": 50,
         "gripper_homing_velocity": 300,
         "sensor_sampling_frequency": 20,
+        "sensor_calibration_reference_force_1": 8.0,
+        "sensor_calibration_reference_force_2": 8.0,
+        "sensor_calibration_reference_force_3": 8.0,
+        "sensor_calibration_reference_force_4": 8.0,
+        "sensor_calibration_reference_force_5": 8.0,
+        "sensor_calibration_reference_force_6": 8.0,
+        "sensor_calibration_reference_force_7": 8.0,
+        "sensor_calibration_reference_force_8": 8.0,
+        "sensor_calibration_reference_force_9": 8.0,
+        "sensor_calibration_init_count_1": 100,
+        "sensor_calibration_init_count_2": 100,
+        "sensor_calibration_init_count_3": 100,
+        "sensor_calibration_init_count_4": 100,
+        "sensor_calibration_init_count_5": 100,
+        "sensor_calibration_init_count_6": 100,
+        "sensor_calibration_init_count_7": 100,
+        "sensor_calibration_init_count_8": 100,
+        "sensor_calibration_init_count_9": 100,
     }
 
     show_motor_status = pyqtSignal(int)
@@ -56,12 +74,14 @@ class ContinuumRobot(QObject):
 
     gripper_homing_start = pyqtSignal()
     gripper_homing_end = pyqtSignal()
-
+    
+    sensor_calibration_start = pyqtSignal()
+    sensor_calibration_end = pyqtSignal()
     
     def __init__(self) -> None:
         QObject.__init__(self)
 
-        with open('robot_parameter.json', 'r') as file: self.PARAMETER = json.load(file) # 加载参数
+        # with open('robot_parameter.json', 'r') as file: self.PARAMETER = json.load(file) # 加载参数
 
         self.usbcan_0 = UsbCan.setDeviceType(type="USBCAN2", index="0").isShowLog(False)("0")
         self.usbcan_1 = UsbCan.setDeviceType(type="USBCAN2", index="0").isShowLog(False)("1")
@@ -86,18 +106,10 @@ class ContinuumRobot(QObject):
         self.motor_9 = Motor(9, speed_range=[-400,400])
         self.motor_10 = Motor(10, speed_range=[-400,400])
 
-        self.MOTOR = {
-            "1":  self.motor_1,
-            "2":  self.motor_2,
-            "3":  self.motor_3,
-            "4":  self.motor_4,
-            "5":  self.motor_5,
-            "6":  self.motor_6,
-            "7":  self.motor_7,
-            "8":  self.motor_8,
-            "9":  self.motor_9,
-            "10": self.motor_10,
-        }
+        # self.MOTOR, self.SENSOR = {}, {}
+        # for i in range(1,11):
+        #     self.MOTOR[i] = Motor(i, speed_range=[-400, 400])
+        #     self.SENSOR[i] = Sensor(i)
 
         self.sensor_1 = Sensor(1)
         self.sensor_2 = Sensor(2)
@@ -109,19 +121,6 @@ class ContinuumRobot(QObject):
         self.sensor_8 = Sensor(8)
         self.sensor_9 = Sensor(9)
         self.sensor_10 = Sensor(10)
-
-        self.SENSOR = {
-            "1":  self.sensor_1,
-            "2":  self.sensor_2,
-            "3":  self.sensor_3,
-            "4":  self.sensor_4,
-            "5":  self.sensor_5,
-            "6":  self.sensor_6,
-            "7":  self.sensor_7,
-            "8":  self.sensor_8,
-            "9":  self.sensor_9,
-            "10": self.sensor_10,
-        }
 
         self.io = IoModule(11)
 
@@ -509,9 +508,76 @@ class ContinuumRobot(QObject):
 
     ''' 力传感器 零位标定
     '''
-    def calibrateForceSensor(self, force_list: list, num, start, finish):
-        self.calibrateForceSensorThread = ForceSensorCalibration(self, force_list, num=num, start_signal=start, finish_signal=finish)
-        self.calibrateForceSensorThread.start()
+    def calibrateForceSensor(self):
+        # self.motor_1.set_control_mode("speed_control", check=False)
+        # self.motor_2.set_control_mode("speed_control", check=False)
+        # self.motor_3.set_control_mode("speed_control", check=False)
+        # self.motor_4.set_control_mode("speed_control", check=False)
+        # self.motor_5.set_control_mode("speed_control", check=False)
+        # self.motor_6.set_control_mode("speed_control", check=False)
+        # self.motor_7.set_control_mode("speed_control", check=False)
+        # self.motor_8.set_control_mode("speed_control", check=False)
+        # self.motor_9.set_control_mode("speed_control", check=False)
+
+        # self.motor_1.set_speed(0, is_pdo=True)
+        # self.motor_2.set_speed(0, is_pdo=True)
+        # self.motor_3.set_speed(0, is_pdo=True)
+        # self.motor_4.set_speed(0, is_pdo=True)
+        # self.motor_5.set_speed(0, is_pdo=True)
+        # self.motor_6.set_speed(0, is_pdo=True)
+        # self.motor_7.set_speed(0, is_pdo=True)
+        # self.motor_8.set_speed(0, is_pdo=True)
+        # self.motor_9.set_speed(0, is_pdo=True)
+
+        self.initTendonActuator("speed","1","2","3","4","5","6","7","8","9")
+
+        self.sensor_calibration_start.emit()
+
+        for i in range(9,0,-1):
+            motor = getattr(self, f"motor_{i}")
+            sensor = getattr(self, f"sensor_{i}")
+            force_ref = -abs(self.PARAMETER["sensor_calibration_reference_force_{}".format(i)])
+
+            # motor.enable_operation(is_pdo=True)
+
+            while True:
+                force_error = force_ref - sensor.force
+                if abs(force_error) < 0.01:
+                    motor.halt(is_pdo=True)
+                    break
+                elif abs(force_error) < 0.1: motor.set_speed(- 10 if force_error < 0 else 10, is_pdo=True, log=False)
+                elif abs(force_error) < 2: motor.set_speed(int(force_error * 20), is_pdo=True, log=False)
+                elif abs(force_error) < 4: motor.set_speed(int(force_error * 25), is_pdo=True, log=False)
+                else: motor.set_speed(- 100 if force_error < 0 else 100, is_pdo=True, log=False)
+            
+            motor.set_speed(10, is_pdo=True)
+            motor.enable_operation(is_pdo=True)
+
+            while True:
+                last_force = sensor.original_data
+                time.sleep(1)
+                current_force = sensor.original_data
+                if abs(last_force - current_force) < 0.1:
+                    motor.halt(is_pdo=True)
+                    motor.set_speed(0, is_pdo=True)
+                    break
+            
+            sensor.set_zero(self.PARAMETER["sensor_calibration_init_count_{}".format(i)])
+
+            motor.enable_operation(is_pdo=True)
+            while True:
+                force_error = -5 - sensor.force
+
+                if abs(force_error) < 0.01:
+                    motor.disable_operation(is_pdo=True)
+                    motor.set_speed(0, is_pdo=True)
+                    break
+                elif abs(force_error) < 0.1: motor.set_speed(- 10 if force_error < 0 else 10, is_pdo=True, log=False)
+                elif abs(force_error) < 2: motor.set_speed(int(force_error * 20), is_pdo=True, log=False)
+                elif abs(force_error) < 4: motor.set_speed(int(force_error * 25), is_pdo=True, log=False)
+                else: motor.set_speed(- 100 if force_error < 0 else 100, is_pdo=True, log=False)
+        
+        self.sensor_calibration_end.emit()
 
     def rope_force_adapt(self, i_f: int, m_f: int, o_f: int, i_pid: tuple, m_pid: tuple, o_pid: tuple, start, finish) -> None:
         self.rope_force_adapt_thread = ContinuumAttitudeAdjust(self, 
@@ -600,6 +666,7 @@ class ContinuumRobot(QObject):
                 self.gripper_calibration_end.emit()
 
                 break
+            time.sleep(0.001)
 
     def initGripperActuator(self, control_mode: str):
         if control_mode == "speed":
@@ -684,45 +751,42 @@ class ContinuumRobot(QObject):
         return success
 
 
-    def rope_move_abs(self, rope: str, /, *, point: float, velocity: float) -> None:
-        duration_time = []
+    # def rope_move_abs(self, rope: str, /, *, point: float, velocity: float) -> None:
+    #     duration_time = []
 
-        for node_id in rope:
-            target_position = int(round(getattr(self, f"motor_{node_id}").zero_position + abs(point) * self.ROPE_RATIO, 0))
-            profile_velocity = int(round(self.ROPE_RATIO * abs(velocity) / self.VELOCITY_RATIO, 0))
-            getattr(self, f"motor_{node_id}").set_position(target_position, velocity=profile_velocity, is_pdo=True)
-            getattr(self, f"motor_{node_id}").ready(is_pdo=True)
+    #     for node_id in rope:
+    #         target_position = int(round(getattr(self, f"motor_{node_id}").zero_position + abs(point) * self.ROPE_RATIO, 0))
+    #         profile_velocity = int(round(self.ROPE_RATIO * abs(velocity) / self.VELOCITY_RATIO, 0))
+    #         getattr(self, f"motor_{node_id}").set_position(target_position, velocity=profile_velocity, is_pdo=True)
+    #         getattr(self, f"motor_{node_id}").ready(is_pdo=True)
             
-            t = abs(target_position - getattr(self, f"motor_{node_id}").current_position) / (profile_velocity * self.VELOCITY_RATIO) + 0.1
-            duration_time.append(t)
+    #         t = abs(target_position - getattr(self, f"motor_{node_id}").current_position) / (profile_velocity * self.VELOCITY_RATIO) + 0.1
+    #         duration_time.append(t)
 
-        duration_time.sort(reverse=True)
-        delay = duration_time[0]
+    #     duration_time.sort(reverse=True)
+    #     delay = duration_time[0]
         
-        for node_id in rope:
-            getattr(self, f"motor_{node_id}").action(is_immediate=False, is_relative=False, is_pdo=True)
+    #     for node_id in rope:
+    #         getattr(self, f"motor_{node_id}").action(is_immediate=False, is_relative=False, is_pdo=True)
         
-        time.sleep(delay)
-    
-    def rope_move_rel(self, rope: str, /, *, distance: float, velocity: float, is_wait=True) -> None:
-        target_position = int(round(distance * self.ROPE_RATIO, 0))
-        profile_velocity = int(round(self.ROPE_RATIO * abs(velocity) / self.VELOCITY_RATIO, 0))
+    #     time.sleep(delay)
+    # def rope_move_rel(self, rope: str, /, *, distance: float, velocity: float, is_wait=True) -> None:
+    #     target_position = int(round(distance * self.ROPE_RATIO, 0))
+    #     profile_velocity = int(round(self.ROPE_RATIO * abs(velocity) / self.VELOCITY_RATIO, 0))
         
-        for node_id in rope:
-            getattr(self, f"motor_{node_id}").set_position(target_position, velocity=profile_velocity, is_pdo=True)
-            getattr(self, f"motor_{node_id}").ready(is_pdo=True)
+    #     for node_id in rope:
+    #         getattr(self, f"motor_{node_id}").set_position(target_position, velocity=profile_velocity, is_pdo=True)
+    #         getattr(self, f"motor_{node_id}").ready(is_pdo=True)
 
-        for node_id in rope:
-            getattr(self, f"motor_{node_id}").action(is_immediate=False, is_relative=True, is_pdo=True)
+    #     for node_id in rope:
+    #         getattr(self, f"motor_{node_id}").action(is_immediate=False, is_relative=True, is_pdo=True)
 
-        if is_wait:
-            duration_time = abs(target_position) / (profile_velocity * self.VELOCITY_RATIO) + 0.1
-            time.sleep(duration_time)
-
-    def rope_ready_position(self, *args: str):
-        for node_id in args:
-            getattr(self, f"motor_{node_id}").set_control_mode("position_control")
-    
+    #     if is_wait:
+    #         duration_time = abs(target_position) / (profile_velocity * self.VELOCITY_RATIO) + 0.1
+    #         time.sleep(duration_time)
+    # def rope_ready_position(self, *args: str):
+    #     for node_id in args:
+    #         getattr(self, f"motor_{node_id}").set_control_mode("position_control")
     def rope_move_abs_new(self, *args: tuple):
         id_list = []
         t_list = []
@@ -745,7 +809,6 @@ class ContinuumRobot(QObject):
         for id in id_list:
             getattr(self, f"motor_{id}").action(is_immediate=False, is_relative=False, is_pdo=True)
         time.sleep(delay)
-
     def rope_move_rel_new(self, *args: tuple):
         id_list = []
         t_list = []
@@ -768,43 +831,30 @@ class ContinuumRobot(QObject):
         for id in id_list:
             getattr(self, f"motor_{id}").action(is_immediate=False, is_relative=True, is_pdo=True)
         time.sleep(delay)
-
-    ''' 对控制肌腱伸缩的电机进行速度模式的准备工作
-    设置速度模式 -> 设置目标速度: 0 -> 设置控制状态: enable operation
-    输入: 字符串 电机ID "1"~"9"
-    '''
-    def rope_ready_speed(self, *args: str):
-        for node_id in args:
-            getattr(self, f"motor_{node_id}").set_control_mode("speed_control")
-        for node_id in args:
-            getattr(self, f"motor_{node_id}").set_speed(0, is_pdo=True)
-        for node_id in args:
-            getattr(self, f"motor_{node_id}").enable_operation(is_pdo=True)
-    
-    ''' 对控制肌腱伸缩的电机进行速度模式的后处理
-    设置控制状态: disable operation -> 设置目标速度: 0
-    输入: 字符串 电机ID "1"~"9"
-    '''
-    def rope_stop_speed(self, *args: str):
-        for node_id in args:
-            getattr(self, f"motor_{node_id}").disable_operation(is_pdo=True)
-        for node_id in args:
-            getattr(self, f"motor_{node_id}").set_speed(0, is_pdo=True)
-    
-    ''' 对控制肌腱伸缩的电机进行速度模式的运动
-    输入: 元组 (电机ID, 速度)
-    电机ID: "1" ~ "9"
-    速度: mm/s 有正负区别
-    '''
-    def rope_move_speed(self, *args: tuple):
-        for tuple in args:
-            node_id, speed = tuple
-            target_speed = int(round(self.ROPE_RATIO * speed / self.VELOCITY_RATIO, 0))
-            getattr(self, f"motor_{node_id}").set_speed(target_speed, is_pdo=True)
-
-    def rope_move(self, rope: str, distance: float, velocity: float, /, *, is_relative: bool) -> None:
-        self.rope_move_thread = RopeMove(rope, distance, velocity, is_relative=is_relative, robot=self)
-        self.rope_move_thread.start()
+    # ''' 对控制肌腱伸缩的电机进行速度模式的准备工作
+    # 设置速度模式 -> 设置目标速度: 0 -> 设置控制状态: enable operation
+    # 输入: 字符串 电机ID "1"~"9"
+    # '''
+    # def rope_ready_speed(self, *args: str):
+    #     for node_id in args:
+    #         getattr(self, f"motor_{node_id}").set_control_mode("speed_control")
+    #     for node_id in args:
+    #         getattr(self, f"motor_{node_id}").set_speed(0, is_pdo=True)
+    #     for node_id in args:
+    #         getattr(self, f"motor_{node_id}").enable_operation(is_pdo=True)
+    # def rope_stop_speed(self, *args: str):
+    #     for node_id in args:
+    #         getattr(self, f"motor_{node_id}").disable_operation(is_pdo=True)
+    #     for node_id in args:
+    #         getattr(self, f"motor_{node_id}").set_speed(0, is_pdo=True) 
+    # def rope_move_speed(self, *args: tuple):
+    #     for tuple in args:
+    #         node_id, speed = tuple
+    #         target_speed = int(round(self.ROPE_RATIO * speed / self.VELOCITY_RATIO, 0))
+    #         getattr(self, f"motor_{node_id}").set_speed(target_speed, is_pdo=True)
+    # def rope_move(self, rope: str, distance: float, velocity: float, /, *, is_relative: bool) -> None:
+    #     self.rope_move_thread = RopeMove(rope, distance, velocity, is_relative=is_relative, robot=self)
+    #     self.rope_move_thread.start()
     
     def initTendonActuator(self, control_mode: str, *args: str):
         if control_mode == "speed":
@@ -817,11 +867,20 @@ class ContinuumRobot(QObject):
         elif control_mode == "position":
             for node_id in args:
                 getattr(self, f"motor_{node_id}").set_control_mode("position_control")
+    ''' 对控制肌腱伸缩的电机进行速度模式的运动
+    输入: 元组 (电机ID, 速度)
+    电机ID: "1" ~ "9"
+    速度: mm/s 有正负区别
+    '''
     def moveTendonSpeed(self, *args: tuple):
         for tuple in args:
             node_id, speed = tuple
             target_speed = int(round(self.ROPE_RATIO * speed / self.VELOCITY_RATIO, 0))
             getattr(self, f"motor_{node_id}").set_speed(target_speed, is_pdo=True)
+    ''' 对控制肌腱伸缩的电机进行速度模式的后处理
+    设置控制状态: disable operation -> 设置目标速度: 0
+    输入: 字符串 电机ID "1"~"9"
+    '''
     def stopTendon(self, *args: str):
         for node_id in args:
             getattr(self, f"motor_{node_id}").disable_operation(is_pdo=True)
@@ -1458,24 +1517,6 @@ class ContinuumAttitudeAdjust(QThread):
     def stop(self):
         self.__is_stop = True
 
-''' 线 移动 '''
-class RopeMove(QThread):
-    def __init__(self, rope: str, distance: float, velocity: float, /, *, is_relative=False, robot: ContinuumRobot) -> None:
-        super().__init__()
-
-        self.__rope = rope
-        self.__dis = distance
-        self.__vel = velocity
-        self.__is_rel = is_relative
-        self.robot = robot
-    
-    def run(self):
-        for node_id in self.__rope:
-            getattr(self.robot, f"motor_{node_id}").set_control_mode("position_control", check=False)
-        
-        if self.__is_rel: self.robot.rope_move_rel(self.__rope, distance=self.__dis, velocity=self.__vel)
-        else: self.robot.rope_move_abs(self.__rope, point=self.__dis, velocity=self.__vel)
-
 ''' 电机 速度模式 '''
 class JointSpeed(QThread):
     def __init__(self, motor: list, speed: int, /, *, robot: ContinuumRobot) -> None:
@@ -1515,103 +1556,6 @@ class JointSpeed(QThread):
                 getattr(self.robot, f"motor_{node_id}").set_speed(0, is_pdo=True)
                 getattr(self.robot, f"motor_{node_id}").disable_operation(is_pdo=True)
                 getattr(self.robot, f"motor_{node_id}").set_control_mode("position_control", check=False)
-
-''' 传感器 调零 '''
-class ForceSensorCalibration(QThread):
-    __start_signal = pyqtSignal()
-    __finish_signal = pyqtSignal()
-
-    def __init__(self, robot: ContinuumRobot, force_ref_list: list, /, *, num=100, start_signal, finish_signal) -> None:
-        super().__init__()
-
-        self.__is_stop = False
-
-        self.robot = robot
-
-        self.__start_signal.connect(start_signal)
-        self.__finish_signal.connect(finish_signal)
-        
-        self.ref_1 = - abs(force_ref_list[0])
-        self.ref_2 = - abs(force_ref_list[1])
-        self.ref_3 = - abs(force_ref_list[2])
-        self.ref_4 = - abs(force_ref_list[3])
-        self.ref_5 = - abs(force_ref_list[4])
-        self.ref_6 = - abs(force_ref_list[5])
-        self.ref_7 = - abs(force_ref_list[6])
-        self.ref_8 = - abs(force_ref_list[7])
-        self.ref_9 = - abs(force_ref_list[8])
-
-        self.__num = num
-    
-    def run(self):
-        self.robot.motor_1.set_control_mode("speed_control", check=False)
-        self.robot.motor_2.set_control_mode("speed_control", check=False)
-        self.robot.motor_3.set_control_mode("speed_control", check=False)
-        self.robot.motor_4.set_control_mode("speed_control", check=False)
-        self.robot.motor_5.set_control_mode("speed_control", check=False)
-        self.robot.motor_6.set_control_mode("speed_control", check=False)
-        self.robot.motor_7.set_control_mode("speed_control", check=False)
-        self.robot.motor_8.set_control_mode("speed_control", check=False)
-        self.robot.motor_9.set_control_mode("speed_control", check=False)
-
-        self.robot.motor_1.set_speed(0, is_pdo=True)
-        self.robot.motor_2.set_speed(0, is_pdo=True)
-        self.robot.motor_3.set_speed(0, is_pdo=True)
-        self.robot.motor_4.set_speed(0, is_pdo=True)
-        self.robot.motor_5.set_speed(0, is_pdo=True)
-        self.robot.motor_6.set_speed(0, is_pdo=True)
-        self.robot.motor_7.set_speed(0, is_pdo=True)
-        self.robot.motor_8.set_speed(0, is_pdo=True)
-        self.robot.motor_9.set_speed(0, is_pdo=True)
-
-        self.__start_signal.emit()
-
-        for i in range(9,0,-1):
-            motor = getattr(self.robot, f"motor_{i}")
-            sensor = getattr(self.robot, f"sensor_{i}")
-            force_ref = getattr(self, f"ref_{i}")
-
-            motor.enable_operation(is_pdo=True)
-
-            while True:
-                force_error = force_ref - sensor.force
-                if abs(force_error) < 0.01:
-                    motor.halt(is_pdo=True)
-                    break
-                elif abs(force_error) < 0.1: motor.set_speed(- 10 if force_error < 0 else 10, is_pdo=True, log=False)
-                elif abs(force_error) < 2: motor.set_speed(int(force_error * 20), is_pdo=True, log=False)
-                elif abs(force_error) < 4: motor.set_speed(int(force_error * 25), is_pdo=True, log=False)
-                else: motor.set_speed(- 100 if force_error < 0 else 100, is_pdo=True, log=False)
-            
-            motor.set_speed(10, is_pdo=True)
-            motor.enable_operation(is_pdo=True)
-
-            while True:
-                last_force = sensor.original_data
-                time.sleep(1)
-                current_force = sensor.original_data
-                if abs(last_force - current_force) < 0.1:
-                    motor.halt(is_pdo=True)
-                    motor.set_speed(0, is_pdo=True)
-                    break
-            
-            sensor.set_zero(self.__num)
-
-            motor.enable_operation(is_pdo=True)
-            while True:
-                force_error = -5 - sensor.force
-
-                if abs(force_error) < 0.01:
-                    motor.disable_operation(is_pdo=True)
-                    motor.set_speed(0, is_pdo=True)
-                    break
-                elif abs(force_error) < 0.1: motor.set_speed(- 10 if force_error < 0 else 10, is_pdo=True, log=False)
-                elif abs(force_error) < 2: motor.set_speed(int(force_error * 20), is_pdo=True, log=False)
-                elif abs(force_error) < 4: motor.set_speed(int(force_error * 25), is_pdo=True, log=False)
-                else: motor.set_speed(- 100 if force_error < 0 else 100, is_pdo=True, log=False)
-        
-        self.__finish_signal.emit()
-
 
 
 
