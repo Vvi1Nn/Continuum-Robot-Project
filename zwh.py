@@ -18,5 +18,11 @@ print("\033[7;35m紫红+反白\033[0m")
 print("\033[0;36m青蓝\033[0m")
 print("\033[8;37m白+不可见\033[0m")
 
-for i in range(0,4,2):
-    print(i)
+class A():
+    def __init__(self, name) -> None:
+        self.name = name
+
+a = {}
+for i in range(5):
+    a[i] = A(i)
+    print(a[i].name)
