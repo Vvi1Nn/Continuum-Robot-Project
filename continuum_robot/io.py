@@ -149,60 +149,28 @@ class IoModule(CanOpenBusProcessor, QObject):
     
     ''' 1 '''
     def open_valve_1(self) -> bool:
-        if not self.output_1:
-            success = self.set_output(True, "1")
-            time.sleep(0.2)
-        else: success = True
-        return success
+        return self.set_output(True, "1")
     
     def close_valve_1(self) -> bool:
-        if self.output_1:
-            success = self.set_output(False, "1")
-            time.sleep(0.2)
-        else: success = True
-        return success
+        return self.set_output(False, "1")
     
     ''' 2 '''
     def open_valve_2(self) -> bool:
-        if not self.output_2:
-            success = self.set_output(True, "2")
-            time.sleep(0.2)
-        else: success = True
-        return success
+        return self.set_output(True, "2")
     
     def close_valve_2(self) -> bool:
-        if self.output_2:
-            success = self.set_output(False, "2")
-            time.sleep(0.2)
-        else: success = True
-        return success
+        return self.set_output(False, "2")
     
     ''' 3 '''
     def open_valve_3(self) -> bool:
-        if not self.output_3:
-            success = self.set_output(True, "3")
-            time.sleep(0.2)
-        else: success = True
-        return success
+        return self.set_output(True, "3")
     
     def close_valve_3(self) -> bool:
-        if self.output_3:
-            success = self.set_output(False, "3")
-            time.sleep(0.2)
-        else: success = True
-        return success
+        return self.set_output(False, "3")
     
     ''' 4 '''
     def open_valve_4(self) -> bool:
-        if self.output_4:
-            success = self.set_output(False, "4")
-            time.sleep(0.2)
-        else: success = True
-        return success
+        return self.set_output(False, "4")
     
     def close_valve_4(self) -> bool:
-        if not self.output_4:
-            success = self.set_output(True, "4")
-            time.sleep(0.2)
-        else: success = True
-        return success
+        return self.set_output(True, "4")
