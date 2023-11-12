@@ -92,7 +92,7 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
         else: status = "send_fail"
         
         if log: print(print_dict[status])
-        return True if status == "success" else self.setBusStatus(times=times-1, check=check, delay=delay, log=log)
+        return True if status == "success" else self.setBusStatus(label, times=times-1, check=check, delay=delay, log=log)
     
     ''' 检查总线的状态 '''
     def checkBusStatus(self, /, *, times=1, log=False) -> bool:
@@ -256,9 +256,9 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
     ''' 开启PDO '''
     def startPDO(self, /, *, times=1, check=True, delay=0.5, log=False) -> bool:
         print_dict = {
-            "success": lambda: print("\033[0;32m[Node-ID {}] PDO START\033[0m".format(self.node_id)),
-            "again": lambda: print("\033[0;33m[Node-ID {}] starting pdo ...\033[0m".format(self.node_id)),
-            "fail": lambda: print("\033[0;31m[Node-ID {}] start pdo failed\033[0m".format(self.node_id)),
+            "success": "\033[0;32m[Node-ID {}] PDO START\033[0m".format(self.node_id),
+            "again": "\033[0;33m[Node-ID {}] starting pdo ...\033[0m".format(self.node_id),
+            "fail": "\033[0;31m[Node-ID {}] start pdo failed\033[0m".format(self.node_id),
         }
 
         if times == 0:
@@ -274,9 +274,9 @@ class CanOpenBusProcessor(CanOpenMsgGenerator):
     ''' 关闭PDO '''
     def stopPDO(self, /, *, times=1, check=True, delay=0.5, log=False) -> bool:
         print_dict = {
-            "success": lambda: print("\033[0;32m[Node-ID {}] PDO STOP\033[0m".format(self.node_id)),
-            "again": lambda: print("\033[0;33m[Node-ID {}] stopping pdo ...\033[0m".format(self.node_id)),
-            "fail": lambda: print("\033[0;31m[Node-ID {}] stop pdo failed\033[0m".format(self.node_id)),
+            "success": "\033[0;32m[Node-ID {}] PDO STOP\033[0m".format(self.node_id),
+            "again": "\033[0;33m[Node-ID {}] stopping pdo ...\033[0m".format(self.node_id),
+            "fail": "\033[0;31m[Node-ID {}] stop pdo failed\033[0m".format(self.node_id),
         }
 
         if times == 0:
