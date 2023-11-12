@@ -298,7 +298,7 @@ QTableWidget{
                </item>
               </layout>
              </widget>
-             <widget class="QWidget" name="tab_calibration" native="true">
+             <widget class="QWidget" name="tab_calibration">
               <attribute name="title">
                <string>Calibration</string>
               </attribute>

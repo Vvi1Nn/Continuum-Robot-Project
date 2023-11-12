@@ -5911,8 +5911,8 @@ class Ui_MainWindow(object):
         self.menuBar.addAction(self.menu_settings.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.pages.setCurrentIndex(8)
-        self.tabWidget_42.setCurrentIndex(1)
+        self.pages.setCurrentIndex(0)
+        self.tabWidget_42.setCurrentIndex(0)
         self.status.setCurrentIndex(0)
         self.control.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
