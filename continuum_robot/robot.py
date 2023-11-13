@@ -4,6 +4,7 @@
 ''' robot.py continuum robot v2.0 '''
 
 
+import typing
 from PyQt5.QtCore import QThread, pyqtSignal, QObject
 
 from PyQt5 import QtGui
@@ -30,30 +31,178 @@ class ContinuumRobot(QObject):
     VELOCITY_RATIO = 440
 
     PARAMETER = {
-        "gripper_calibration_forward_distance": 30,
-        "gripper_calibration_forward_velocity": 200,
-        "gripper_calibration_backward_velocity": 50,
-        "gripper_homing_velocity": 300,
-        "sensor_sampling_frequency": 20,
-        "sensor_calibration_reference_force_1": 8.0,
-        "sensor_calibration_reference_force_2": 8.0,
-        "sensor_calibration_reference_force_3": 8.0,
-        "sensor_calibration_reference_force_4": 8.0,
-        "sensor_calibration_reference_force_5": 8.0,
-        "sensor_calibration_reference_force_6": 8.0,
-        "sensor_calibration_reference_force_7": 8.0,
-        "sensor_calibration_reference_force_8": 8.0,
-        "sensor_calibration_reference_force_9": 8.0,
-        "sensor_calibration_init_count_1": 100,
-        "sensor_calibration_init_count_2": 100,
-        "sensor_calibration_init_count_3": 100,
-        "sensor_calibration_init_count_4": 100,
-        "sensor_calibration_init_count_5": 100,
-        "sensor_calibration_init_count_6": 100,
-        "sensor_calibration_init_count_7": 100,
-        "sensor_calibration_init_count_8": 100,
-        "sensor_calibration_init_count_9": 100,
+        "gripper_calibration_forward_distance": {"value": 30, "units": "mm", "note": "0~50"},
+        "gripper_calibration_forward_velocity": {"value": 200, "units": "puu/s", "note": "0~200"},
+        "gripper_calibration_backward_velocity": {"value": 50, "units": "puu/s", "note": "0~50"},
+        "gripper_homing_velocity": {"value": 300, "units": "puu/s", "note": "0~300"},
+        "sensor_sampling_frequency": {"value": 20, "units": "Hz", "note": "10~20"},
+        "control_frequency": {"value": 20, "units": "Hz", "note": "10~20"},
+        "sensor_calibration_ref_force_1": {"value": 8.0, "units": "N", "note": ""},
+        "sensor_calibration_ref_force_2": {"value": 8.0, "units": "N", "note": ""},
+        "sensor_calibration_ref_force_3": {"value": 8.0, "units": "N", "note": ""},
+        "sensor_calibration_ref_force_4": {"value": 8.0, "units": "N", "note": ""},
+        "sensor_calibration_ref_force_5": {"value": 8.0, "units": "N", "note": ""},
+        "sensor_calibration_ref_force_6": {"value": 8.0, "units": "N", "note": ""},
+        "sensor_calibration_ref_force_7": {"value": 8.0, "units": "N", "note": ""},
+        "sensor_calibration_ref_force_8": {"value": 8.0, "units": "N", "note": ""},
+        "sensor_calibration_ref_force_9": {"value": 8.0, "units": "N", "note": ""},
+        "sensor_calibration_init_count_1": {"value": 100, "units": "times", "note": ""},
+        "sensor_calibration_init_count_2": {"value": 100, "units": "times", "note": ""},
+        "sensor_calibration_init_count_3": {"value": 100, "units": "times", "note": ""},
+        "sensor_calibration_init_count_4": {"value": 100, "units": "times", "note": ""},
+        "sensor_calibration_init_count_5": {"value": 100, "units": "times", "note": ""},
+        "sensor_calibration_init_count_6": {"value": 100, "units": "times", "note": ""},
+        "sensor_calibration_init_count_7": {"value": 100, "units": "times", "note": ""},
+        "sensor_calibration_init_count_8": {"value": 100, "units": "times", "note": ""},
+        "sensor_calibration_init_count_9": {"value": 100, "units": "times", "note": ""},
+        "continnum_calibration_ref_force_1": {"value": 5.0, "units": "N", "note": ""},
+        "continnum_calibration_ref_force_2": {"value": 5.0, "units": "N", "note": ""},
+        "continnum_calibration_ref_force_3": {"value": 5.0, "units": "N", "note": ""},
+        "continnum_calibration_ref_force_4": {"value": 3.0, "units": "N", "note": ""},
+        "continnum_calibration_ref_force_5": {"value": 3.0, "units": "N", "note": ""},
+        "continnum_calibration_ref_force_6": {"value": 3.0, "units": "N", "note": ""},
+        "continnum_calibration_ref_force_7": {"value": 2.0, "units": "N", "note": ""},
+        "continnum_calibration_ref_force_8": {"value": 2.0, "units": "N", "note": ""},
+        "continnum_calibration_ref_force_9": {"value": 2.0, "units": "N", "note": ""},
+        "continnum_calibration_kp_1": {"value": 10.0, "units": "puu/(s*N)", "note": ""},
+        "continnum_calibration_kp_2": {"value": 10.0, "units": "puu/(s*N)", "note": ""},
+        "continnum_calibration_kp_3": {"value": 10.0, "units": "puu/(s*N)", "note": ""},
+        "continnum_calibration_kp_4": {"value": 10.0, "units": "puu/(s*N)", "note": ""},
+        "continnum_calibration_kp_5": {"value": 10.0, "units": "puu/(s*N)", "note": ""},
+        "continnum_calibration_kp_6": {"value": 10.0, "units": "puu/(s*N)", "note": ""},
+        "continnum_calibration_kp_7": {"value": 10.0, "units": "puu/(s*N)", "note": ""},
+        "continnum_calibration_kp_8": {"value": 10.0, "units": "puu/(s*N)", "note": ""},
+        "continnum_calibration_kp_9": {"value": 10.0, "units": "puu/(s*N)", "note": ""},
+        "continnum_calibration_ki_1": {"value": 0.0, "units": "puu/(s*N)", "note": ""},
+        "continnum_calibration_ki_2": {"value": 0.0, "units": "puu/(s*N)", "note": ""},
+        "continnum_calibration_ki_3": {"value": 0.0, "units": "puu/(s*N)", "note": ""},
+        "continnum_calibration_ki_4": {"value": 0.0, "units": "puu/(s*N)", "note": ""},
+        "continnum_calibration_ki_5": {"value": 0.0, "units": "puu/(s*N)", "note": ""},
+        "continnum_calibration_ki_6": {"value": 0.0, "units": "puu/(s*N)", "note": ""},
+        "continnum_calibration_ki_7": {"value": 0.0, "units": "puu/(s*N)", "note": ""},
+        "continnum_calibration_ki_8": {"value": 0.0, "units": "puu/(s*N)", "note": ""},
+        "continnum_calibration_ki_9": {"value": 0.0, "units": "puu/(s*N)", "note": ""},
+        "continnum_calibration_kd_1": {"value": 0.0, "units": "puu/(s*N)", "note": ""},
+        "continnum_calibration_kd_2": {"value": 0.0, "units": "puu/(s*N)", "note": ""},
+        "continnum_calibration_kd_3": {"value": 0.0, "units": "puu/(s*N)", "note": ""},
+        "continnum_calibration_kd_4": {"value": 0.0, "units": "puu/(s*N)", "note": ""},
+        "continnum_calibration_kd_5": {"value": 0.0, "units": "puu/(s*N)", "note": ""},
+        "continnum_calibration_kd_6": {"value": 0.0, "units": "puu/(s*N)", "note": ""},
+        "continnum_calibration_kd_7": {"value": 0.0, "units": "puu/(s*N)", "note": ""},
+        "continnum_calibration_kd_8": {"value": 0.0, "units": "puu/(s*N)", "note": ""},
+        "continnum_calibration_kd_9": {"value": 0.0, "units": "puu/(s*N)", "note": ""},
+
+        "kinematics_control_inside_s_d": {"value": 5.0, "units": "mm/s", "note": ""},
+        "kinematics_control_midside_s_d": {"value": 5.0, "units": "mm/s", "note": ""},
+        "kinematics_control_outside_s_d": {"value": 5.0, "units": "mm/s", "note": ""},
+        "kinematics_control_inside_kappa_d": {"value": 0.001, "units": "1/(mm*s)", "note": ""},
+        "kinematics_control_midside_kappa_d": {"value": 0.001, "units": "1/(mm*s)", "note": ""},
+        "kinematics_control_outside_kappa_d": {"value": 0.001, "units": "1/(mm*s)", "note": ""},
+        "kinematics_control_inside_phi_d": {"value": 0.25, "units": "rad/s", "note": ""},
+        "kinematics_control_midside_phi_d": {"value": 0.25, "units": "rad/s", "note": ""},
+        "kinematics_control_outside_phi_d": {"value": 0.25, "units": "rad/s", "note": ""},
+
+        "kinematics_control_inside_s_min": {"value": None, "units": "mm", "note": ""},
+        "kinematics_control_inside_s_max": {"value": 160.0, "units": "mm", "note": ""},
+        "kinematics_control_midside_s_min": {"value": None, "units": "mm", "note": ""},
+        "kinematics_control_midside_s_max": {"value": 170.0, "units": "mm", "note": ""},
+        "kinematics_control_outside_s_min": {"value": None, "units": "mm", "note": ""},
+        "kinematics_control_outside_s_max": {"value": 170.0, "units": "mm", "note": ""},
+
+        "kinematics_control_inside_kappa_min": {"value": 0.0002, "units": "1/mm", "note": ""},
+        "kinematics_control_inside_kappa_max": {"value": 0.03, "units": "1/mm", "note": ""},
+        "kinematics_control_midside_kappa_min": {"value": 0.0001, "units": "1/mm", "note": ""},
+        "kinematics_control_midside_kappa_max": {"value": 0.04, "units": "1/mm", "note": ""},
+        "kinematics_control_outside_kappa_min": {"value": 0.0001, "units": "1/mm", "note": ""},
+        "kinematics_control_outside_kappa_max": {"value": 0.05, "units": "1/mm", "note": ""},
+
+        "kinematics_control_inside_min_point": {"value": 348.0, "units": "mm", "note": ""},
+        "kinematics_control_inside_max_point": {"value": 358.0, "units": "mm", "note": ""},
+        "kinematics_control_midside_min_point": {"value": 227.0, "units": "mm", "note": ""},
+        "kinematics_control_midside_max_point": {"value": 237.0, "units": "mm", "note": ""},
+        "kinematics_control_outside_min_point": {"value": 100.0, "units": "mm", "note": ""},
+        "kinematics_control_outside_max_point": {"value": 110.0, "units": "mm", "note": ""},
+
+        "kinematics_control_inside_ref_force_1": {"value": 5.0, "units": "N", "note": ""},
+        "kinematics_control_inside_ref_force_2": {"value": 5.0, "units": "N", "note": ""},
+        "kinematics_control_inside_ref_force_3": {"value": 5.0, "units": "N", "note": ""},
+        "kinematics_control_inside_ref_force_4": {"value": 3.0, "units": "N", "note": ""},
+        "kinematics_control_inside_ref_force_5": {"value": 3.0, "units": "N", "note": ""},
+        "kinematics_control_inside_ref_force_6": {"value": 3.0, "units": "N", "note": ""},
+        "kinematics_control_inside_ref_force_7": {"value": 2.0, "units": "N", "note": ""},
+        "kinematics_control_inside_ref_force_8": {"value": 2.0, "units": "N", "note": ""},
+        "kinematics_control_inside_ref_force_9": {"value": 2.0, "units": "N", "note": ""},
+        "kinematics_control_inside_kp_1": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_inside_kp_2": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_inside_kp_3": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_inside_kp_4": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_inside_kp_5": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_inside_kp_6": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_inside_kp_7": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_inside_kp_8": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_inside_kp_9": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_inside_ki_1": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_inside_ki_2": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_inside_ki_3": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_inside_ki_4": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_inside_ki_5": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_inside_ki_6": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_inside_ki_7": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_inside_ki_8": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_inside_ki_9": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_inside_kd_1": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_inside_kd_2": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_inside_kd_3": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_inside_kd_4": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_inside_kd_5": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_inside_kd_6": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_inside_kd_7": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_inside_kd_8": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_inside_kd_9": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+
+        "kinematics_control_midside_ref_force_1": {"value": 5.0, "units": "N", "note": ""},
+        "kinematics_control_midside_ref_force_2": {"value": 5.0, "units": "N", "note": ""},
+        "kinematics_control_midside_ref_force_3": {"value": 5.0, "units": "N", "note": ""},
+        "kinematics_control_midside_ref_force_4": {"value": 3.0, "units": "N", "note": ""},
+        "kinematics_control_midside_ref_force_5": {"value": 3.0, "units": "N", "note": ""},
+        "kinematics_control_midside_ref_force_6": {"value": 3.0, "units": "N", "note": ""},
+        "kinematics_control_midside_kp_1": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_midside_kp_2": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_midside_kp_3": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_midside_kp_4": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_midside_kp_5": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_midside_kp_6": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_midside_ki_1": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_midside_ki_2": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_midside_ki_3": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_midside_ki_4": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_midside_ki_5": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_midside_ki_6": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_midside_kd_1": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_midside_kd_2": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_midside_kd_3": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_midside_kd_4": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_midside_kd_5": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_midside_kd_6": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+
+        "kinematics_control_outside_ref_force_1": {"value": 5.0, "units": "N", "note": ""},
+        "kinematics_control_outside_ref_force_2": {"value": 5.0, "units": "N", "note": ""},
+        "kinematics_control_outside_ref_force_3": {"value": 5.0, "units": "N", "note": ""},
+        "kinematics_control_outside_kp_1": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_outside_kp_2": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_outside_kp_3": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_outside_ki_1": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_outside_ki_2": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_outside_ki_3": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_outside_kd_1": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_outside_kd_2": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+        "kinematics_control_outside_kd_3": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
     }
+    parameter_changed = pyqtSignal(str, float)
+    def setParameter(self, name, value):
+        if name in self.PARAMETER and self.PARAMETER[name]["value"] != value:
+            self.PARAMETER[name]["value"] = float(value)
+            self.parameter_changed.emit(name, float(value))
 
     show_motor_status = pyqtSignal(int)
     show_motor_original = pyqtSignal(int)
@@ -77,11 +226,17 @@ class ContinuumRobot(QObject):
     
     sensor_calibration_start = pyqtSignal()
     sensor_calibration_end = pyqtSignal()
+
+    continuum_calibration_start = pyqtSignal()
+    continuum_calibration_end = pyqtSignal()
+
+    continuum_move_start = pyqtSignal()
+    continuum_move_end = pyqtSignal()
     
     def __init__(self) -> None:
         QObject.__init__(self)
 
-        # with open('robot_parameter.json', 'r') as file: self.PARAMETER = json.load(file) # 加载参数
+        with open('robot_parameter.json', 'r') as file: self.PARAMETER = json.load(file) # 加载参数
 
         self.usbcan_0 = UsbCan.setDeviceType(type="USBCAN2", index="0").isShowLog(False)("0")
         self.usbcan_1 = UsbCan.setDeviceType(type="USBCAN2", index="0").isShowLog(False)("1")
@@ -327,7 +482,7 @@ class ContinuumRobot(QObject):
 
                 l_1, l_2, l_3, l_4, l_5, l_6, l_7, l_8, l_9 = self.transferSpaceConfig2Actuator("inside", s_in, kappa_in, phi_in)
                 for i in range(0,6):
-                    exec("self.robot.rope_inside_length[{}] = l_{}".format(i, i+1))
+                    exec("self.rope_inside_length[{}] = l_{}".format(i, i+1))
 
                 self.inside_coordinate = self.transferSpaceConfig2Task("inside")
                 trans_in = self.transferSpaceConfig2Task("inside", is_matrix=True)
@@ -415,7 +570,7 @@ class ContinuumRobot(QObject):
                         
                             self.show_force.emit(msg[i].ID)
             
-            time.sleep(max(1 / self.PARAMETER["sensor_sampling_frequency"] - (time.time() - start_time), 0))
+            time.sleep(max(1 / self.PARAMETER["sensor_sampling_frequency"]["value"] - (time.time() - start_time), 0))
         
         print("Update Force Thread Stopped")
     
@@ -469,34 +624,11 @@ class ContinuumRobot(QObject):
             else: times -= 1
         else: self.robot_init_start.emit(False)
     
-    def shut_down_all(self):
+    def setServo(self, status: str):
         for motor in Motor.motor_dict.values():
             time.sleep(0.001)
-            while not motor.shut_down(is_pdo=True): time.sleep(0.001)
-    def switch_on_all(self):
-        for motor in Motor.motor_dict.values():
-            time.sleep(0.001)
-            while not motor.switch_on(is_pdo=True): time.sleep(0.001)
-    def enable_operation_all(self):
-        for motor in Motor.motor_dict.values():
-            time.sleep(0.001)
-            while not motor.enable_operation(is_pdo=True): time.sleep(0.001)
-    def disable_operation_all(self):
-        for motor in Motor.motor_dict.values():
-            time.sleep(0.001)
-            while not motor.disable_operation(is_pdo=True): time.sleep(0.001)
-    def disable_voltage_all(self):
-        for motor in Motor.motor_dict.values():
-            time.sleep(0.001)
-            while not motor.disable_voltage(is_pdo=True): time.sleep(0.001)
-    def fault_reset_all(self):
-        for motor in Motor.motor_dict.values():
-            time.sleep(0.001)
-            while not motor.fault_reset(is_pdo=True): time.sleep(0.001)
-    def quick_stop_all(self):
-        for motor in Motor.motor_dict.values():
-            time.sleep(0.001)
-            while not motor.quick_stop(is_pdo=True): time.sleep(0.001)
+            exec("while not motor.{}(is_pdo=True): time.sleep(0.001)".format(status))
+
 
     def joint_speed(self, motor: list, speed: int):
         self.joint_speed_thread = JointSpeed(motor, speed, robot=self)
@@ -509,26 +641,6 @@ class ContinuumRobot(QObject):
     ''' 力传感器 零位标定
     '''
     def calibrateForceSensor(self):
-        # self.motor_1.set_control_mode("speed_control", check=False)
-        # self.motor_2.set_control_mode("speed_control", check=False)
-        # self.motor_3.set_control_mode("speed_control", check=False)
-        # self.motor_4.set_control_mode("speed_control", check=False)
-        # self.motor_5.set_control_mode("speed_control", check=False)
-        # self.motor_6.set_control_mode("speed_control", check=False)
-        # self.motor_7.set_control_mode("speed_control", check=False)
-        # self.motor_8.set_control_mode("speed_control", check=False)
-        # self.motor_9.set_control_mode("speed_control", check=False)
-
-        # self.motor_1.set_speed(0, is_pdo=True)
-        # self.motor_2.set_speed(0, is_pdo=True)
-        # self.motor_3.set_speed(0, is_pdo=True)
-        # self.motor_4.set_speed(0, is_pdo=True)
-        # self.motor_5.set_speed(0, is_pdo=True)
-        # self.motor_6.set_speed(0, is_pdo=True)
-        # self.motor_7.set_speed(0, is_pdo=True)
-        # self.motor_8.set_speed(0, is_pdo=True)
-        # self.motor_9.set_speed(0, is_pdo=True)
-
         self.initTendonActuator("speed","1","2","3","4","5","6","7","8","9")
 
         self.sensor_calibration_start.emit()
@@ -536,9 +648,7 @@ class ContinuumRobot(QObject):
         for i in range(9,0,-1):
             motor = getattr(self, f"motor_{i}")
             sensor = getattr(self, f"sensor_{i}")
-            force_ref = -abs(self.PARAMETER["sensor_calibration_reference_force_{}".format(i)])
-
-            # motor.enable_operation(is_pdo=True)
+            force_ref = -abs(self.PARAMETER["sensor_calibration_ref_force_{}".format(i)]["value"])
 
             while True:
                 force_error = force_ref - sensor.force
@@ -562,7 +672,7 @@ class ContinuumRobot(QObject):
                     motor.set_speed(0, is_pdo=True)
                     break
             
-            sensor.set_zero(self.PARAMETER["sensor_calibration_init_count_{}".format(i)])
+            sensor.set_zero(self.PARAMETER["sensor_calibration_init_count_{}".format(i)]["value"])
 
             motor.enable_operation(is_pdo=True)
             while True:
@@ -579,17 +689,55 @@ class ContinuumRobot(QObject):
         
         self.sensor_calibration_end.emit()
 
-    def rope_force_adapt(self, i_f: int, m_f: int, o_f: int, i_pid: tuple, m_pid: tuple, o_pid: tuple, start, finish) -> None:
-        self.rope_force_adapt_thread = ContinuumAttitudeAdjust(self, 
-                                                               i_f=i_f, m_f=m_f, o_f=o_f, 
-                                                               i_pid=i_pid, m_pid=m_pid, o_pid=o_pid, 
-                                                               start_signal=start, finish_signal=finish)
-        self.rope_force_adapt_thread.start()
-    
-    def rope_set_zero(self) -> None:
-        self.rope_force_adapt_thread.stop()
-        self.rope_force_adapt_thread.wait()
+    ''' 调整连续体 '''
+    def zeroContinuum(self):
+        self.continuum_calibration_start.emit()
 
+        self.rope_is_set_zero = False
+        self.isCalibrateContinuum = True
+
+        self.setGripper("open")
+        self.setAnchor("3", "open")
+        self.setAnchor("2", "open")
+        self.setAnchor("1", "open")
+        
+        self.initTendonActuator("speed","1","2","3","4","5","6","7","8","9")
+
+        reference_force = np.array([[-abs(self.PARAMETER["continnum_calibration_ref_force_{}".format(i)]["value"]) for i in range(1,10)]]).T
+        kp = np.array([[self.PARAMETER["continnum_calibration_kp_{}".format(i)]["value"] for i in range(1,10)]]).T
+        ki = np.array([[self.PARAMETER["continnum_calibration_ki_{}".format(i)]["value"] for i in range(1,10)]]).T
+        kd = np.array([[self.PARAMETER["continnum_calibration_kd_{}".format(i)]["value"] for i in range(1,10)]]).T
+        previous_error = np.array([[0.0] * 9]).T
+        integral_error = np.array([[0.0] * 9]).T
+        integral_error_max = np.array([[10.0] * 9]).T
+        integral_error_min = np.array([[-10.0] * 9]).T
+         
+        while self.isCalibrateContinuum:
+            current_force = np.array([[getattr(self, f"sensor_{i}").force for i in range(1,10)]]).T
+            current_error = reference_force - current_force
+            integral_error = np.maximum(np.minimum(integral_error + current_error, integral_error_max), integral_error_min)
+            speed = current_error * kp + integral_error * ki + (current_error - previous_error) * kd
+            previous_error = current_error
+
+            print("==================================================")
+            print(int(speed[0, 0]), int(speed[1, 0]), int(speed[2, 0]))
+            print(int(speed[3, 0]), int(speed[4, 0]), int(speed[5, 0]))
+            print(int(speed[6, 0]), int(speed[7, 0]), int(speed[8, 0]))
+
+            for i in range(1,10):
+                getattr(self, f"motor_{i}").set_speed(int(speed[i-1, 0]), is_pdo=True, log=False)
+        
+        self.stopTendon("1","2","3","4","5","6","7","8","9")
+
+        self.setAnchor("1", "close")
+        self.setAnchor("2", "close")
+        self.setAnchor("3", "close")
+
+        for i in range(1,10):
+            getattr(self, f"motor_{i}").setZeroPosition()
+
+        self.continuum_calibration_end.emit()
+    
     ''' 夹爪 归零
     手爪运动至极限位置
     speed: 运动速度 > 0
@@ -602,7 +750,7 @@ class ContinuumRobot(QObject):
         self.setGripper("open")
         if not self.io.input_1:
             self.motor_10.set_control_mode("speed_control", check=False)
-            self.motor_10.set_speed(abs(int(self.PARAMETER["gripper_homing_velocity"])), is_pdo=True)
+            self.motor_10.set_speed(abs(int(self.PARAMETER["gripper_homing_velocity"]["value"])), is_pdo=True)
             self.motor_10.halt(is_pdo=True)
             self.motor_10.enable_operation(is_pdo=True)
         else:
@@ -615,6 +763,7 @@ class ContinuumRobot(QObject):
                 self.motor_10.disable_operation(is_pdo=True)
                 self.gripper_homing_end.emit()
                 break
+            time.sleep(0.001)
 
     ''' 夹爪 调零
     确定手爪处于极限位置时电机10的位置 该位置作为电机10的参考零点
@@ -630,8 +779,8 @@ class ContinuumRobot(QObject):
         self.motor_10.set_control_mode("position_control", check=False)
         time.sleep(0.01)
 
-        d = abs(float(self.PARAMETER["gripper_calibration_forward_distance"]))
-        v = abs(int(self.PARAMETER["gripper_calibration_forward_velocity"]))
+        d = abs(float(self.PARAMETER["gripper_calibration_forward_distance"]["value"]))
+        v = abs(int(self.PARAMETER["gripper_calibration_forward_velocity"]["value"]))
         duration = (d * 5120) / (v * 440) + 0.5
 
         self.motor_10.set_position(- int(d * 5120), velocity=v, is_pdo=True)
@@ -645,7 +794,7 @@ class ContinuumRobot(QObject):
             self.motor_10.set_control_mode("speed_control")
             time.sleep(0.01)
         
-            self.motor_10.set_speed(abs(int(self.PARAMETER["gripper_calibration_backward_velocity"])), is_pdo=True)
+            self.motor_10.set_speed(abs(int(self.PARAMETER["gripper_calibration_backward_velocity"]["value"])), is_pdo=True)
 
             self.motor_10.halt(is_pdo=True)
 
@@ -787,7 +936,7 @@ class ContinuumRobot(QObject):
     # def rope_ready_position(self, *args: str):
     #     for node_id in args:
     #         getattr(self, f"motor_{node_id}").set_control_mode("position_control")
-    def rope_move_abs_new(self, *args: tuple):
+    def moveTendonAbsolute(self, *args: tuple):
         id_list = []
         t_list = []
         for tuple in args:
@@ -809,7 +958,7 @@ class ContinuumRobot(QObject):
         for id in id_list:
             getattr(self, f"motor_{id}").action(is_immediate=False, is_relative=False, is_pdo=True)
         time.sleep(delay)
-    def rope_move_rel_new(self, *args: tuple):
+    def moveTendonRelative(self, *args: tuple):
         id_list = []
         t_list = []
         for tuple in args:
@@ -817,8 +966,8 @@ class ContinuumRobot(QObject):
             id_list.append(id)
             
             tar_pos = int(round(pos * self.ROPE_RATIO, 0))
-            pro_vel = int(round(self.ROPE_RATIO * abs(vel) / self.VELOCITY_RATIO, 0))
-            if pro_vel == 0: pro_vel = 1
+            pro_vel = max(int(round(self.ROPE_RATIO * abs(vel) / self.VELOCITY_RATIO, 0)), 1)
+            # if pro_vel == 0: pro_vel = 1
             
             t = abs(tar_pos) / (pro_vel * self.VELOCITY_RATIO)
             t_list.append(t)
@@ -855,18 +1004,16 @@ class ContinuumRobot(QObject):
     # def rope_move(self, rope: str, distance: float, velocity: float, /, *, is_relative: bool) -> None:
     #     self.rope_move_thread = RopeMove(rope, distance, velocity, is_relative=is_relative, robot=self)
     #     self.rope_move_thread.start()
-    
+
+    ''' 肌腱初始化
+    ''' 
     def initTendonActuator(self, control_mode: str, *args: str):
         if control_mode == "speed":
-            for node_id in args:
-                getattr(self, f"motor_{node_id}").set_control_mode("speed_control")
-            for node_id in args:
-                getattr(self, f"motor_{node_id}").set_speed(0, is_pdo=True)
-            for node_id in args:
-                getattr(self, f"motor_{node_id}").enable_operation(is_pdo=True)
+            for node_id in args: getattr(self, f"motor_{node_id}").set_control_mode("speed_control")
+            for node_id in args: getattr(self, f"motor_{node_id}").set_speed(0, is_pdo=True)
+            for node_id in args: getattr(self, f"motor_{node_id}").enable_operation(is_pdo=True)
         elif control_mode == "position":
-            for node_id in args:
-                getattr(self, f"motor_{node_id}").set_control_mode("position_control")
+            for node_id in args: getattr(self, f"motor_{node_id}").set_control_mode("position_control")
     ''' 对控制肌腱伸缩的电机进行速度模式的运动
     输入: 元组 (电机ID, 速度)
     电机ID: "1" ~ "9"
@@ -882,38 +1029,36 @@ class ContinuumRobot(QObject):
     输入: 字符串 电机ID "1"~"9"
     '''
     def stopTendon(self, *args: str):
-        for node_id in args:
-            getattr(self, f"motor_{node_id}").disable_operation(is_pdo=True)
-        for node_id in args:
-            getattr(self, f"motor_{node_id}").set_speed(0, is_pdo=True)
+        for node_id in args: getattr(self, f"motor_{node_id}").disable_operation(is_pdo=True)
+        for node_id in args: getattr(self, f"motor_{node_id}").set_speed(0, is_pdo=True)
 
 
-    ''' Inside '''
-    def moveInsideSection(self, s_d: float, kappa_d: float, phi_d: float, ref=(-2.0, -3.0, -5.0), kp=(0.2, 0.3, 0.5), ki=(0, 0, 0), kd=(0, 0, 0)):
-        self.inside_section_move_thread = InsideSectionConfigurationSpaceJacobianControl(self, s_d=s_d, kappa_d=kappa_d, phi_d=phi_d, ref=ref, kp=kp, ki=ki, kd=kd)
-        self.inside_section_move_thread.start()
+    # ''' Inside '''
+    # def moveInsideSection(self, s_d: float, kappa_d: float, phi_d: float, ref=(-2.0, -3.0, -5.0), kp=(0.2, 0.3, 0.5), ki=(0, 0, 0), kd=(0, 0, 0)):
+    #     self.inside_section_move_thread = InsideSectionConfigurationSpaceJacobianControl(self, s_d=s_d, kappa_d=kappa_d, phi_d=phi_d, ref=ref, kp=kp, ki=ki, kd=kd)
+    #     self.inside_section_move_thread.start()
     
-    def ExtendInsideSection(self, s_d, ref=(-2,-3,-5), kp=(0.2, 0.3, 0.5), ki=(0, 0, 0), kd=(0, 0, 0)):
-        self.inside_section_move_thread = InsideSectionConfigurationSpaceJacobianControl(self, s_d=s_d, kappa_d=0, phi_d=0, ref=ref, kp=kp, ki=ki, kd=kd)
-        self.inside_section_move_thread.start()
-    def ShortenInsideSection(self, s_d, ref=(-2,-3,-5), kp=(0.2, 0.3, 0.5), ki=(0, 0, 0), kd=(0, 0, 0)):
-        self.inside_section_move_thread = InsideSectionConfigurationSpaceJacobianControl(self, s_d=-abs(s_d), kappa_d=0, phi_d=0, ref=ref, kp=kp, ki=ki, kd=kd)
-        self.inside_section_move_thread.start()
-    def CurveInsideSection(self):
-        self.inside_section_move_thread = InsideSectionConfigurationSpaceJacobianControl(self, s_d=0, kappa_d=0.001, phi_d=0)
-        self.inside_section_move_thread.start()
-    def StraightenInsideSection(self):
-        self.inside_section_move_thread = InsideSectionConfigurationSpaceJacobianControl(self, s_d=0, kappa_d=-0.001, phi_d=0)
-        self.inside_section_move_thread.start()
-    def RotateInsideSectionClockwise(self):
-        self.inside_section_move_thread = InsideSectionConfigurationSpaceJacobianControl(self, s_d=0, kappa_d=0, phi_d=0.25)
-        self.inside_section_move_thread.start()
-    def RotateInsideSectionAntiClockwise(self):
-        self.inside_section_move_thread = InsideSectionConfigurationSpaceJacobianControl(self, s_d=0, kappa_d=0, phi_d=-0.25)
-        self.inside_section_move_thread.start()
-    def StopInsideSection(self):
-        self.inside_section_move_thread.stop()
-        self.inside_section_move_thread.wait()
+    # def ExtendInsideSection(self, s_d, ref=(-2,-3,-5), kp=(0.2, 0.3, 0.5), ki=(0, 0, 0), kd=(0, 0, 0)):
+    #     self.inside_section_move_thread = InsideSectionConfigurationSpaceJacobianControl(self, s_d=s_d, kappa_d=0, phi_d=0, ref=ref, kp=kp, ki=ki, kd=kd)
+    #     self.inside_section_move_thread.start()
+    # def ShortenInsideSection(self, s_d, ref=(-2,-3,-5), kp=(0.2, 0.3, 0.5), ki=(0, 0, 0), kd=(0, 0, 0)):
+    #     self.inside_section_move_thread = InsideSectionConfigurationSpaceJacobianControl(self, s_d=-abs(s_d), kappa_d=0, phi_d=0, ref=ref, kp=kp, ki=ki, kd=kd)
+    #     self.inside_section_move_thread.start()
+    # def CurveInsideSection(self):
+    #     self.inside_section_move_thread = InsideSectionConfigurationSpaceJacobianControl(self, s_d=0, kappa_d=0.001, phi_d=0)
+    #     self.inside_section_move_thread.start()
+    # def StraightenInsideSection(self):
+    #     self.inside_section_move_thread = InsideSectionConfigurationSpaceJacobianControl(self, s_d=0, kappa_d=-0.001, phi_d=0)
+    #     self.inside_section_move_thread.start()
+    # def RotateInsideSectionClockwise(self):
+    #     self.inside_section_move_thread = InsideSectionConfigurationSpaceJacobianControl(self, s_d=0, kappa_d=0, phi_d=0.25)
+    #     self.inside_section_move_thread.start()
+    # def RotateInsideSectionAntiClockwise(self):
+    #     self.inside_section_move_thread = InsideSectionConfigurationSpaceJacobianControl(self, s_d=0, kappa_d=0, phi_d=-0.25)
+    #     self.inside_section_move_thread.start()
+    # def StopInsideSection(self):
+    #     self.inside_section_move_thread.stop()
+    #     self.inside_section_move_thread.wait()
 
     ''' Midside '''
     def ExtendMidsideSection(self):
@@ -962,7 +1107,7 @@ class ContinuumRobot(QObject):
         self.outside_section_move_thread.wait()
 
 
-    ''' 标定 初始状态 曲率0 长度已知 '''
+    ''' 标定运动学 '''
     def calibrateContinuum(self, bl_o: float, bl_m: float, bl_i: float):
         self.rope_zero_position = [getattr(self, f"motor_{i}").current_position for i in range(1,10)]
 
@@ -978,6 +1123,10 @@ class ContinuumRobot(QObject):
         self.backbone_length = [bl_i, bl_m, bl_o] # in mid out
         self.backbone_curvature = [0, 0, 0] # in mid out
         self.backbone_rotation_angle = [0, 0, 0] # in mid out
+
+        self.setParameter("kinematics_control_inside_s_min", bl_i)
+        self.setParameter("kinematics_control_midside_s_min", bl_m)
+        self.setParameter("kinematics_control_outside_s_min", bl_o)
 
         self.continuum_calibration = True
 
@@ -1249,6 +1398,191 @@ class ContinuumRobot(QObject):
             return kappa_d, phi_d, s_d
         else: return transform
 
+    ''' 运动学控制 '''
+    def controlContinuum(self, section: str, s_d: float, kappa_d: float, phi_d: float):
+        self.continuum_move_start.emit()
+
+        self.isControl = True
+
+        if section == "inside": tendon_count = 9
+        elif section == "midside": tendon_count = 6
+        elif section == "outside": tendon_count = 3
+
+        reference_force = np.array([[-abs(self.PARAMETER[f"kinematics_control_{section}_ref_force_{i}"]["value"]) for i in range(1, tendon_count+1)]]).T
+        kp = np.array([[self.PARAMETER[f"kinematics_control_{section}_kp_{i}"]["value"] for i in range(1, tendon_count+1)]]).T
+        ki = np.array([[self.PARAMETER[f"kinematics_control_{section}_ki_{i}"]["value"] for i in range(1, tendon_count+1)]]).T
+        kd = np.array([[self.PARAMETER[f"kinematics_control_{section}_kd_{i}"]["value"] for i in range(1, tendon_count+1)]]).T
+        previous_error = np.array([[0.0] * tendon_count]).T
+        integral_error = np.array([[0.0] * tendon_count]).T
+
+        # if section == "inside":
+        #     reference_force = np.array([[-abs(self.PARAMETER["kinematics_control_inside_ref_force_{}".format(i)]["value"]) for i in range(1,10)]]).T
+        #     kp = np.array([[self.PARAMETER["kinematics_control_inside_kp_{}".format(i)]["value"] for i in range(1,10)]]).T
+        #     ki = np.array([[self.PARAMETER["kinematics_control_inside_ki_{}".format(i)]["value"] for i in range(1,10)]]).T
+        #     kd = np.array([[self.PARAMETER["kinematics_control_inside_kd_{}".format(i)]["value"] for i in range(1,10)]]).T
+        #     previous_error = np.array([[0.0] * 9]).T
+        #     integral_error = np.array([[0.0] * 9]).T
+
+        #     min_length = self.PARAMETER["kinematics_control_inside_s_min"]["value"]
+        #     max_length = self.PARAMETER["kinematics_control_inside_s_max"]["value"]
+        #     min_curvature = self.PARAMETER["kinematics_control_inside_kappa_min"]["value"]
+        #     max_curvature = self.PARAMETER["kinematics_control_inside_kappa_max"]["value"]
+        #     min_point = self.PARAMETER["kinematics_control_inside_min_point"]["value"]
+        #     max_point = self.PARAMETER["kinematics_control_inside_max_point"]["value"]
+        # elif section == "midside":
+        #     reference_force = np.array([[-abs(self.PARAMETER["kinematics_control_inside_ref_force_{}".format(i)]["value"]) for i in range(1,10)]]).T
+        #     kp = np.array([[self.PARAMETER["kinematics_control_inside_kp_{}".format(i)]["value"] for i in range(1,10)]]).T
+        #     ki = np.array([[self.PARAMETER["kinematics_control_inside_ki_{}".format(i)]["value"] for i in range(1,10)]]).T
+        #     kd = np.array([[self.PARAMETER["kinematics_control_inside_kd_{}".format(i)]["value"] for i in range(1,10)]]).T
+        #     previous_error = np.array([[0.0] * 9]).T
+        #     integral_error = np.array([[0.0] * 9]).T
+
+        # elif section == "outside": ...
+
+        min_length = self.PARAMETER[f"kinematics_control_{section}_s_min"]["value"]
+        max_length = self.PARAMETER[f"kinematics_control_{section}_s_max"]["value"]
+        min_curvature = self.PARAMETER[f"kinematics_control_{section}_kappa_min"]["value"]
+        max_curvature = self.PARAMETER[f"kinematics_control_{section}_kappa_max"]["value"]
+        min_point = self.PARAMETER[f"kinematics_control_{section}_min_point"]["value"]
+        max_point = self.PARAMETER[f"kinematics_control_{section}_max_point"]["value"]
+
+        if self.continuum_calibration:
+            if section == "inside": self.initTendonActuator("speed","1","2","3","4","5","6","7","8","9")
+            elif section == "midside": self.initTendonActuator("speed","1","2","3","4","5","6")
+            elif section == "outside": self.initTendonActuator("speed","1","2","3")
+            self.initGripperActuator("speed")
+
+            while self.isControl:
+                start_time = time.time()
+
+                # 曲率在范围内
+                if min_curvature <= self.backbone_curvature[0] <= max_curvature: kappa_d = kappa_d
+                else: # 曲率超出范围
+                    if (self.backbone_curvature[0] < min_curvature and kappa_d > 0) or (self.backbone_curvature[0] > max_curvature and kappa_d < 0): kappa_d = kappa_d
+                    else:
+                        kappa_d = 0
+
+                phi_d = phi_d
+                
+                if s_d == 0: # backbone固定
+                    self.setGripper("open")
+                    self.setAnchor("1", "close")
+                    self.setAnchor("2", "close")
+                    self.setAnchor("3", "close")
+                else: # backbone运动
+                    if min_point <= self.gripper_position <= max_point: # 大爪在运动范围内
+                        if (s_d < 0 and self.backbone_length[0] >= min_length) or \
+                        (s_d > 0 and self.backbone_length[0] <= max_length): # backbone不超过极限
+                            self.setGripper("close")
+                            if section == "inside" or "midside" or "outside": self.setAnchor("3", "open")
+                            if section == "inside" or "midside": self.setAnchor("2", "open")
+                            if section == "inside": self.setAnchor("1", "open")
+                        else: # backbone超过极限
+                            self.stopGripper() # 大爪停止运动
+                            if self.io.output_1: # 如果爪1处于开启
+                                if section == "inside":
+                                    self.stopTendon("1","2","3","4","5","6","7","8","9") # 先停止tendon运动
+                                    self.initTendonActuator("speed","1","2","3","4","5","6","7","8","9") # tendon速度模式
+                                elif section == "midside":
+                                    self.stopTendon("1","2","3","4","5","6")
+                                    self.initTendonActuator("speed","1","2","3","4","5","6")
+                                elif section == "outside":
+                                    self.stopTendon("1","2","3")
+                                    self.initTendonActuator("speed","1","2","3")
+                                
+                            self.setGripper("open")
+                            self.setAnchor("1", "close")
+                            self.setAnchor("2", "close")
+                            self.setAnchor("3", "close")
+                            
+                            s_d = 0
+
+                            break # 跳出循环
+                    else: # 大爪超出运动范围
+                        self.stopGripper() # 大爪停止运动
+                        if section == "inside": self.stopTendon("1","2","3","4","5","6","7","8","9") # tendon停止运动
+                        elif section == "midside": self.stopTendon("1","2","3","4","5","6")
+                        elif section == "outside": self.stopTendon("1","2","3")
+
+                        self.setAnchor("1", "close") # 关闭小爪
+                        self.setAnchor("2", "close")
+                        self.setAnchor("3", "close")
+                        self.setGripper("open") # 打开大爪
+
+                        self.initGripperActuator("position") # 大爪设置为位置模式
+
+                        if s_d < 0: self.moveGripperAbsolute(max_point, 20, is_close=False, is_wait=True)
+                        else: self.moveGripperAbsolute(min_point, 20, is_close=False, is_wait=True)
+
+                        if section == "inside": self.initTendonActuator("speed","1","2","3","4","5","6","7","8","9") # tendon速度模式
+                        elif section == "midside": self.initTendonActuator("speed","1","2","3","4","5","6")
+                        elif section == "outside": self.initTendonActuator("speed","1","2","3")
+                        self.initGripperActuator("speed") # 大爪速度模式
+
+                        previous_error = np.array([[0.0] * tendon_count]).T # 新一轮控制 清零
+                        integral_error = np.array([[0.0] * tendon_count]).T
+
+                        continue
+                
+                ''' 雅可比 '''
+                # l_1_d, l_2_d, l_3_d, \
+                #     l_4_d, l_5_d, l_6_d, \
+                #         l_7_d, l_8_d, l_9_d = self.transferSpaceConfig2ActuatorJacobian("inside", s_d, kappa_d, phi_d)
+                ret = self.transferSpaceConfig2ActuatorJacobian(section, s_d, kappa_d, phi_d)
+                l_d = np.array([[l_i_d for l_i_d in ret]]).T
+                # l_d = np.array([[l_1_d, l_2_d, l_3_d, l_4_d, l_5_d, l_6_d, l_7_d, l_8_d, l_9_d]]).T
+                
+                ''' PID '''
+                current_force = np.array([[getattr(self, f"sensor_{i}").force for i in range(1, tendon_count+1)]]).T
+                current_error = reference_force - current_force
+                integral_error = np.maximum(np.minimum(integral_error + current_error, np.array([[10.0] * tendon_count]).T), np.array([[-10.0] * tendon_count]).T)
+                l_d_compensation = current_error * kp + integral_error * ki + (current_error - previous_error) * kd
+                previous_error = current_error
+
+                if s_d > 0: l_d = np.maximum(l_d + l_d_compensation, np.array([[0.0] * tendon_count]).T)
+                elif s_d < 0: l_d = np.minimum(l_d + l_d_compensation, np.array([[0.0] * tendon_count]).T)
+                # else: l_d += l_d_compensation
+                
+                ''' 运动 '''
+                if section == "inside":
+                    self.moveTendonSpeed(("1",l_d[0, 0]),("2",l_d[1, 0]),("3",l_d[2, 0]),
+                                        ("4",l_d[3, 0]),("5",l_d[4, 0]),("6",l_d[5, 0]),
+                                        ("7",l_d[6, 0]),("8",l_d[7, 0]),("9",l_d[8, 0])) # tendon运动
+                elif section == "midside":
+                    self.moveTendonSpeed(("1",l_d[0, 0]),("2",l_d[1, 0]),("3",l_d[2, 0]),
+                                        ("4",l_d[3, 0]),("5",l_d[4, 0]),("6",l_d[5, 0])) # tendon运动
+                elif section == "outside":
+                    self.moveTendonSpeed(("1",l_d[0, 0]),("2",l_d[1, 0]),("3",l_d[2, 0])) # tendon运动
+                self.moveGripperSpeed(s_d) # 大爪运动
+
+                time.sleep(max(1 / self.PARAMETER["control_frequency"]["value"] - (time.time() - start_time), 0))
+        else:
+            print("\033[0;31mNo Calibration\033[0m")
+            self.continuum_move_end.emit()
+            return
+
+        # 停
+        if section == "inside": self.stopTendon("1","2","3","4","5","6","7","8","9")
+        elif section == "midside": self.stopTendon("1","2","3","4","5","6")
+        elif section == "outside": self.stopTendon("1","2","3")
+        self.stopGripper()
+
+        # 爪
+        self.setAnchor("1", "close")
+        self.setAnchor("2", "close")
+        self.setAnchor("3", "close")
+        self.setGripper("open")
+
+        # 紧
+        if section == "inside": self.initTendonActuator("position","1","2","3","4","5","6","7","8","9")
+        elif section == "midside": self.initTendonActuator("position","1","2","3","4","5","6")
+        elif section == "outside": self.initTendonActuator("position","1","2","3")
+        for i in range(tendon_count, 0, -1):
+            if getattr(self, f"sensor_{i}").force > - 0.25:
+                while getattr(self, f"sensor_{i}").force > - 0.5:
+                    self.moveTendonRelative((i, -0.2, 10))
+        
+        self.continuum_move_end.emit()
 
     
     ''' 打开相机 '''
@@ -1308,214 +1642,6 @@ class ContinuumRobot(QObject):
 
 
 
-''' 连续体 调整 '''
-class ContinuumAttitudeAdjust(QThread):
-    __start_signal = pyqtSignal()
-    __finish_signal = pyqtSignal()
-    
-    def __init__(self, robot: ContinuumRobot, /, *, 
-                 i_f: int, m_f: int, o_f: int, 
-                 i_pid: tuple, m_pid: tuple, o_pid: tuple, 
-                 start_signal=None, finish_signal=None) -> None:
-        
-        super().__init__()
-
-        self.__is_stop = False
-
-        self.robot = robot
-
-        self.__inside_reference_force = - abs(i_f)
-        self.__midside_reference_force = - abs(m_f)
-        self.__outside_reference_force = - abs(o_f)
-        
-        self.__inside_kp = abs(i_pid[0])
-        self.__inside_ki = abs(i_pid[1])
-        self.__inside_kd = abs(i_pid[2])
-        
-        self.__midside_kp = abs(m_pid[0])
-        self.__midside_ki = abs(m_pid[1])
-        self.__midside_kd = abs(m_pid[2])
-
-        self.__outside_kp = abs(o_pid[0])
-        self.__outside_ki = abs(o_pid[1])
-        self.__outside_kd = abs(o_pid[2])
-
-        # last_error  current_error  error_integral
-        self.__error_1 = [0, 0, 0]
-        self.__error_2 = [0, 0, 0]
-        self.__error_3 = [0, 0, 0]
-        self.__error_4 = [0, 0, 0]
-        self.__error_5 = [0, 0, 0]
-        self.__error_6 = [0, 0, 0]
-        self.__error_7 = [0, 0, 0]
-        self.__error_8 = [0, 0, 0]
-        self.__error_9 = [0, 0, 0]
-
-        if start_signal != None and finish_signal != None:
-            self.__start_signal.connect(start_signal)
-            self.__finish_signal.connect(finish_signal)
-    
-    def run(self):
-        self.__start_signal.emit()
-
-        self.robot.rope_is_set_zero = False
-
-        self.open_valve()
-        
-        self.force_follow()
-
-        self.close_valve()
-
-        self.set_zero()
-
-        self.__finish_signal.emit()
-
-    def open_valve(self):
-        self.robot.io.open_valve_3()
-        self.robot.io.open_valve_2()
-        self.robot.io.open_valve_1()
-
-    def close_valve(self):
-        self.robot.io.close_valve_1()
-        self.robot.io.close_valve_2()
-        self.robot.io.close_valve_3()
-
-    def force_follow(self):
-        self.robot.motor_1.set_control_mode("speed_control", check=False)
-        self.robot.motor_2.set_control_mode("speed_control", check=False)
-        self.robot.motor_3.set_control_mode("speed_control", check=False)
-        self.robot.motor_4.set_control_mode("speed_control", check=False)
-        self.robot.motor_5.set_control_mode("speed_control", check=False)
-        self.robot.motor_6.set_control_mode("speed_control", check=False)
-        self.robot.motor_7.set_control_mode("speed_control", check=False)
-        self.robot.motor_8.set_control_mode("speed_control", check=False)
-        self.robot.motor_9.set_control_mode("speed_control", check=False)
-
-        self.robot.motor_1.set_speed(0, is_pdo=True)
-        self.robot.motor_2.set_speed(0, is_pdo=True)
-        self.robot.motor_3.set_speed(0, is_pdo=True)
-        self.robot.motor_4.set_speed(0, is_pdo=True)
-        self.robot.motor_5.set_speed(0, is_pdo=True)
-        self.robot.motor_6.set_speed(0, is_pdo=True)
-        self.robot.motor_7.set_speed(0, is_pdo=True)
-        self.robot.motor_8.set_speed(0, is_pdo=True)
-        self.robot.motor_9.set_speed(0, is_pdo=True)
-
-        self.robot.motor_1.halt(is_pdo=True)
-        self.robot.motor_2.halt(is_pdo=True)
-        self.robot.motor_3.halt(is_pdo=True)
-        self.robot.motor_4.halt(is_pdo=True)
-        self.robot.motor_5.halt(is_pdo=True)
-        self.robot.motor_6.halt(is_pdo=True)
-        self.robot.motor_7.halt(is_pdo=True)
-        self.robot.motor_8.halt(is_pdo=True)
-        self.robot.motor_9.halt(is_pdo=True)
-
-        self.robot.motor_1.enable_operation(is_pdo=True)
-        self.robot.motor_2.enable_operation(is_pdo=True)
-        self.robot.motor_3.enable_operation(is_pdo=True)
-        self.robot.motor_4.enable_operation(is_pdo=True)
-        self.robot.motor_5.enable_operation(is_pdo=True)
-        self.robot.motor_6.enable_operation(is_pdo=True)
-        self.robot.motor_7.enable_operation(is_pdo=True)
-        self.robot.motor_8.enable_operation(is_pdo=True)
-        self.robot.motor_9.enable_operation(is_pdo=True)
-
-        while not self.__is_stop:
-            self.__error_1[0] = self.__error_1[1]
-            self.__error_2[0] = self.__error_2[1]
-            self.__error_3[0] = self.__error_3[1]
-            self.__error_4[0] = self.__error_4[1]
-            self.__error_5[0] = self.__error_5[1]
-            self.__error_6[0] = self.__error_6[1]
-            self.__error_7[0] = self.__error_7[1]
-            self.__error_8[0] = self.__error_8[1]
-            self.__error_9[0] = self.__error_9[1]
-
-            self.__error_1[2] += self.__error_1[1]
-            self.__error_2[2] += self.__error_2[1]
-            self.__error_3[2] += self.__error_3[1]
-            self.__error_4[2] += self.__error_4[1]
-            self.__error_5[2] += self.__error_5[1]
-            self.__error_6[2] += self.__error_6[1]
-            self.__error_7[2] += self.__error_7[1]
-            self.__error_8[2] += self.__error_8[1]
-            self.__error_9[2] += self.__error_9[1]
-
-            self.__error_1[1] = self.__outside_reference_force - self.robot.sensor_1.force
-            self.__error_2[1] = self.__outside_reference_force - self.robot.sensor_2.force
-            self.__error_3[1] = self.__outside_reference_force - self.robot.sensor_3.force
-
-            self.__error_4[1] = self.__midside_reference_force - self.robot.sensor_4.force
-            self.__error_5[1] = self.__midside_reference_force - self.robot.sensor_5.force
-            self.__error_6[1] = self.__midside_reference_force - self.robot.sensor_6.force
-
-            self.__error_7[1] = self.__inside_reference_force - self.robot.sensor_7.force
-            self.__error_8[1] = self.__inside_reference_force - self.robot.sensor_8.force
-            self.__error_9[1] = self.__inside_reference_force - self.robot.sensor_9.force
-
-            speed_1 = self.__outside_kp * self.__error_1[1] + self.__outside_ki * self.__error_1[2] + self.__outside_kd * (self.__error_1[1] - self.__error_1[0])
-            speed_2 = self.__outside_kp * self.__error_2[1] + self.__outside_ki * self.__error_2[2] + self.__outside_kd * (self.__error_2[1] - self.__error_2[0])
-            speed_3 = self.__outside_kp * self.__error_3[1] + self.__outside_ki * self.__error_3[2] + self.__outside_kd * (self.__error_3[1] - self.__error_3[0])
-
-            speed_4 = self.__midside_kp * self.__error_4[1] + self.__midside_ki * self.__error_4[2] + self.__midside_kd * (self.__error_4[1] - self.__error_4[0])
-            speed_5 = self.__midside_kp * self.__error_5[1] + self.__midside_ki * self.__error_5[2] + self.__midside_kd * (self.__error_5[1] - self.__error_5[0])
-            speed_6 = self.__midside_kp * self.__error_6[1] + self.__midside_ki * self.__error_6[2] + self.__midside_kd * (self.__error_6[1] - self.__error_6[0])
-
-            speed_7 = self.__inside_kp * self.__error_7[1] + self.__inside_ki * self.__error_7[2] + self.__inside_kd * (self.__error_7[1] - self.__error_7[0])
-            speed_8 = self.__inside_kp * self.__error_8[1] + self.__inside_ki * self.__error_8[2] + self.__inside_kd * (self.__error_8[1] - self.__error_8[0])
-            speed_9 = self.__inside_kp * self.__error_9[1] + self.__inside_ki * self.__error_9[2] + self.__inside_kd * (self.__error_9[1] - self.__error_9[0])
-
-            print("==================================================")
-            print(int(speed_1), int(speed_2), int(speed_3))
-            print(int(speed_4), int(speed_5), int(speed_6))
-            print(int(speed_7), int(speed_8), int(speed_9))
-
-            self.robot.motor_1.set_speed(int(speed_1), is_pdo=True, log=False)
-            self.robot.motor_2.set_speed(int(speed_2), is_pdo=True, log=False)
-            self.robot.motor_3.set_speed(int(speed_3), is_pdo=True, log=False)
-            self.robot.motor_4.set_speed(int(speed_4), is_pdo=True, log=False)
-            self.robot.motor_5.set_speed(int(speed_5), is_pdo=True, log=False)
-            self.robot.motor_6.set_speed(int(speed_6), is_pdo=True, log=False)
-            self.robot.motor_7.set_speed(int(speed_7), is_pdo=True, log=False)
-            self.robot.motor_8.set_speed(int(speed_8), is_pdo=True, log=False)
-            self.robot.motor_9.set_speed(int(speed_9), is_pdo=True, log=False)
-        
-        self.robot.motor_1.set_speed(0, is_pdo=True)
-        self.robot.motor_2.set_speed(0, is_pdo=True)
-        self.robot.motor_3.set_speed(0, is_pdo=True)
-        self.robot.motor_4.set_speed(0, is_pdo=True)
-        self.robot.motor_5.set_speed(0, is_pdo=True)
-        self.robot.motor_6.set_speed(0, is_pdo=True)
-        self.robot.motor_7.set_speed(0, is_pdo=True)
-        self.robot.motor_8.set_speed(0, is_pdo=True)
-        self.robot.motor_9.set_speed(0, is_pdo=True)
-
-        self.robot.motor_1.disable_operation(is_pdo=True)
-        self.robot.motor_2.disable_operation(is_pdo=True)
-        self.robot.motor_3.disable_operation(is_pdo=True)
-        self.robot.motor_4.disable_operation(is_pdo=True)
-        self.robot.motor_5.disable_operation(is_pdo=True)
-        self.robot.motor_6.disable_operation(is_pdo=True)
-        self.robot.motor_7.disable_operation(is_pdo=True)
-        self.robot.motor_8.disable_operation(is_pdo=True)
-        self.robot.motor_9.disable_operation(is_pdo=True)
-
-    def set_zero(self):
-        self.robot.motor_1.zero_position = self.robot.motor_1.current_position
-        self.robot.motor_2.zero_position = self.robot.motor_2.current_position
-        self.robot.motor_3.zero_position = self.robot.motor_3.current_position
-        self.robot.motor_4.zero_position = self.robot.motor_4.current_position
-        self.robot.motor_5.zero_position = self.robot.motor_5.current_position
-        self.robot.motor_6.zero_position = self.robot.motor_6.current_position
-        self.robot.motor_7.zero_position = self.robot.motor_7.current_position
-        self.robot.motor_8.zero_position = self.robot.motor_8.current_position
-        self.robot.motor_9.zero_position = self.robot.motor_9.current_position
-
-        self.robot.rope_is_set_zero = True
-    
-    def stop(self):
-        self.__is_stop = True
 
 ''' 电机 速度模式 '''
 class JointSpeed(QThread):
@@ -1539,7 +1665,7 @@ class JointSpeed(QThread):
         while not self.__is_stop:
             for node_id in self.__motor:
                 if node_id in Motor.motor_dict.keys():
-                    if getattr(self.robot, f"motor_{node_id}").is_in_range():
+                    if getattr(self.robot, f"motor_{node_id}").isInRange():
                         getattr(self.robot, f"motor_{node_id}").enable_operation(is_pdo=True)
                     else:
                         if getattr(self.robot, f"motor_{node_id}").current_position > getattr(self.robot, f"motor_{node_id}").max_position:
@@ -1556,8 +1682,6 @@ class JointSpeed(QThread):
                 getattr(self.robot, f"motor_{node_id}").set_speed(0, is_pdo=True)
                 getattr(self.robot, f"motor_{node_id}").disable_operation(is_pdo=True)
                 getattr(self.robot, f"motor_{node_id}").set_control_mode("position_control", check=False)
-
-
 
 ''' 遥操作 '''
 class TeleOperation(QThread):
