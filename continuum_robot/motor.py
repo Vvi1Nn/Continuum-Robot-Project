@@ -99,8 +99,6 @@ class Motor(CanOpenBusProcessor):
             print("\033[0;31m[Motor {}] BUS UNCKECKED\033[0m".format(self.node_id))
             return False
     
-
-
     ''' 获取伺服状态 SDO '''
     def get_servo_status(self, /, *, times=1, log=False) -> str:
         while times != 0:
@@ -115,7 +113,6 @@ class Motor(CanOpenBusProcessor):
                             self.servo_status = key # 更新电机的伺服状态
                             
                             if log: print("\033[0;32m[Motor {}] current servo status: {}\033[0m".format(self.node_id, self.motor_status))
-                            else: pass
                             
                             return self.servo_status
             else:
@@ -182,43 +179,43 @@ class Motor(CanOpenBusProcessor):
 
 
     ''' SHUT DOWN '''
-    def shut_down(self, /, *, is_pdo=False, check=False, delay=0.5) -> bool:
+    def shut_down(self, /, *, is_pdo=True, check=False, delay=0.5) -> bool:
         return self.set_servo_status("shut_down", is_pdo=is_pdo, check=check, delay=delay)
     
     ''' SWITCH ON '''
-    def switch_on(self, /, *, is_pdo=False, check=False, delay=0.5) -> bool:
+    def switch_on(self, /, *, is_pdo=True, check=False, delay=0.5) -> bool:
         return self.set_servo_status("switch_on", is_pdo=is_pdo, check=check, delay=delay)
     
     ''' DISABLE OPERATION '''
-    def disable_operation(self, /, *, is_pdo=False, check=False, delay=0.5) -> bool:
+    def disable_operation(self, /, *, is_pdo=True, check=False, delay=0.5) -> bool:
         return self.set_servo_status("disable_operation", is_pdo=is_pdo, check=check, delay=delay)
 
     ''' ENABLE OPERATION '''
-    def enable_operation(self, /, *, is_pdo=False, check=False, delay=0.5) -> bool:
+    def enable_operation(self, /, *, is_pdo=True, check=False, delay=0.5) -> bool:
         return self.set_servo_status("enable_operation", is_pdo=is_pdo, check=check, delay=delay)
 
     ''' DISABLE VOLTAGE '''
-    def disable_voltage(self, /, *, is_pdo=False, check=False, delay=0.5, admin=False) -> bool:
+    def disable_voltage(self, /, *, is_pdo=True, check=False, delay=0.5, admin=False) -> bool:
         return self.set_servo_status("disable_voltage", is_pdo=is_pdo, check=check, delay=delay, admin=admin)
 
     ''' QUICK STOP '''
-    def quick_stop(self, /, *, is_pdo=False, check=False, delay=0.5) -> bool:
+    def quick_stop(self, /, *, is_pdo=True, check=False, delay=0.5) -> bool:
         return self.set_servo_status("quick_stop", is_pdo=is_pdo, check=check, delay=delay)
     
     ''' FAULT RESET '''
-    def fault_reset(self, /, *, is_pdo=False, check=False, delay=0.5) -> bool:
+    def fault_reset(self, /, *, is_pdo=True, check=False, delay=0.5) -> bool:
         return self.set_servo_status("fault_reset", is_pdo=is_pdo, check=check, delay=delay)
     
     ''' HALT '''
-    def halt(self, /, *, is_pdo=False, check=False, delay=0.5) -> bool:
+    def halt(self, /, *, is_pdo=True, check=False, delay=0.5) -> bool:
         return self.set_servo_status("halt", is_pdo=is_pdo, check=check, delay=delay)
     
     ''' READY '''
-    def ready(self, /, *, is_pdo=False, check=False, delay=0.5) -> bool:
+    def ready(self, /, *, is_pdo=True, check=False, delay=0.5) -> bool:
         return self.set_servo_status("ready", is_pdo=is_pdo, check=check, delay=delay)
 
     ''' ACTION '''
-    def action(self, /, *, is_immediate=True, is_relative=True, is_pdo=False, check=False, delay=0.5) -> bool:
+    def action(self, /, *, is_immediate=True, is_relative=True, is_pdo=True, check=False, delay=0.5) -> bool:
         label_1 = "interrupt" if is_immediate else "finish"
         label_2 = "relative" if is_relative else "absolute"
 
@@ -313,12 +310,8 @@ class Motor(CanOpenBusProcessor):
 
 
     ''' 速度 '''
-    def set_speed(self, speed: int, /, *, is_pdo=False, times=1, log=True, check=True, delay=0.5) -> bool:
+    def set_speed(self, speed: int, /, *, is_pdo=False, times=1, log=False, check=True, delay=0.5) -> bool:
         if self.permission:
-            # if speed > self.max_speed: speed = self.max_speed
-            # elif speed < self.min_speed: speed = self.min_speed
-            # else: pass
-            # self.target_speed = speed
             self.target_speed = max(min(speed, self.max_speed), self.min_speed)
             
             # PDO
@@ -384,11 +377,17 @@ class Motor(CanOpenBusProcessor):
 
 
     ''' 是否超出范围 '''
-    def is_in_range(self) -> bool:
-        if self.max_position != None and self.min_position != None:
-            if self.current_position < self.max_position and self.current_position > self.min_position: return True
-            else:
-                print("\033[0;31m[Motor {}] position out of range\033[0m".format(self.node_id))
-                return False
-        else: return True
+    def isInRange(self) -> bool:
+        in_max = self.current_position < self.max_position if self.max_position != None else True
+        in_min = self.current_position > self.min_position if self.max_position != None else True
+        return in_max and in_min
 
+        # if self.max_position != None and self.min_position != None:
+        #     if self.current_position < self.max_position and self.current_position > self.min_position: return True
+        #     else:
+        #         print("\033[0;31m[Motor {}] position out of range\033[0m".format(self.node_id))
+        #         return False
+        # else: return True
+
+    def setZeroPosition(self):
+        self.zero_position = self.current_position
