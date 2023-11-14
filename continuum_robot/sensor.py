@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' sensor.py 力传感器 '''
+''' sensor.py v1.2 '''
 
 
 import time
@@ -19,8 +19,6 @@ class Sensor():
         self.__node_id = node_id
 
         self.sensor_dict[node_id] = self
-
-        self.__is_ready = False
 
         self.original_data = None
 
