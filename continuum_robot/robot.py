@@ -315,6 +315,7 @@ class ContinuumRobot(QObject):
         self.midside_world_coordinate = (None, None, None)
         self.inside_world_coordinate = (None, None, None)
 
+
     def updateStatus(self):
         print("CANopen Update Thread Started")
         self.status_signal.emit("CANopen Update Thread Started !")
