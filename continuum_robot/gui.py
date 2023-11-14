@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' gui.py GUI v5.0 '''
+''' gui.py GUI v5.2 '''
 
 
 from PyQt5.QtWidgets import QMainWindow, QTableWidgetItem
@@ -44,31 +44,16 @@ class ControlPanel(QMainWindow):
         self.connectCustomSignal()
         self.connectButton()
 
-        ''' 高级测试 '''
-
-        # self.ui.test_12.clicked.connect(lambda: self.robot.rope_move("1", -3, 1, is_relative=True))
-
-        self.ui.teleoperation.clicked.connect(self.robot.teleoperation_thread.start)
-
-        self.ui.bt_open_camera.clicked.connect(self.OpenCamera)
-        self.ui.bt_close_camera.clicked.connect(self.robot.CloseCamera)
-        
-        # self.ui.test_24.clicked.connect(lambda: self.robot.rope_move("4", 10, 1, is_relative=True))
-        # self.ui.test_25.clicked.connect(lambda: self.robot.rope_move("4", -10, 1, is_relative=True))
-
-
         self.show() # 显示界面
     
 
     def connectMenu(self) -> None:
         self.ui.control_basic.triggered.connect(lambda: self.ui.pages.setCurrentIndex(0))
-        self.ui.control_kinematics.triggered.connect(lambda: self.ui.pages.setCurrentIndex(1))
-        self.ui.control_video_stream.triggered.connect(lambda: self.ui.pages.setCurrentIndex(2))
-        self.ui.control_motor.triggered.connect(lambda: self.ui.pages.setCurrentIndex(3))
-        self.ui.control_valve.triggered.connect(lambda: self.ui.pages.setCurrentIndex(4))
-        self.ui.control_test.triggered.connect(lambda: self.ui.pages.setCurrentIndex(5))
+        self.ui.control_video_stream.triggered.connect(lambda: self.ui.pages.setCurrentIndex(1))
+        self.ui.control_motor.triggered.connect(lambda: self.ui.pages.setCurrentIndex(2))
+        self.ui.control_valve.triggered.connect(lambda: self.ui.pages.setCurrentIndex(3))
 
-        self.ui.settings_parameter_table.triggered.connect(lambda: self.ui.pages.setCurrentIndex(6))
+        self.ui.settings_parameter_table.triggered.connect(lambda: self.ui.pages.setCurrentIndex(4))
 
         self.ui.pages.setCurrentIndex(0)
     
@@ -81,7 +66,7 @@ class ControlPanel(QMainWindow):
         self.robot.show_switch.connect(self.showSwitch)
         self.robot.status_signal.connect(self.showStatus)
         self.robot.show_gripper.connect(self.showGripper)
-        self.robot.show_rope.connect(self.show_rope)
+        self.robot.show_tendon.connect(self.showTendon)
         self.robot.show_kinematics.connect(self.showKinematics)
 
         self.robot.io.show_valve.connect(self.showValve)
@@ -104,7 +89,6 @@ class ControlPanel(QMainWindow):
         self.ui.control.setEnabled(False)
         self.ui.control_all.setEnabled(False)
         self.ui.status.setEnabled(False)
-        self.ui.param.setEnabled(False)
 
         ''' 电机 状态控制 '''
         for i in range(1,11):
@@ -186,29 +170,51 @@ class ControlPanel(QMainWindow):
         '''
             Control Midside
         '''
-        self.ui.length_forward_mid.clicked.connect(self.robot.ExtendMidsideSection)
-        self.ui.length_back_mid.clicked.connect(self.robot.ShortenMidsideSection)
-        self.ui.length_stop_mid.clicked.connect(self.robot.StopMidsideSection)
-        self.ui.curve_forward_mid.pressed.connect(self.robot.CurveMidsideSection)
-        self.ui.curve_forward_mid.released.connect(self.robot.StopMidsideSection)
-        self.ui.curve_back_mid.pressed.connect(self.robot.StraightenMidsideSection)
-        self.ui.curve_back_mid.released.connect(self.robot.StopMidsideSection)
-        self.ui.angle_forward_mid.pressed.connect(self.robot.RotateMidsideSectionClockwise)
-        self.ui.angle_forward_mid.released.connect(self.robot.StopMidsideSection)
-        self.ui.angle_back_mid.pressed.connect(self.robot.RotateMidsideSectionAntiClockwise)
-        self.ui.angle_back_mid.released.connect(self.robot.StopMidsideSection)
+        self.ui.length_forward_mid.clicked.connect(lambda: self.moveMidsideSection("extend"))
+        self.ui.length_back_mid.clicked.connect(lambda: self.moveMidsideSection("shorten"))
+        self.ui.length_stop_mid.clicked.connect(self.stopMidsideSection)
+        
+        self.ui.curve_forward_mid.pressed.connect(lambda: self.moveMidsideSection("curve"))
+        self.ui.curve_forward_mid.released.connect(self.stopMidsideSection)
 
-        self.ui.length_forward_out.clicked.connect(self.robot.ExtendOutsideSection)
-        self.ui.length_back_out.clicked.connect(self.robot.ShortenOutsideSection)
-        self.ui.length_stop_out.clicked.connect(self.robot.StopOutsideSection)
-        self.ui.curve_forward_out.pressed.connect(self.robot.CurveOutsideSection)
-        self.ui.curve_forward_out.released.connect(self.robot.StopOutsideSection)
-        self.ui.curve_back_out.pressed.connect(self.robot.StraightenOutsideSection)
-        self.ui.curve_back_out.released.connect(self.robot.StopOutsideSection)
-        self.ui.angle_forward_out.pressed.connect(self.robot.RotateOutsideSectionClockwise)
-        self.ui.angle_forward_out.released.connect(self.robot.StopOutsideSection)
-        self.ui.angle_back_out.pressed.connect(self.robot.RotateOutsideSectionAntiClockwise)
-        self.ui.angle_back_out.released.connect(self.robot.StopOutsideSection)
+        self.ui.curve_back_mid.pressed.connect(lambda: self.moveMidsideSection("straighten"))
+        self.ui.curve_back_mid.released.connect(self.stopMidsideSection)
+
+        self.ui.angle_forward_mid.pressed.connect(lambda: self.moveMidsideSection("rotate_clockwise"))
+        self.ui.angle_forward_mid.released.connect(self.stopMidsideSection)
+
+        self.ui.angle_back_mid.pressed.connect(lambda: self.moveMidsideSection("rotate_anticlockwise"))
+        self.ui.angle_back_mid.released.connect(self.stopMidsideSection)
+
+        '''
+            Control Outside
+        '''
+        self.ui.length_forward_out.clicked.connect(lambda: self.moveOutsideSection("extend"))
+        self.ui.length_back_out.clicked.connect(lambda: self.moveOutsideSection("shorten"))
+        self.ui.length_stop_out.clicked.connect(self.stopOutsideSection)
+        
+        self.ui.curve_forward_out.pressed.connect(lambda: self.moveOutsideSection("curve"))
+        self.ui.curve_forward_out.released.connect(self.stopOutsideSection)
+
+        self.ui.curve_back_out.pressed.connect(lambda: self.moveOutsideSection("straighten"))
+        self.ui.curve_back_out.released.connect(self.stopOutsideSection)
+
+        self.ui.angle_forward_out.pressed.connect(lambda: self.moveOutsideSection("rotate_clockwise"))
+        self.ui.angle_forward_out.released.connect(self.stopOutsideSection)
+
+        self.ui.angle_back_out.pressed.connect(lambda: self.moveOutsideSection("rotate_anticlockwise"))
+        self.ui.angle_back_out.released.connect(self.stopOutsideSection)
+
+        ''' 
+            teleoperation
+        '''
+        self.ui.teleoperation.clicked.connect(self.robot.teleoperation_thread.start)
+
+        '''
+            Camera
+        '''
+        self.ui.bt_open_camera.clicked.connect(self.OpenCamera)
+        self.ui.bt_close_camera.clicked.connect(self.robot.CloseCamera)
 
     def initParameterTable(self):
         self.ui.tableWidget.setRowCount(len(self.robot.PARAMETER)) # 创建足够数量的行
@@ -467,29 +473,21 @@ class ControlPanel(QMainWindow):
     def showGripper(self, is_zero):
         if is_zero:
             color = "#00ff00" if self.robot.gripper_position >= 0 else "#ff0000"
-
-            self.ui.ballscrew.setText("<span style=\"color:{};\">{}</span>".format(color, round(self.robot.gripper_position, 2)))
-            self.ui.ballscrew_v.setText("<span style=\"color:{};\">{}</span>".format(color, round(self.robot.gripper_velocity, 2)))
+            self.ui.gripper_position.setText("<span style=\"color:{};\">{}</span>".format(color, abs(round(self.robot.gripper_position, 2))))
         else:
-            self.ui.ballscrew.setText("<span style=\"color:#ff0000;\">No Zero</span>")
-            self.ui.ballscrew_v.setText("<span style=\"color:#ff0000;\">No Zero</span>")
-    def show_rope(self, is_zero, node_id):
-        if is_zero:
-            position = getattr(self.robot, f"rope_{node_id}_position")
-            velocity = self.robot.rope_velocity[node_id-1]
-            
-            color = "#00ff00" if position >= 0 else "#ff0000"
-            
-            getattr(self.ui, "rope_{}".format(node_id)).setText("<span style=\"color:{};\">{}</span>".format(color, round(position, 2)))
-            getattr(self.ui, "rope_v_{}".format(node_id)).setText("<span style=\"color:{};\">{}</span>".format(color, round(velocity, 2)))
-        else:
-            getattr(self.ui, "rope_{}".format(node_id)).setText("<span style=\"color:#ff0000;\">No Zero</span>")
-            getattr(self.ui, "rope_v_{}".format(node_id)).setText("<span style=\"color:#ff0000;\">No Zero</span>")
+            self.ui.gripper_position.setText("<span style=\"color:#ff0000;\">No Zero</span>")
+        
+        self.ui.gripper_velocity.setText("<span style=\"color:#00ff00;\">{}</span>".format(abs(round(self.robot.gripper_velocity, 2))))
+    def showTendon(self, is_cali, node_id):
+        if not is_cali: getattr(self.ui, f"tendon_total_length_{node_id}").setText(f"<span style=\"color:#ff0000;\">No Cali</span>")
+        velocity = round(self.robot.tendon_velocity[node_id-1], 2)
+        color = "00ff00" if velocity >= 0 else "ffff00"
+        getattr(self.ui, f"tendon_velocity_{node_id}").setText(f"<span style=\"color:#{color};\">{abs(velocity)}</span>")
     def showKinematics(self):
         # outside
-        self.ui.length_1_o.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.rope_outside_length[0], 2)))
-        self.ui.length_2_o.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.rope_outside_length[1], 2)))
-        self.ui.length_3_o.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.rope_outside_length[2], 2)))
+        self.ui.outside_tendon_length_1.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.tendon_outside_length[0], 2)))
+        self.ui.outside_tendon_length_2.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.tendon_outside_length[1], 2)))
+        self.ui.outside_tendon_length_3.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.tendon_outside_length[2], 2)))
         self.ui.length_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_length[2], 2)))
         self.ui.curvature_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_curvature[2], 5)))
         self.ui.angle_out.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_rotation_angle[2]/math.pi*180, 2)))
@@ -501,12 +499,12 @@ class ControlPanel(QMainWindow):
         self.ui.z_out_world.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.outside_world_coordinate[2], 2)))
 
         # midside
-        self.ui.length_1_m.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.rope_midside_length[0], 2)))
-        self.ui.length_2_m.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.rope_midside_length[1], 2)))
-        self.ui.length_3_m.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.rope_midside_length[2], 2)))
-        self.ui.length_4_m.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.rope_midside_length[3], 2)))
-        self.ui.length_5_m.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.rope_midside_length[4], 2)))
-        self.ui.length_6_m.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.rope_midside_length[5], 2)))
+        self.ui.midside_tendon_length_1.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.tendon_midside_length[0], 2)))
+        self.ui.midside_tendon_length_2.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.tendon_midside_length[1], 2)))
+        self.ui.midside_tendon_length_3.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.tendon_midside_length[2], 2)))
+        self.ui.midside_tendon_length_4.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.tendon_midside_length[3], 2)))
+        self.ui.midside_tendon_length_5.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.tendon_midside_length[4], 2)))
+        self.ui.midside_tendon_length_6.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.tendon_midside_length[5], 2)))
         self.ui.length_mid.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_length[1], 2)))
         self.ui.curvature_mid.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_curvature[1], 5)))
         self.ui.angle_mid.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_rotation_angle[1]/math.pi*180, 2)))
@@ -518,15 +516,15 @@ class ControlPanel(QMainWindow):
         self.ui.z_mid_world.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.midside_world_coordinate[2], 2)))
 
         # inside
-        self.ui.length_1_i.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.rope_inside_length[0], 2)))
-        self.ui.length_2_i.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.rope_inside_length[1], 2)))
-        self.ui.length_3_i.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.rope_inside_length[2], 2)))
-        self.ui.length_4_i.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.rope_inside_length[3], 2)))
-        self.ui.length_5_i.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.rope_inside_length[4], 2)))
-        self.ui.length_6_i.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.rope_inside_length[5], 2)))
-        self.ui.length_7_i.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.rope_inside_length[6], 2)))
-        self.ui.length_8_i.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.rope_inside_length[7], 2)))
-        self.ui.length_9_i.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.rope_inside_length[8], 2)))
+        self.ui.inside_tendon_length_1.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.tendon_inside_length[0], 2)))
+        self.ui.inside_tendon_length_2.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.tendon_inside_length[1], 2)))
+        self.ui.inside_tendon_length_3.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.tendon_inside_length[2], 2)))
+        self.ui.inside_tendon_length_4.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.tendon_inside_length[3], 2)))
+        self.ui.inside_tendon_length_5.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.tendon_inside_length[4], 2)))
+        self.ui.inside_tendon_length_6.setText("<span style=\"color:#ffff00;\">{}</span>".format(round(self.robot.tendon_inside_length[5], 2)))
+        self.ui.inside_tendon_length_7.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.tendon_inside_length[6], 2)))
+        self.ui.inside_tendon_length_8.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.tendon_inside_length[7], 2)))
+        self.ui.inside_tendon_length_9.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.tendon_inside_length[8], 2)))
         self.ui.length_in.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_length[0], 2)))
         self.ui.curvature_in.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_curvature[0], 5)))
         self.ui.angle_in.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.backbone_rotation_angle[0]/math.pi*180, 2)))
@@ -537,9 +535,12 @@ class ControlPanel(QMainWindow):
         self.ui.y_in_world.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.inside_world_coordinate[1], 2)))
         self.ui.z_in_world.setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.inside_world_coordinate[2], 2)))
 
+        for i in range(1,10):
+            getattr(self.ui, f"tendon_total_length_{i}").setText("<span style=\"color:#00ff00;\">{}</span>".format(round(self.robot.tendon_total_length[i-1], 2)))
+
         # # rope
         # for id in range(1,10):
-        #     exec("self.ui.rope_{}.setText('<span style=\"color:#00ff00;\">{}</span>')".format(id, round(self.robot.rope_total_length[id-1], 2)))
+        #     exec("self.ui.rope_{}.setText('<span style=\"color:#00ff00;\">{}</span>')".format(id, round(self.robot.tendon_total_length[id-1], 2)))
 
 
     ''' 初始化设备 '''
@@ -574,7 +575,7 @@ class ControlPanel(QMainWindow):
             self.ui.control.setEnabled(True)
             self.ui.control_all.setEnabled(True)
             self.ui.status.setEnabled(True)
-            self.ui.param.setEnabled(True)
+            # self.ui.param.setEnabled(True)
 
             self.ui.homing_gripper.setEnabled(True)
             self.ui.calibrate_gripper.setEnabled(True)
@@ -639,7 +640,7 @@ class ControlPanel(QMainWindow):
         def end():
             self.ui.calibrate_gripper.setEnabled(True)
             self.showStatus("Ballscrew is set zero !")
-            self.ui.ballscrew.setText("<span style=\"color:#00ff00;\">Zero</span>")
+            self.ui.gripper_position.setText("<span style=\"color:#00ff00;\">Zero</span>")
         
         self.robot.gripper_calibration_start.connect(start)
         self.robot.gripper_calibration_end.connect(end)
@@ -658,8 +659,8 @@ class ControlPanel(QMainWindow):
             self.ui.set_rope_zero.setEnabled(False)
             self.showStatus("All ropes are set zero !")
 
-            for i in range(1,10):
-                getattr(self.ui, f"rope_{i}").setText("<span style=\"color:#00ff00;\">Zero</span>")
+            # for i in range(1,10):
+            #     getattr(self.ui, f"rope_{i}").setText("<span style=\"color:#00ff00;\">Zero</span>")
         
         self.robot.continuum_calibration_start.connect(start)
         self.robot.continuum_calibration_end.connect(end)
@@ -684,35 +685,6 @@ class ControlPanel(QMainWindow):
         self.sensor_calibration_thread = self.RobotFunctionThread(self.robot.calibrateForceSensor)
         self.sensor_calibration_thread.start()
 
-
-
-    def speed_forward_factory(self, node_id):
-        getattr(self.ui, f"speed_reverse_{node_id}").setEnabled(False)
-        getattr(self.ui, f"speed_adjust_{node_id}").setEnabled(False)
-        
-        speed = int(getattr(self.ui, "speed_adjust_{}".format(node_id)).value())
-        self.robot.joint_speed([node_id], speed)
-    for node_id in range(1,11):
-        exec(f"def speed_forward_{node_id}(self): self.speed_forward_factory({node_id})")
-    def speed_reverse_factory(self, node_id):
-        getattr(self.ui, f"speed_forward_{node_id}").setEnabled(False)
-        getattr(self.ui, f"speed_adjust_{node_id}").setEnabled(False)
-
-        speed = - int(getattr(self.ui, "speed_adjust_{}".format(node_id)).value())
-        self.robot.joint_speed([node_id], speed)
-    for node_id in range(1,11):
-        exec(f"def speed_reverse_{node_id}(self): self.speed_reverse_factory({node_id})")
-    def speed_stop_factory(self, node_id):
-        getattr(self.ui, f"speed_reverse_{node_id}").setEnabled(True)
-        getattr(self.ui, f"speed_forward_{node_id}").setEnabled(True)
-        getattr(self.ui, f"speed_adjust_{node_id}").setEnabled(True)
-
-        self.robot.joint_speed_stop()
-    for node_id in range(1,11):
-        exec(f"def speed_stop_{node_id}(self): self.speed_stop_factory({node_id})")
-
-    
-   
     ''' 标定运动学 '''
     def calibrateKinematics(self):
         bl_o = float(self.ui.outside_length.text()) if self.ui.outside_length.text() != "" else float(self.ui.outside_length.placeholderText())
@@ -736,14 +708,32 @@ class ControlPanel(QMainWindow):
         def start():
             self.ui.length_forward_in.setEnabled(False)
             self.ui.length_back_in.setEnabled(False)
-            if action == "extend" or "shorten": self.ui.length_stop_in.setEnabled(True)
-            # if action != "curve": self.ui.curve_forward_in.setEnabled(False)
-            # if action != "straighten": self.ui.curve_back_in.setEnabled(False)
-            # if action != "rotate_clockwise": self.ui.angle_forward_in.setEnabled(False)
-            # if action != "rotate_anticlockwise": self.ui.angle_back_in.setEnabled(False)
+            if action == "extend" or action == "shorten":
+                self.ui.length_stop_in.setEnabled(True)
+                self.ui.curve_forward_in.setEnabled(False)
+                self.ui.curve_back_in.setEnabled(False)
+                self.ui.angle_forward_in.setEnabled(False)
+                self.ui.angle_back_in.setEnabled(False)
+            # elif action == "curve":
+            #     self.ui.curve_back_in.setEnabled(False)
+            #     self.ui.angle_forward_in.setEnabled(False)
+            #     self.ui.angle_back_in.setEnabled(False)
+            # elif action == "straighten":
+            #     self.ui.curve_forward_in.setEnabled(False)
+            #     self.ui.angle_forward_in.setEnabled(False)
+            #     self.ui.angle_back_in.setEnabled(False)
+            # elif action == "rotate_clockwise":
+            #     self.ui.curve_back_in.setEnabled(False)
+            #     self.ui.curve_forward_in.setEnabled(False)
+            #     self.ui.angle_back_in.setEnabled(False)
+            # elif action == "rotate_anticlockwise":
+            #     self.ui.curve_back_in.setEnabled(False)
+            #     self.ui.curve_forward_in.setEnabled(False)
+            #     self.ui.angle_forward_in.setEnabled(False)
 
             self.ui.length_forward_mid.setEnabled(False)
             self.ui.length_back_mid.setEnabled(False)
+            self.ui.length_stop_mid.setEnabled(False)
             self.ui.curve_forward_mid.setEnabled(False)
             self.ui.curve_back_mid.setEnabled(False)
             self.ui.angle_forward_mid.setEnabled(False)
@@ -751,6 +741,7 @@ class ControlPanel(QMainWindow):
 
             self.ui.length_forward_out.setEnabled(False)
             self.ui.length_back_out.setEnabled(False)
+            self.ui.length_stop_out.setEnabled(False)
             self.ui.curve_forward_out.setEnabled(False)
             self.ui.curve_back_out.setEnabled(False)
             self.ui.angle_forward_out.setEnabled(False)
@@ -766,6 +757,7 @@ class ControlPanel(QMainWindow):
 
             self.ui.length_forward_mid.setEnabled(True)
             self.ui.length_back_mid.setEnabled(True)
+            self.ui.length_stop_mid.setEnabled(False)
             self.ui.curve_forward_mid.setEnabled(True)
             self.ui.curve_back_mid.setEnabled(True)
             self.ui.angle_forward_mid.setEnabled(True)
@@ -773,6 +765,7 @@ class ControlPanel(QMainWindow):
 
             self.ui.length_forward_out.setEnabled(True)
             self.ui.length_back_out.setEnabled(True)
+            self.ui.length_stop_out.setEnabled(False)
             self.ui.curve_forward_out.setEnabled(True)
             self.ui.curve_back_out.setEnabled(True)
             self.ui.angle_forward_out.setEnabled(True)
@@ -798,3 +791,181 @@ class ControlPanel(QMainWindow):
     def stopInsideSection(self):
         self.robot.isControl = False
 
+    ''' 运动控制midside '''
+    def moveMidsideSection(self, action: str):
+        def start():
+            self.ui.length_forward_mid.setEnabled(False)
+            self.ui.length_back_mid.setEnabled(False)
+            if action == "extend" or action == "shorten":
+                self.ui.length_stop_mid.setEnabled(True)
+                self.ui.curve_forward_mid.setEnabled(False)
+                self.ui.curve_back_mid.setEnabled(False)
+                self.ui.angle_forward_mid.setEnabled(False)
+                self.ui.angle_back_mid.setEnabled(False)
+            # if action != "curve": self.ui.curve_forward_mid.setEnabled(False)
+            # if action != "straighten": self.ui.curve_back_mid.setEnabled(False)
+            # if action != "rotate_clockwise": self.ui.angle_forward_mid.setEnabled(False)
+            # if action != "rotate_anticlockwise": self.ui.angle_back_mid.setEnabled(False)
+
+            self.ui.length_forward_in.setEnabled(False)
+            self.ui.length_back_in.setEnabled(False)
+            self.ui.length_stop_in.setEnabled(False)
+            self.ui.curve_forward_in.setEnabled(False)
+            self.ui.curve_back_in.setEnabled(False)
+            self.ui.angle_forward_in.setEnabled(False)
+            self.ui.angle_back_in.setEnabled(False)
+
+            self.ui.length_forward_out.setEnabled(False)
+            self.ui.length_back_out.setEnabled(False)
+            self.ui.length_stop_out.setEnabled(False)
+            self.ui.curve_forward_out.setEnabled(False)
+            self.ui.curve_back_out.setEnabled(False)
+            self.ui.angle_forward_out.setEnabled(False)
+            self.ui.angle_back_out.setEnabled(False)
+        def end():
+            self.ui.length_forward_mid.setEnabled(True)
+            self.ui.length_back_mid.setEnabled(True)
+            self.ui.length_stop_mid.setEnabled(False)
+            self.ui.curve_forward_mid.setEnabled(True)
+            self.ui.curve_back_mid.setEnabled(True)
+            self.ui.angle_forward_mid.setEnabled(True)
+            self.ui.angle_back_mid.setEnabled(True)
+
+            self.ui.length_forward_in.setEnabled(True)
+            self.ui.length_back_in.setEnabled(True)
+            self.ui.length_stop_in.setEnabled(False)
+            self.ui.curve_forward_in.setEnabled(True)
+            self.ui.curve_back_in.setEnabled(True)
+            self.ui.angle_forward_in.setEnabled(True)
+            self.ui.angle_back_in.setEnabled(True)
+
+            self.ui.length_forward_out.setEnabled(True)
+            self.ui.length_back_out.setEnabled(True)
+            self.ui.length_stop_out.setEnabled(False)
+            self.ui.curve_forward_out.setEnabled(True)
+            self.ui.curve_back_out.setEnabled(True)
+            self.ui.angle_forward_out.setEnabled(True)
+            self.ui.angle_back_out.setEnabled(True)
+    
+        self.robot.continuum_move_start.connect(start)
+        self.robot.continuum_move_end.connect(end)
+
+        if action == "extend": s_d = abs(self.robot.PARAMETER["kinematics_control_midside_s_d"]["value"])
+        elif action == "shorten": s_d = -abs(self.robot.PARAMETER["kinematics_control_midside_s_d"]["value"])
+        else: s_d = 0
+
+        if action == "curve": kappa_d = abs(self.robot.PARAMETER["kinematics_control_midside_kappa_d"]["value"])
+        elif action == "straighten": kappa_d = -abs(self.robot.PARAMETER["kinematics_control_midside_kappa_d"]["value"])
+        else: kappa_d = 0
+
+        if action == "rotate_clockwise": phi_d = abs(self.robot.PARAMETER["kinematics_control_midside_phi_d"]["value"])
+        elif action == "rotate_anticlockwise": phi_d = -abs(self.robot.PARAMETER["kinematics_control_midside_phi_d"]["value"])
+        else: phi_d = 0
+
+        self.move_midside_thread = self.RobotFunctionThread(self.robot.controlContinuum, "midside", s_d, kappa_d, phi_d)
+        self.move_midside_thread.start()
+    def stopMidsideSection(self):
+        self.robot.isControl = False
+    
+    ''' 运动控制outside '''
+    def moveOutsideSection(self, action: str):
+        def start():
+            self.ui.length_forward_out.setEnabled(False)
+            self.ui.length_back_out.setEnabled(False)
+            if action == "extend" or action == "shorten":
+                self.ui.length_stop_out.setEnabled(True)
+                self.ui.curve_forward_out.setEnabled(False)
+                self.ui.curve_back_out.setEnabled(False)
+                self.ui.angle_forward_out.setEnabled(False)
+                self.ui.angle_back_out.setEnabled(False)
+            # if action != "curve": self.ui.curve_forward_out.setEnabled(False)
+            # if action != "straighten": self.ui.curve_back_out.setEnabled(False)
+            # if action != "rotate_clockwise": self.ui.angle_forward_out.setEnabled(False)
+            # if action != "rotate_anticlockwise": self.ui.angle_back_out.setEnabled(False)
+
+            self.ui.length_forward_in.setEnabled(False)
+            self.ui.length_back_in.setEnabled(False)
+            self.ui.length_stop_in.setEnabled(False)
+            self.ui.curve_forward_in.setEnabled(False)
+            self.ui.curve_back_in.setEnabled(False)
+            self.ui.angle_forward_in.setEnabled(False)
+            self.ui.angle_back_in.setEnabled(False)
+
+            self.ui.length_forward_mid.setEnabled(False)
+            self.ui.length_back_mid.setEnabled(False)
+            self.ui.length_stop_mid.setEnabled(False)
+            self.ui.curve_forward_mid.setEnabled(False)
+            self.ui.curve_back_mid.setEnabled(False)
+            self.ui.angle_forward_mid.setEnabled(False)
+            self.ui.angle_back_mid.setEnabled(False)
+        def end():
+            self.ui.length_forward_out.setEnabled(True)
+            self.ui.length_back_out.setEnabled(True)
+            self.ui.length_stop_out.setEnabled(False)
+            self.ui.curve_forward_out.setEnabled(True)
+            self.ui.curve_back_out.setEnabled(True)
+            self.ui.angle_forward_out.setEnabled(True)
+            self.ui.angle_back_out.setEnabled(True)
+
+            self.ui.length_forward_mid.setEnabled(True)
+            self.ui.length_back_mid.setEnabled(True)
+            self.ui.length_stop_mid.setEnabled(False)
+            self.ui.curve_forward_mid.setEnabled(True)
+            self.ui.curve_back_mid.setEnabled(True)
+            self.ui.angle_forward_mid.setEnabled(True)
+            self.ui.angle_back_mid.setEnabled(True)
+
+            self.ui.length_forward_in.setEnabled(True)
+            self.ui.length_back_in.setEnabled(True)
+            self.ui.length_stop_in.setEnabled(False)
+            self.ui.curve_forward_in.setEnabled(True)
+            self.ui.curve_back_in.setEnabled(True)
+            self.ui.angle_forward_in.setEnabled(True)
+            self.ui.angle_back_in.setEnabled(True)
+    
+        self.robot.continuum_move_start.connect(start)
+        self.robot.continuum_move_end.connect(end)
+
+        if action == "extend": s_d = abs(self.robot.PARAMETER["kinematics_control_outside_s_d"]["value"])
+        elif action == "shorten": s_d = -abs(self.robot.PARAMETER["kinematics_control_outside_s_d"]["value"])
+        else: s_d = 0
+
+        if action == "curve": kappa_d = abs(self.robot.PARAMETER["kinematics_control_outside_kappa_d"]["value"])
+        elif action == "straighten": kappa_d = -abs(self.robot.PARAMETER["kinematics_control_outside_kappa_d"]["value"])
+        else: kappa_d = 0
+
+        if action == "rotate_clockwise": phi_d = abs(self.robot.PARAMETER["kinematics_control_outside_phi_d"]["value"])
+        elif action == "rotate_anticlockwise": phi_d = -abs(self.robot.PARAMETER["kinematics_control_outside_phi_d"]["value"])
+        else: phi_d = 0
+
+        self.move_outside_thread = self.RobotFunctionThread(self.robot.controlContinuum, "outside", s_d, kappa_d, phi_d)
+        self.move_outside_thread.start()
+    def stopOutsideSection(self):
+        self.robot.isControl = False
+
+
+    ''' Motor '''
+    def speed_forward_factory(self, node_id):
+        getattr(self.ui, f"speed_reverse_{node_id}").setEnabled(False)
+        getattr(self.ui, f"speed_adjust_{node_id}").setEnabled(False)
+        
+        speed = int(getattr(self.ui, "speed_adjust_{}".format(node_id)).value())
+        self.robot.joint_speed([node_id], speed)
+    for node_id in range(1,11):
+        exec(f"def speed_forward_{node_id}(self): self.speed_forward_factory({node_id})")
+    def speed_reverse_factory(self, node_id):
+        getattr(self.ui, f"speed_forward_{node_id}").setEnabled(False)
+        getattr(self.ui, f"speed_adjust_{node_id}").setEnabled(False)
+
+        speed = - int(getattr(self.ui, "speed_adjust_{}".format(node_id)).value())
+        self.robot.joint_speed([node_id], speed)
+    for node_id in range(1,11):
+        exec(f"def speed_reverse_{node_id}(self): self.speed_reverse_factory({node_id})")
+    def speed_stop_factory(self, node_id):
+        getattr(self.ui, f"speed_reverse_{node_id}").setEnabled(True)
+        getattr(self.ui, f"speed_forward_{node_id}").setEnabled(True)
+        getattr(self.ui, f"speed_adjust_{node_id}").setEnabled(True)
+
+        self.robot.joint_speed_stop()
+    for node_id in range(1,11):
+        exec(f"def speed_stop_{node_id}(self): self.speed_stop_factory({node_id})")
