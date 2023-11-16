@@ -1,12 +1,11 @@
 # -*- coding:utf-8 -*-
 
 
-''' gui.py GUI v5.2 '''
+''' gui.py GUI v5.3 '''
 
 
 from PyQt5.QtWidgets import QMainWindow, QTableWidgetItem
 from PyQt5.QtCore import QThread, QRunnable, QThreadPool
-
 from PyQt5.QtGui import QPixmap, QColor
 
 import math
@@ -45,6 +44,8 @@ class ControlPanel(QMainWindow):
         self.connectButton()
 
         self.show() # 显示界面
+
+        self.ui.pushButton.clicked.connect(self.plotParam)
     
 
     def connectMenu(self) -> None:
@@ -52,8 +53,8 @@ class ControlPanel(QMainWindow):
         self.ui.control_video_stream.triggered.connect(lambda: self.ui.pages.setCurrentIndex(1))
         self.ui.control_motor.triggered.connect(lambda: self.ui.pages.setCurrentIndex(2))
         self.ui.control_valve.triggered.connect(lambda: self.ui.pages.setCurrentIndex(3))
-
         self.ui.settings_parameter_table.triggered.connect(lambda: self.ui.pages.setCurrentIndex(4))
+        self.ui.control_test.triggered.connect(lambda: self.ui.pages.setCurrentIndex(5))
 
         self.ui.pages.setCurrentIndex(0)
     
@@ -151,59 +152,59 @@ class ControlPanel(QMainWindow):
         '''
             Control Inside
         '''
-        self.ui.length_forward_in.clicked.connect(lambda: self.moveInsideSection("extend"))
-        self.ui.length_back_in.clicked.connect(lambda: self.moveInsideSection("shorten"))
-        self.ui.length_stop_in.clicked.connect(self.stopInsideSection)
+        self.ui.length_forward_in.clicked.connect(lambda: self.moveSingleSection("inside", "extend"))
+        self.ui.length_back_in.clicked.connect(lambda: self.moveSingleSection("inside", "shorten"))
+        self.ui.length_stop_in.clicked.connect(self.stopSingleSection)
         
-        self.ui.curve_forward_in.pressed.connect(lambda: self.moveInsideSection("curve"))
-        self.ui.curve_forward_in.released.connect(self.stopInsideSection)
+        self.ui.curve_forward_in.pressed.connect(lambda: self.moveSingleSection("inside", "curve"))
+        self.ui.curve_forward_in.released.connect(self.stopSingleSection)
 
-        self.ui.curve_back_in.pressed.connect(lambda: self.moveInsideSection("straighten"))
-        self.ui.curve_back_in.released.connect(self.stopInsideSection)
+        self.ui.curve_back_in.pressed.connect(lambda: self.moveSingleSection("inside", "straighten"))
+        self.ui.curve_back_in.released.connect(self.stopSingleSection)
 
-        self.ui.angle_forward_in.pressed.connect(lambda: self.moveInsideSection("rotate_clockwise"))
-        self.ui.angle_forward_in.released.connect(self.stopInsideSection)
+        self.ui.angle_forward_in.pressed.connect(lambda: self.moveSingleSection("inside", "rotate_clockwise"))
+        self.ui.angle_forward_in.released.connect(self.stopSingleSection)
 
-        self.ui.angle_back_in.pressed.connect(lambda: self.moveInsideSection("rotate_anticlockwise"))
-        self.ui.angle_back_in.released.connect(self.stopInsideSection)
+        self.ui.angle_back_in.pressed.connect(lambda: self.moveSingleSection("inside", "rotate_anticlockwise"))
+        self.ui.angle_back_in.released.connect(self.stopSingleSection)
 
         '''
             Control Midside
         '''
-        self.ui.length_forward_mid.clicked.connect(lambda: self.moveMidsideSection("extend"))
-        self.ui.length_back_mid.clicked.connect(lambda: self.moveMidsideSection("shorten"))
-        self.ui.length_stop_mid.clicked.connect(self.stopMidsideSection)
+        self.ui.length_forward_mid.clicked.connect(lambda: self.moveSingleSection("midside", "extend"))
+        self.ui.length_back_mid.clicked.connect(lambda: self.moveSingleSection("midside", "shorten"))
+        self.ui.length_stop_mid.clicked.connect(self.stopSingleSection)
         
-        self.ui.curve_forward_mid.pressed.connect(lambda: self.moveMidsideSection("curve"))
-        self.ui.curve_forward_mid.released.connect(self.stopMidsideSection)
+        self.ui.curve_forward_mid.pressed.connect(lambda: self.moveSingleSection("midside", "curve"))
+        self.ui.curve_forward_mid.released.connect(self.stopSingleSection)
 
-        self.ui.curve_back_mid.pressed.connect(lambda: self.moveMidsideSection("straighten"))
-        self.ui.curve_back_mid.released.connect(self.stopMidsideSection)
+        self.ui.curve_back_mid.pressed.connect(lambda: self.moveSingleSection("midside", "straighten"))
+        self.ui.curve_back_mid.released.connect(self.stopSingleSection)
 
-        self.ui.angle_forward_mid.pressed.connect(lambda: self.moveMidsideSection("rotate_clockwise"))
-        self.ui.angle_forward_mid.released.connect(self.stopMidsideSection)
+        self.ui.angle_forward_mid.pressed.connect(lambda: self.moveSingleSection("midside", "rotate_clockwise"))
+        self.ui.angle_forward_mid.released.connect(self.stopSingleSection)
 
-        self.ui.angle_back_mid.pressed.connect(lambda: self.moveMidsideSection("rotate_anticlockwise"))
-        self.ui.angle_back_mid.released.connect(self.stopMidsideSection)
+        self.ui.angle_back_mid.pressed.connect(lambda: self.moveSingleSection("midside", "rotate_anticlockwise"))
+        self.ui.angle_back_mid.released.connect(self.stopSingleSection)
 
         '''
             Control Outside
         '''
-        self.ui.length_forward_out.clicked.connect(lambda: self.moveOutsideSection("extend"))
-        self.ui.length_back_out.clicked.connect(lambda: self.moveOutsideSection("shorten"))
-        self.ui.length_stop_out.clicked.connect(self.stopOutsideSection)
+        self.ui.length_forward_out.clicked.connect(lambda: self.moveSingleSection("outside", "extend"))
+        self.ui.length_back_out.clicked.connect(lambda: self.moveSingleSection("outside", "shorten"))
+        self.ui.length_stop_out.clicked.connect(self.stopSingleSection)
         
-        self.ui.curve_forward_out.pressed.connect(lambda: self.moveOutsideSection("curve"))
-        self.ui.curve_forward_out.released.connect(self.stopOutsideSection)
+        self.ui.curve_forward_out.pressed.connect(lambda: self.moveSingleSection("outside", "curve"))
+        self.ui.curve_forward_out.released.connect(self.stopSingleSection)
 
-        self.ui.curve_back_out.pressed.connect(lambda: self.moveOutsideSection("straighten"))
-        self.ui.curve_back_out.released.connect(self.stopOutsideSection)
+        self.ui.curve_back_out.pressed.connect(lambda: self.moveSingleSection("outside", "straighten"))
+        self.ui.curve_back_out.released.connect(self.stopSingleSection)
 
-        self.ui.angle_forward_out.pressed.connect(lambda: self.moveOutsideSection("rotate_clockwise"))
-        self.ui.angle_forward_out.released.connect(self.stopOutsideSection)
+        self.ui.angle_forward_out.pressed.connect(lambda: self.moveSingleSection("outside", "rotate_clockwise"))
+        self.ui.angle_forward_out.released.connect(self.stopSingleSection)
 
-        self.ui.angle_back_out.pressed.connect(lambda: self.moveOutsideSection("rotate_anticlockwise"))
-        self.ui.angle_back_out.released.connect(self.stopOutsideSection)
+        self.ui.angle_back_out.pressed.connect(lambda: self.moveSingleSection("outside", "rotate_anticlockwise"))
+        self.ui.angle_back_out.released.connect(self.stopSingleSection)
 
         ''' 
             teleoperation
@@ -410,12 +411,11 @@ class ControlPanel(QMainWindow):
 
             if force > 0: color = "#0000ff"
             else:
-                if abs(force) <= 10: color = "#00ff00"
-                else: color = "#ffff00"
-            
-            force_str = "<span style=\"color:{};\">{}</span>".format(color, round(abs(force), 2))
+                if abs(force) <= self.robot.PARAMETER[f"tighten_ref_force_{node_id}"]["value"]: color = "#ffff00"
+                elif abs(force) >= 20: color = "#ff0000"
+                else: color = "#00ff00"
 
-            getattr(self.ui, f"force_{node_id}").setText(force_str)
+            getattr(self.ui, f"force_{node_id}").setText(f"<span style=\"color:{color};\">{round(abs(force), 2)}</span>")
     def showValve(self) -> None:
         # 小爪 开启状态较为危险
         open = "<span style=\"color:#ffff00;\">{}</span>".format("OPEN")
@@ -621,9 +621,19 @@ class ControlPanel(QMainWindow):
     def homingGripper(self):
         def start():
             self.ui.homing_gripper.setEnabled(False)
+            self.ui.calibrate_gripper.setEnabled(False)
+            self.ui.set_sensor_zero.setEnabled(False)
+            self.ui.start_adjust.setEnabled(False)
+            self.ui.bt_cali.setEnabled(False)
+            self.ui.tab_control.setEnabled(False)
             self.showStatus("Ballscrew is backing to zero ...")
         def end():
             self.ui.homing_gripper.setEnabled(True)
+            self.ui.calibrate_gripper.setEnabled(True)
+            self.ui.set_sensor_zero.setEnabled(True)
+            self.ui.start_adjust.setEnabled(True)
+            self.ui.bt_cali.setEnabled(True)
+            self.ui.tab_control.setEnabled(True)
             self.showStatus("Ballscrew is backed to zero !")
 
         self.robot.gripper_homing_start.connect(start)
@@ -636,9 +646,19 @@ class ControlPanel(QMainWindow):
     def calibrateGripper(self):
         def start():
             self.ui.calibrate_gripper.setEnabled(False)
+            self.ui.homing_gripper.setEnabled(False)
+            self.ui.set_sensor_zero.setEnabled(False)
+            self.ui.start_adjust.setEnabled(False)
+            self.ui.bt_cali.setEnabled(False)
+            self.ui.tab_control.setEnabled(False)
             self.showStatus("Ballscrew is being setting zero ...")
         def end():
             self.ui.calibrate_gripper.setEnabled(True)
+            self.ui.homing_gripper.setEnabled(True)
+            self.ui.set_sensor_zero.setEnabled(True)
+            self.ui.start_adjust.setEnabled(True)
+            self.ui.bt_cali.setEnabled(True)
+            self.ui.tab_control.setEnabled(True)
             self.showStatus("Ballscrew is set zero !")
             self.ui.gripper_position.setText("<span style=\"color:#00ff00;\">Zero</span>")
         
@@ -653,10 +673,20 @@ class ControlPanel(QMainWindow):
         def start():
             self.ui.start_adjust.setEnabled(False)
             self.ui.set_rope_zero.setEnabled(True)
+            self.ui.homing_gripper.setEnabled(False)
+            self.ui.calibrate_gripper.setEnabled(False)
+            self.ui.set_sensor_zero.setEnabled(False)
+            self.ui.bt_cali.setEnabled(False)
+            self.ui.tab_control.setEnabled(False)
             self.showStatus("All ropes are being adapting force ...")
         def end():
             self.ui.start_adjust.setEnabled(True)
             self.ui.set_rope_zero.setEnabled(False)
+            self.ui.homing_gripper.setEnabled(True)
+            self.ui.calibrate_gripper.setEnabled(True)
+            self.ui.set_sensor_zero.setEnabled(True)
+            self.ui.bt_cali.setEnabled(True)
+            self.ui.tab_control.setEnabled(True)
             self.showStatus("All ropes are set zero !")
 
             # for i in range(1,10):
@@ -674,9 +704,19 @@ class ControlPanel(QMainWindow):
     def calibrateForceSensor(self):
         def start():
             self.ui.set_sensor_zero.setEnabled(False)
+            self.ui.homing_gripper.setEnabled(False)
+            self.ui.calibrate_gripper.setEnabled(False)
+            self.ui.start_adjust.setEnabled(False)
+            self.ui.bt_cali.setEnabled(False)
+            self.ui.tab_control.setEnabled(False)
             self.showStatus("All sensors are being adapting force ...")
         def end():
             self.ui.set_sensor_zero.setEnabled(True)
+            self.ui.homing_gripper.setEnabled(True)
+            self.ui.calibrate_gripper.setEnabled(True)
+            self.ui.start_adjust.setEnabled(True)
+            self.ui.bt_cali.setEnabled(True)
+            self.ui.tab_control.setEnabled(True)
             self.showStatus("All sensors are set zero !")
 
         self.robot.sensor_calibration_start.connect(start)
@@ -702,203 +742,74 @@ class ControlPanel(QMainWindow):
         self.ui.label_video.setScaledContents(True) # 自适应
         self.robot.OpenCamera(update_slot=update, clear_slot=clear)
 
+    ''' 运动学控制 '''
+    def moveSingleSection(self, section: str, action: str):
+        if self.robot.isMoving: return
 
-    ''' 运动控制inside '''
-    def moveInsideSection(self, action: str):
-        def start():
-            self.ui.length_forward_in.setEnabled(False)
-            self.ui.length_back_in.setEnabled(False)
-            if action == "extend" or action == "shorten":
+        def start(section):
+            if section == "inside":
+                self.ui.length_forward_in.setEnabled(False)
+                self.ui.length_back_in.setEnabled(False)
                 self.ui.length_stop_in.setEnabled(True)
-                self.ui.curve_forward_in.setEnabled(False)
-                self.ui.curve_back_in.setEnabled(False)
-                self.ui.angle_forward_in.setEnabled(False)
-                self.ui.angle_back_in.setEnabled(False)
-            # elif action == "curve":
-            #     self.ui.curve_back_in.setEnabled(False)
-            #     self.ui.angle_forward_in.setEnabled(False)
-            #     self.ui.angle_back_in.setEnabled(False)
-            # elif action == "straighten":
-            #     self.ui.curve_forward_in.setEnabled(False)
-            #     self.ui.angle_forward_in.setEnabled(False)
-            #     self.ui.angle_back_in.setEnabled(False)
-            # elif action == "rotate_clockwise":
-            #     self.ui.curve_back_in.setEnabled(False)
-            #     self.ui.curve_forward_in.setEnabled(False)
-            #     self.ui.angle_back_in.setEnabled(False)
-            # elif action == "rotate_anticlockwise":
-            #     self.ui.curve_back_in.setEnabled(False)
-            #     self.ui.curve_forward_in.setEnabled(False)
-            #     self.ui.angle_forward_in.setEnabled(False)
 
-            self.ui.length_forward_mid.setEnabled(False)
-            self.ui.length_back_mid.setEnabled(False)
-            self.ui.length_stop_mid.setEnabled(False)
-            self.ui.curve_forward_mid.setEnabled(False)
-            self.ui.curve_back_mid.setEnabled(False)
-            self.ui.angle_forward_mid.setEnabled(False)
-            self.ui.angle_back_mid.setEnabled(False)
-
-            self.ui.length_forward_out.setEnabled(False)
-            self.ui.length_back_out.setEnabled(False)
-            self.ui.length_stop_out.setEnabled(False)
-            self.ui.curve_forward_out.setEnabled(False)
-            self.ui.curve_back_out.setEnabled(False)
-            self.ui.angle_forward_out.setEnabled(False)
-            self.ui.angle_back_out.setEnabled(False)
-        def end():
-            self.ui.length_forward_in.setEnabled(True)
-            self.ui.length_back_in.setEnabled(True)
-            self.ui.length_stop_in.setEnabled(False)
-            self.ui.curve_forward_in.setEnabled(True)
-            self.ui.curve_back_in.setEnabled(True)
-            self.ui.angle_forward_in.setEnabled(True)
-            self.ui.angle_back_in.setEnabled(True)
-
-            self.ui.length_forward_mid.setEnabled(True)
-            self.ui.length_back_mid.setEnabled(True)
-            self.ui.length_stop_mid.setEnabled(False)
-            self.ui.curve_forward_mid.setEnabled(True)
-            self.ui.curve_back_mid.setEnabled(True)
-            self.ui.angle_forward_mid.setEnabled(True)
-            self.ui.angle_back_mid.setEnabled(True)
-
-            self.ui.length_forward_out.setEnabled(True)
-            self.ui.length_back_out.setEnabled(True)
-            self.ui.length_stop_out.setEnabled(False)
-            self.ui.curve_forward_out.setEnabled(True)
-            self.ui.curve_back_out.setEnabled(True)
-            self.ui.angle_forward_out.setEnabled(True)
-            self.ui.angle_back_out.setEnabled(True)
-    
-        self.robot.continuum_move_start.connect(start)
-        self.robot.continuum_move_end.connect(end)
-
-        if action == "extend": s_d = abs(self.robot.PARAMETER["kinematics_control_inside_s_d"]["value"])
-        elif action == "shorten": s_d = -abs(self.robot.PARAMETER["kinematics_control_inside_s_d"]["value"])
-        else: s_d = 0
-
-        if action == "curve": kappa_d = abs(self.robot.PARAMETER["kinematics_control_inside_kappa_d"]["value"])
-        elif action == "straighten": kappa_d = -abs(self.robot.PARAMETER["kinematics_control_inside_kappa_d"]["value"])
-        else: kappa_d = 0
-
-        if action == "rotate_clockwise": phi_d = abs(self.robot.PARAMETER["kinematics_control_inside_phi_d"]["value"])
-        elif action == "rotate_anticlockwise": phi_d = -abs(self.robot.PARAMETER["kinematics_control_inside_phi_d"]["value"])
-        else: phi_d = 0
-
-        self.move_inside_thread = self.RobotFunctionThread(self.robot.controlContinuum, "inside", s_d, kappa_d, phi_d)
-        self.move_inside_thread.start()
-    def stopInsideSection(self):
-        self.robot.isControl = False
-
-    ''' 运动控制midside '''
-    def moveMidsideSection(self, action: str):
-        def start():
-            self.ui.length_forward_mid.setEnabled(False)
-            self.ui.length_back_mid.setEnabled(False)
-            if action == "extend" or action == "shorten":
-                self.ui.length_stop_mid.setEnabled(True)
+                self.ui.length_forward_mid.setEnabled(False)
+                self.ui.length_back_mid.setEnabled(False)
+                self.ui.length_stop_mid.setEnabled(False)
                 self.ui.curve_forward_mid.setEnabled(False)
                 self.ui.curve_back_mid.setEnabled(False)
                 self.ui.angle_forward_mid.setEnabled(False)
                 self.ui.angle_back_mid.setEnabled(False)
-            # if action != "curve": self.ui.curve_forward_mid.setEnabled(False)
-            # if action != "straighten": self.ui.curve_back_mid.setEnabled(False)
-            # if action != "rotate_clockwise": self.ui.angle_forward_mid.setEnabled(False)
-            # if action != "rotate_anticlockwise": self.ui.angle_back_mid.setEnabled(False)
 
-            self.ui.length_forward_in.setEnabled(False)
-            self.ui.length_back_in.setEnabled(False)
-            self.ui.length_stop_in.setEnabled(False)
-            self.ui.curve_forward_in.setEnabled(False)
-            self.ui.curve_back_in.setEnabled(False)
-            self.ui.angle_forward_in.setEnabled(False)
-            self.ui.angle_back_in.setEnabled(False)
-
-            self.ui.length_forward_out.setEnabled(False)
-            self.ui.length_back_out.setEnabled(False)
-            self.ui.length_stop_out.setEnabled(False)
-            self.ui.curve_forward_out.setEnabled(False)
-            self.ui.curve_back_out.setEnabled(False)
-            self.ui.angle_forward_out.setEnabled(False)
-            self.ui.angle_back_out.setEnabled(False)
-        def end():
-            self.ui.length_forward_mid.setEnabled(True)
-            self.ui.length_back_mid.setEnabled(True)
-            self.ui.length_stop_mid.setEnabled(False)
-            self.ui.curve_forward_mid.setEnabled(True)
-            self.ui.curve_back_mid.setEnabled(True)
-            self.ui.angle_forward_mid.setEnabled(True)
-            self.ui.angle_back_mid.setEnabled(True)
-
-            self.ui.length_forward_in.setEnabled(True)
-            self.ui.length_back_in.setEnabled(True)
-            self.ui.length_stop_in.setEnabled(False)
-            self.ui.curve_forward_in.setEnabled(True)
-            self.ui.curve_back_in.setEnabled(True)
-            self.ui.angle_forward_in.setEnabled(True)
-            self.ui.angle_back_in.setEnabled(True)
-
-            self.ui.length_forward_out.setEnabled(True)
-            self.ui.length_back_out.setEnabled(True)
-            self.ui.length_stop_out.setEnabled(False)
-            self.ui.curve_forward_out.setEnabled(True)
-            self.ui.curve_back_out.setEnabled(True)
-            self.ui.angle_forward_out.setEnabled(True)
-            self.ui.angle_back_out.setEnabled(True)
-    
-        self.robot.continuum_move_start.connect(start)
-        self.robot.continuum_move_end.connect(end)
-
-        if action == "extend": s_d = abs(self.robot.PARAMETER["kinematics_control_midside_s_d"]["value"])
-        elif action == "shorten": s_d = -abs(self.robot.PARAMETER["kinematics_control_midside_s_d"]["value"])
-        else: s_d = 0
-
-        if action == "curve": kappa_d = abs(self.robot.PARAMETER["kinematics_control_midside_kappa_d"]["value"])
-        elif action == "straighten": kappa_d = -abs(self.robot.PARAMETER["kinematics_control_midside_kappa_d"]["value"])
-        else: kappa_d = 0
-
-        if action == "rotate_clockwise": phi_d = abs(self.robot.PARAMETER["kinematics_control_midside_phi_d"]["value"])
-        elif action == "rotate_anticlockwise": phi_d = -abs(self.robot.PARAMETER["kinematics_control_midside_phi_d"]["value"])
-        else: phi_d = 0
-
-        self.move_midside_thread = self.RobotFunctionThread(self.robot.controlContinuum, "midside", s_d, kappa_d, phi_d)
-        self.move_midside_thread.start()
-    def stopMidsideSection(self):
-        self.robot.isControl = False
-    
-    ''' 运动控制outside '''
-    def moveOutsideSection(self, action: str):
-        def start():
-            self.ui.length_forward_out.setEnabled(False)
-            self.ui.length_back_out.setEnabled(False)
-            if action == "extend" or action == "shorten":
-                self.ui.length_stop_out.setEnabled(True)
+                self.ui.length_forward_out.setEnabled(False)
+                self.ui.length_back_out.setEnabled(False)
+                self.ui.length_stop_out.setEnabled(False)
                 self.ui.curve_forward_out.setEnabled(False)
                 self.ui.curve_back_out.setEnabled(False)
                 self.ui.angle_forward_out.setEnabled(False)
                 self.ui.angle_back_out.setEnabled(False)
-            # if action != "curve": self.ui.curve_forward_out.setEnabled(False)
-            # if action != "straighten": self.ui.curve_back_out.setEnabled(False)
-            # if action != "rotate_clockwise": self.ui.angle_forward_out.setEnabled(False)
-            # if action != "rotate_anticlockwise": self.ui.angle_back_out.setEnabled(False)
+            elif section == "midside":
+                self.ui.length_forward_mid.setEnabled(False)
+                self.ui.length_back_mid.setEnabled(False)
+                self.ui.length_stop_mid.setEnabled(True)
 
-            self.ui.length_forward_in.setEnabled(False)
-            self.ui.length_back_in.setEnabled(False)
-            self.ui.length_stop_in.setEnabled(False)
-            self.ui.curve_forward_in.setEnabled(False)
-            self.ui.curve_back_in.setEnabled(False)
-            self.ui.angle_forward_in.setEnabled(False)
-            self.ui.angle_back_in.setEnabled(False)
+                self.ui.length_forward_in.setEnabled(False)
+                self.ui.length_back_in.setEnabled(False)
+                self.ui.length_stop_in.setEnabled(False)
+                self.ui.curve_forward_in.setEnabled(False)
+                self.ui.curve_back_in.setEnabled(False)
+                self.ui.angle_forward_in.setEnabled(False)
+                self.ui.angle_back_in.setEnabled(False)
 
-            self.ui.length_forward_mid.setEnabled(False)
-            self.ui.length_back_mid.setEnabled(False)
-            self.ui.length_stop_mid.setEnabled(False)
-            self.ui.curve_forward_mid.setEnabled(False)
-            self.ui.curve_back_mid.setEnabled(False)
-            self.ui.angle_forward_mid.setEnabled(False)
-            self.ui.angle_back_mid.setEnabled(False)
-        def end():
+                self.ui.length_forward_out.setEnabled(False)
+                self.ui.length_back_out.setEnabled(False)
+                self.ui.length_stop_out.setEnabled(False)
+                self.ui.curve_forward_out.setEnabled(False)
+                self.ui.curve_back_out.setEnabled(False)
+                self.ui.angle_forward_out.setEnabled(False)
+                self.ui.angle_back_out.setEnabled(False)
+            elif section == "outside":
+                self.ui.length_forward_out.setEnabled(False)
+                self.ui.length_back_out.setEnabled(False)
+                self.ui.length_stop_out.setEnabled(True)
+
+                self.ui.length_forward_in.setEnabled(False)
+                self.ui.length_back_in.setEnabled(False)
+                self.ui.length_stop_in.setEnabled(False)
+                self.ui.curve_forward_in.setEnabled(False)
+                self.ui.curve_back_in.setEnabled(False)
+                self.ui.angle_forward_in.setEnabled(False)
+                self.ui.angle_back_in.setEnabled(False)
+
+                self.ui.length_forward_mid.setEnabled(False)
+                self.ui.length_back_mid.setEnabled(False)
+                self.ui.length_stop_mid.setEnabled(False)
+                self.ui.curve_forward_mid.setEnabled(False)
+                self.ui.curve_back_mid.setEnabled(False)
+                self.ui.angle_forward_mid.setEnabled(False)
+                self.ui.angle_back_mid.setEnabled(False)
+        def end(section):
+            self.robot.isMoving = False
+
             self.ui.length_forward_out.setEnabled(True)
             self.ui.length_back_out.setEnabled(True)
             self.ui.length_stop_out.setEnabled(False)
@@ -922,25 +833,25 @@ class ControlPanel(QMainWindow):
             self.ui.curve_back_in.setEnabled(True)
             self.ui.angle_forward_in.setEnabled(True)
             self.ui.angle_back_in.setEnabled(True)
-    
+
         self.robot.continuum_move_start.connect(start)
         self.robot.continuum_move_end.connect(end)
 
-        if action == "extend": s_d = abs(self.robot.PARAMETER["kinematics_control_outside_s_d"]["value"])
-        elif action == "shorten": s_d = -abs(self.robot.PARAMETER["kinematics_control_outside_s_d"]["value"])
+        if action == "extend": s_d = abs(self.robot.PARAMETER[f"kinematics_control_{section}_s_d"]["value"])
+        elif action == "shorten": s_d = -abs(self.robot.PARAMETER[f"kinematics_control_{section}_s_d"]["value"])
         else: s_d = 0
 
-        if action == "curve": kappa_d = abs(self.robot.PARAMETER["kinematics_control_outside_kappa_d"]["value"])
-        elif action == "straighten": kappa_d = -abs(self.robot.PARAMETER["kinematics_control_outside_kappa_d"]["value"])
+        if action == "curve": kappa_d = abs(self.robot.PARAMETER[f"kinematics_control_{section}_kappa_d"]["value"])
+        elif action == "straighten": kappa_d = -abs(self.robot.PARAMETER[f"kinematics_control_{section}_kappa_d"]["value"])
         else: kappa_d = 0
 
-        if action == "rotate_clockwise": phi_d = abs(self.robot.PARAMETER["kinematics_control_outside_phi_d"]["value"])
-        elif action == "rotate_anticlockwise": phi_d = -abs(self.robot.PARAMETER["kinematics_control_outside_phi_d"]["value"])
+        if action == "rotate_clockwise": phi_d = abs(self.robot.PARAMETER[f"kinematics_control_{section}_phi_d"]["value"])
+        elif action == "rotate_anticlockwise": phi_d = -abs(self.robot.PARAMETER[f"kinematics_control_{section}_phi_d"]["value"])
         else: phi_d = 0
 
-        self.move_outside_thread = self.RobotFunctionThread(self.robot.controlContinuum, "outside", s_d, kappa_d, phi_d)
-        self.move_outside_thread.start()
-    def stopOutsideSection(self):
+        self.move_single_section_thread = self.RobotFunctionThread(self.robot.controlContinuum, section, s_d, kappa_d, phi_d)
+        self.move_single_section_thread.start()
+    def stopSingleSection(self):
         self.robot.isControl = False
 
 
@@ -969,3 +880,7 @@ class ControlPanel(QMainWindow):
         self.robot.joint_speed_stop()
     for node_id in range(1,11):
         exec(f"def speed_stop_{node_id}(self): self.speed_stop_factory({node_id})")
+
+    def plotParam(self):
+        self.plot_thread = self.RobotFunctionThread(self.robot.plotParameter)
+        self.plot_thread.start()
