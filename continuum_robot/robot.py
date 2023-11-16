@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' robot.py continuum robot v2.2 '''
+''' robot.py continuum robot v2.3 '''
 
 
 from PyQt5.QtCore import QThread, pyqtSignal, QObject
@@ -11,6 +11,8 @@ from PyQt5.QtGui import QImage
 
 from math import *
 import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 import pygame
 
 import cv2
@@ -196,6 +198,16 @@ class ContinuumRobot(QObject):
         "kinematics_control_outside_kd_1": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
         "kinematics_control_outside_kd_2": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
         "kinematics_control_outside_kd_3": {"value": 0.0, "units": "mm/(s*N)", "note": ""},
+
+        "tighten_ref_force_1": {"value": 0.2, "units": "N", "note": "0~0.5"},
+        "tighten_ref_force_2": {"value": 0.2, "units": "N", "note": "0~0.5"},
+        "tighten_ref_force_3": {"value": 0.2, "units": "N", "note": "0~0.5"},
+        "tighten_ref_force_4": {"value": 0.2, "units": "N", "note": "0~0.5"},
+        "tighten_ref_force_5": {"value": 0.2, "units": "N", "note": "0~0.5"},
+        "tighten_ref_force_6": {"value": 0.2, "units": "N", "note": "0~0.5"},
+        "tighten_ref_force_7": {"value": 0.2, "units": "N", "note": "0~0.5"},
+        "tighten_ref_force_8": {"value": 0.2, "units": "N", "note": "0~0.5"},
+        "tighten_ref_force_9": {"value": 0.2, "units": "N", "note": "0~0.5"},
     }
     parameter_changed = pyqtSignal(str, float)
     def setParameter(self, name, value):
@@ -229,8 +241,8 @@ class ContinuumRobot(QObject):
     continuum_calibration_start = pyqtSignal()
     continuum_calibration_end = pyqtSignal()
 
-    continuum_move_start = pyqtSignal()
-    continuum_move_end = pyqtSignal()
+    continuum_move_start = pyqtSignal(str)
+    continuum_move_end = pyqtSignal(str)
     
     def __init__(self) -> None:
         QObject.__init__(self)
@@ -276,6 +288,12 @@ class ContinuumRobot(QObject):
         self.sensor_9 = Sensor(9)
         self.sensor_10 = Sensor(10)
 
+        self.isSample = False
+        self.TIME_STAMP, self.FORCE = {}, {}
+        for i in range(1,11):
+            self.TIME_STAMP[i] = []
+            self.FORCE[i] = []
+
         self.io = IoModule(11)
 
         self.camera = None
@@ -314,6 +332,8 @@ class ContinuumRobot(QObject):
         self.outside_world_coordinate = (None, None, None)
         self.midside_world_coordinate = (None, None, None)
         self.inside_world_coordinate = (None, None, None)
+
+        self.isMoving = False
 
 
     def updateStatus(self):
@@ -536,6 +556,13 @@ class ContinuumRobot(QObject):
                             Sensor.sensor_dict[msg[i].ID].force = (self.__hex_list_to_float([msg[i].Data[j] for j in range(2, 6)]) - Sensor.sensor_dict[msg[i].ID].zero) / 2
                         
                             self.show_force.emit(msg[i].ID)
+
+            if self.isSample:
+                self.TIME_STAMP[1].append(time.time())
+                self.FORCE[1].append(self.sensor_1.force)
+                if len(self.FORCE[1]) > 200:
+                    self.TIME_STAMP[1].pop(0)
+                    self.FORCE[1].pop(0)
             
             time.sleep(max(1 / self.PARAMETER["sensor_sampling_frequency"]["value"] - (time.time() - start_time), 0))
         
@@ -619,7 +646,10 @@ class ContinuumRobot(QObject):
 
             while True:
                 force_error = force_ref - sensor.force
-                if abs(force_error) < 0.01:
+                # if abs(force_error) < 0.01:
+                #     motor.halt(is_pdo=True)
+                #     break
+                if sensor.force <= force_ref:
                     motor.halt(is_pdo=True)
                     break
                 elif abs(force_error) < 0.1: motor.set_speed(- 10 if force_error < 0 else 10, is_pdo=True, log=False)
@@ -632,7 +662,7 @@ class ContinuumRobot(QObject):
 
             while True:
                 last_force = sensor.original_data
-                time.sleep(1)
+                time.sleep(0.8)
                 current_force = sensor.original_data
                 if abs(last_force - current_force) < 0.1:
                     motor.halt(is_pdo=True)
@@ -640,12 +670,17 @@ class ContinuumRobot(QObject):
                     break
             
             sensor.set_zero(self.PARAMETER["sensor_calibration_init_count_{}".format(i)]["value"])
+            print(i, sensor.zero)
 
             motor.enable_operation(is_pdo=True)
             while True:
                 force_error = -5 - sensor.force
 
-                if abs(force_error) < 0.01:
+                # if abs(force_error) < 0.01:
+                #     motor.disable_operation(is_pdo=True)
+                #     motor.set_speed(0, is_pdo=True)
+                #     break
+                if sensor.force <= -5:
                     motor.disable_operation(is_pdo=True)
                     motor.set_speed(0, is_pdo=True)
                     break
@@ -713,23 +748,29 @@ class ContinuumRobot(QObject):
     def homingGripper(self):
         self.gripper_homing_start.emit()
         
-        self.setGripper("open")
-        if not self.io.input_1:
-            self.motor_10.set_control_mode("speed_control", check=False)
-            self.motor_10.set_speed(abs(int(self.PARAMETER["gripper_homing_velocity"]["value"])), is_pdo=True)
-            self.motor_10.halt(is_pdo=True)
-            self.motor_10.enable_operation(is_pdo=True)
-        else:
-            self.gripper_homing_end.emit()
-            return
-
-        while True:
-            if self.io.input_1:
-                self.motor_10.set_speed(0, is_pdo=True)
-                self.motor_10.disable_operation(is_pdo=True)
+        if not self.gripper_calibration:
+            self.setGripper("open")
+            if not self.io.input_1:
+                self.motor_10.set_control_mode("speed_control", check=False)
+                self.motor_10.set_speed(abs(int(self.PARAMETER["gripper_homing_velocity"]["value"])), is_pdo=True)
+                self.motor_10.halt(is_pdo=True)
+                self.motor_10.enable_operation(is_pdo=True)
+            else:
                 self.gripper_homing_end.emit()
-                break
-            time.sleep(0.001)
+                return
+
+            while True:
+                if self.io.input_1:
+                    self.motor_10.set_speed(0, is_pdo=True)
+                    self.motor_10.disable_operation(is_pdo=True)
+                    self.gripper_homing_end.emit()
+                    break
+                time.sleep(0.001)
+        else:
+            self.initGripperActuator("position")
+            self.moveGripperAbsolute(0, 25, is_close=False, is_wait=True)
+            self.stopGripper()
+            self.gripper_homing_end.emit()
 
     ''' 夹爪 调零
     确定手爪处于极限位置时电机10的位置 该位置作为电机10的参考零点
@@ -797,8 +838,8 @@ class ContinuumRobot(QObject):
     '''
     def moveGripperAbsolute(self, point: float, velocity: float, /, *, is_close=False, is_wait=True):
         if self.gripper_calibration:
-            if is_close: self.io.close_valve_4()
-            else: self.io.open_valve_4()
+            if is_close: self.setGripper("close")
+            else: self.setGripper("open")
             
             target_position = int(round(self.motor_10.zero_position - abs(point) * self.BALLSCREW_RATIO, 0))
             profile_velocity = int(round(self.BALLSCREW_RATIO * velocity / self.VELOCITY_RATIO, 0))
@@ -808,8 +849,9 @@ class ContinuumRobot(QObject):
             self.motor_10.action(is_immediate=False, is_relative=False, is_pdo=True)
 
             if is_wait:
-                duration_time = abs(target_position - self.motor_10.current_position) / (profile_velocity * self.VELOCITY_RATIO) + 1
-                time.sleep(duration_time)
+                while self.motor_10.current_position != target_position: time.sleep(0.001)
+                # duration_time = abs(target_position - self.motor_10.current_position) / (profile_velocity * self.VELOCITY_RATIO)
+                # time.sleep(duration_time + 0.2)
     ''' 手爪在当前位置下移动相对距离
     distance: 移动距离 mm 有正负区别
     velocity: 运动速度 >0 mm/s
@@ -817,8 +859,8 @@ class ContinuumRobot(QObject):
     '''
     def moveGripperRelative(self, distance: float, velocity: float, /, *, is_close=False, is_wait=True):
         if self.gripper_calibration:
-            if is_close: self.io.close_valve_4()
-            else: self.io.open_valve_4()
+            if is_close: self.setGripper("close")
+            else: self.setGripper("open")
             
             target_position = int(round(distance * self.BALLSCREW_RATIO, 0))
             profile_velocity = int(round(self.BALLSCREW_RATIO * velocity / self.VELOCITY_RATIO, 0))
@@ -828,8 +870,8 @@ class ContinuumRobot(QObject):
             self.motor_10.action(is_immediate=False, is_relative=True, is_pdo=True)
 
             if is_wait:
-                duration_time = abs(target_position) / (profile_velocity * self.VELOCITY_RATIO) + 1
-                time.sleep(duration_time)
+                duration_time = abs(target_position) / (profile_velocity * self.VELOCITY_RATIO)
+                time.sleep(duration_time + 0.2)
     def moveGripperSpeed(self, speed: float):
         if self.gripper_calibration:
             target_speed = int(round(self.BALLSCREW_RATIO * (- speed) / self.VELOCITY_RATIO, 0))
@@ -900,20 +942,18 @@ class ContinuumRobot(QObject):
             id_list.append(id)
             
             tar_pos = int(round(self.tendon_zero_position[int(id)-1] + (tar_l - self.tendon_init_length[int(id)-1]) * self.ROPE_RATIO, 0))
-            pro_vel = int(round(self.ROPE_RATIO * abs(vel) / self.VELOCITY_RATIO, 0))
-            if pro_vel == 0: pro_vel = 1
-            
-            t = abs(tar_pos - getattr(self, f"motor_{id}").current_position) / (pro_vel * self.VELOCITY_RATIO) + 0.05
-            t_list.append(t)
+            pro_vel = max(int(round(self.ROPE_RATIO * abs(vel) / self.VELOCITY_RATIO, 0)), 1)
+
+            t_list.append(abs(tar_pos - getattr(self, f"motor_{id}").current_position) / (pro_vel * self.VELOCITY_RATIO) + 0.05)
 
             getattr(self, f"motor_{id}").set_position(tar_pos, velocity=pro_vel, is_pdo=True)
             getattr(self, f"motor_{id}").ready(is_pdo=True)
         
         t_list.sort(reverse=True)
-        delay = t_list[0]
-        for id in id_list:
-            getattr(self, f"motor_{id}").action(is_immediate=False, is_relative=False, is_pdo=True)
-        time.sleep(delay)
+        for id in id_list: getattr(self, f"motor_{id}").action(is_immediate=False, is_relative=False, is_pdo=True)
+        time.sleep(t_list[0])
+
+        for id in id_list: getattr(self, f"motor_{id}").disable_operation()
     def moveTendonRelative(self, *args: tuple):
         id_list = []
         t_list = []
@@ -923,19 +963,17 @@ class ContinuumRobot(QObject):
             
             tar_pos = int(round(pos * self.ROPE_RATIO, 0))
             pro_vel = max(int(round(self.ROPE_RATIO * abs(vel) / self.VELOCITY_RATIO, 0)), 1)
-            # if pro_vel == 0: pro_vel = 1
-            
-            t = abs(tar_pos) / (pro_vel * self.VELOCITY_RATIO)
-            t_list.append(t)
+
+            t_list.append(abs(tar_pos) / (pro_vel * self.VELOCITY_RATIO))
 
             getattr(self, f"motor_{id}").set_position(tar_pos, velocity=pro_vel, is_pdo=True)
             getattr(self, f"motor_{id}").ready(is_pdo=True)
         
         t_list.sort(reverse=True)
-        delay = t_list[0]
-        for id in id_list:
-            getattr(self, f"motor_{id}").action(is_immediate=False, is_relative=True, is_pdo=True)
-        time.sleep(delay)
+        for id in id_list: getattr(self, f"motor_{id}").action(is_immediate=False, is_relative=True, is_pdo=True)
+        time.sleep(t_list[0])
+        
+        for id in id_list: getattr(self, f"motor_{id}").disable_operation()
     
 
     ''' 标定运动学 '''
@@ -1226,14 +1264,15 @@ class ContinuumRobot(QObject):
     
     ''' 运动学控制 '''
     def controlContinuum(self, section: str, s_d: float, kappa_d: float, phi_d: float):
-        self.continuum_move_start.emit()
+        self.continuum_move_start.emit(section)
 
         if not self.continuum_calibration:
             print("\033[0;31mNo Calibration\033[0m")
-            self.continuum_move_end.emit()
+            self.continuum_move_end.emit(section)
             return
 
         self.isControl = True
+        self.isMoving = True
 
         if section == "inside": tendon_count = 9
         elif section == "midside": tendon_count = 6
@@ -1261,11 +1300,14 @@ class ContinuumRobot(QObject):
 
             while self.isControl:
                 start_time = time.time()
+                
+                if section == "inside": current_backbone_curvature = self.backbone_curvature[0]
+                elif section == "midside": current_backbone_curvature = self.backbone_curvature[1]
+                elif section == "outside": current_backbone_curvature = self.backbone_curvature[2]
 
-                # 曲率在范围内
-                if min_curvature <= self.backbone_curvature[0] <= max_curvature: kappa_d = kappa_d
+                if min_curvature <= current_backbone_curvature <= max_curvature: kappa_d = kappa_d # 曲率在范围内
                 else: # 曲率超出范围
-                    if (self.backbone_curvature[0] < min_curvature and kappa_d > 0) or (self.backbone_curvature[0] > max_curvature and kappa_d < 0): kappa_d = kappa_d
+                    if (current_backbone_curvature < min_curvature and kappa_d > 0) or (current_backbone_curvature > max_curvature and kappa_d < 0): kappa_d = kappa_d
                     else: kappa_d = 0
                 
                 if s_d == 0: # backbone固定
@@ -1275,11 +1317,15 @@ class ContinuumRobot(QObject):
                     self.setAnchor("3", "close")
                 else: # backbone运动
                     if min_point <= self.gripper_position <= max_point: # 大爪在运动范围内
-                        if (s_d < 0 and self.backbone_length[0] >= min_length) or \
-                        (s_d > 0 and self.backbone_length[0] <= max_length): # backbone不超过极限
+                        if section == "inside": current_backbone_length = self.backbone_length[0]
+                        elif section == "midside": current_backbone_length = self.backbone_length[1]
+                        elif section == "outside": current_backbone_length = self.backbone_length[2]
+
+                        if (s_d < 0 and current_backbone_length >= min_length) or \
+                        (s_d > 0 and current_backbone_length <= max_length): # backbone不超过极限
                             self.setGripper("close")
-                            if section == "inside" or "midside" or "outside": self.setAnchor("3", "open")
-                            if section == "inside" or "midside": self.setAnchor("2", "open")
+                            if section == "inside" or section == "midside" or section == "outside": self.setAnchor("3", "open")
+                            if section == "inside" or section == "midside": self.setAnchor("2", "open")
                             if section == "inside": self.setAnchor("1", "open")
                         else: # backbone超过极限
                             self.stopGripper() # 大爪停止运动
@@ -1377,11 +1423,10 @@ class ContinuumRobot(QObject):
         elif section == "midside": self.initTendonActuator("position","1","2","3","4","5","6")
         elif section == "outside": self.initTendonActuator("position","1","2","3")
         for i in range(tendon_count, 0, -1):
-            if getattr(self, f"sensor_{i}").force > - 0.25:
-                while getattr(self, f"sensor_{i}").force > - 0.5:
-                    self.moveTendonRelative((i, -0.2, 10))
+            # if getattr(self, f"sensor_{i}").force > -abs(self.PARAMETER[f"tighten_ref_force_{i}"]):
+            while getattr(self, f"sensor_{i}").force > -abs(self.PARAMETER[f"tighten_ref_force_{i}"]["value"]): self.moveTendonRelative((i, -0.1, 10))
         
-        self.continuum_move_end.emit()
+        self.continuum_move_end.emit(section)
 
     
     ''' 打开相机 '''
@@ -1437,6 +1482,16 @@ class ContinuumRobot(QObject):
         return sign * power * decimal
 
 
+    def plotParameter(self):
+        self.isSample = True
+        def animate(i):
+            plt.cla()
+            plt.plot(self.TIME_STAMP[1], self.FORCE[1])
+            plt.tight_layout()
+        ani = FuncAnimation(plt.gcf(), animate, interval=10)
+        plt.tight_layout()
+        plt.show()
+        self.isSample = False
 
 
 ''' 电机 速度模式 '''
