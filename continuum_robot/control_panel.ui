@@ -665,7 +665,7 @@ QTableWidget{
                 <number>0</number>
                </property>
                <property name="topMargin">
-                <number>0</number>
+                <number>10</number>
                </property>
                <property name="rightMargin">
                 <number>0</number>
@@ -676,7 +676,7 @@ QTableWidget{
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_45">
                  <property name="spacing">
-                  <number>5</number>
+                  <number>10</number>
                  </property>
                  <item>
                   <widget class="QLabel" name="label_54">
@@ -805,7 +805,7 @@ QTableWidget{
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_47">
                  <property name="spacing">
-                  <number>5</number>
+                  <number>10</number>
                  </property>
                  <item>
                   <widget class="QLabel" name="label_55">
@@ -934,7 +934,7 @@ QTableWidget{
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_48">
                  <property name="spacing">
-                  <number>5</number>
+                  <number>10</number>
                  </property>
                  <item>
                   <widget class="QLabel" name="label_57">
@@ -1074,7 +1074,7 @@ QTableWidget{
                 <number>0</number>
                </property>
                <property name="topMargin">
-                <number>0</number>
+                <number>10</number>
                </property>
                <property name="rightMargin">
                 <number>0</number>
@@ -9530,6 +9530,21 @@ Reset</string>
             </widget>
            </item>
           </layout>
+         </widget>
+         <widget class="QWidget" name="page">
+          <widget class="QPushButton" name="pushButton">
+           <property name="geometry">
+            <rect>
+             <x>570</x>
+             <y>380</y>
+             <width>281</width>
+             <height>131</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>PushButton</string>
+           </property>
+          </widget>
          </widget>
         </widget>
        </item>
