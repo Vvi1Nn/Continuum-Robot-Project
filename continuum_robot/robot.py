@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
 
-''' robot.py continuum robot v2.3 '''
+''' robot.py continuum robot v2.4 '''
 
 
 from PyQt5.QtCore import QThread, pyqtSignal, QObject
@@ -18,6 +18,8 @@ import pygame
 import cv2
 
 import time, json
+
+import sip
 
 from usbcan import UsbCan
 from processor import CanOpenBusProcessor
@@ -243,6 +245,26 @@ class ContinuumRobot(QObject):
 
     continuum_move_start = pyqtSignal(str)
     continuum_move_end = pyqtSignal(str)
+
+    button_0 = pyqtSignal(int)
+    button_1 = pyqtSignal(int)
+    button_2 = pyqtSignal(int)
+    button_3 = pyqtSignal(int)
+    button_4 = pyqtSignal(int)
+    button_5 = pyqtSignal(int)
+    button_6 = pyqtSignal(int)
+    button_7 = pyqtSignal(int)
+    button_8 = pyqtSignal(int)
+    button_9 = pyqtSignal(int)
+    button_10 = pyqtSignal(int)
+    button_11 = pyqtSignal(int)
+    axis_0 = pyqtSignal(float)
+    axis_1 = pyqtSignal(float)
+    axis_2 = pyqtSignal(float)
+    axis_3 = pyqtSignal(float)
+    hat_0 = pyqtSignal(tuple)
+    tele_control = pyqtSignal(str, str)
+    stop_tele = pyqtSignal()
     
     def __init__(self) -> None:
         QObject.__init__(self)
@@ -302,8 +324,6 @@ class ContinuumRobot(QObject):
         self.gripper_position = None # mm
         self.gripper_velocity = None # mm/s
 
-        self.teleoperation_thread = TeleOperation(self)
-
         self.backbone_init_length = [92, 95.5, 96] # in mid out
         self.backbone_length = [None, None, None] # in mid out
         # self.backbone_length_d = [0, 0, 0]
@@ -333,6 +353,7 @@ class ContinuumRobot(QObject):
         self.midside_world_coordinate = (None, None, None)
         self.inside_world_coordinate = (None, None, None)
 
+        self.isControl = False
         self.isMoving = False
 
 
@@ -1438,6 +1459,74 @@ class ContinuumRobot(QObject):
         self.video_stream_thread.stop()
         self.video_stream_thread.wait()
 
+    ''' 操作 '''
+    def startTele(self):
+        pygame.init() # 初始化模块
+
+        # 界面
+        screen = pygame.display.set_mode((330, 150))
+        pygame.display.set_caption("遥操作")
+        screen.fill((255, 255, 255))
+
+        font = pygame.font.SysFont(None, 40) # 字体
+
+        clock = pygame.time.Clock() # 时钟
+
+        def myPrint(text, /, *, x, y):
+            textBitmap = font.render(text, True, (0,0,0))
+            screen.blit(textBitmap, [x, y])
+
+        while True: # 等待joystick插入
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT: pygame.quit()
+            if pygame.joystick.get_count() == 1:
+                joystick = pygame.joystick.Joystick(0)
+                break
+            # 显示
+            screen.fill((255,255,255))
+            myPrint("No Joystick!", x=10, y=10)
+            # 刷新
+            pygame.display.flip()
+            clock.tick(20)
+
+        self.isTele = True
+        current_section = "inside"
+        current_action = "stop"
+        while self.isTele:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT: self.isTele = False
+                elif event.type == pygame.ACTIVEEVENT:
+                    if event.state == 2 and event.gain == 0: pygame.display.update()
+            
+            screen.fill((255,255,255))
+
+            if joystick.get_button(1):
+                if current_section == "inside": current_section = "midside"
+                elif current_section == "midside": current_section = "outside"
+                elif current_section == "outside": current_section = "inside"
+            
+            last_action = current_action
+            if joystick.get_hat(0)[1] == 1: current_action = "extend"
+            elif joystick.get_hat(0)[1] == -1: current_action = "shorten"
+            elif joystick.get_button(5): current_action = "curve"
+            elif joystick.get_button(4): current_action = "straighten"
+            elif joystick.get_button(2): current_action = "rotate_clockwise"
+            elif joystick.get_button(3): current_action = "rotate_anticlockwise"
+            else: current_action = "stop"
+
+            if not joystick.get_button(0): current_action = "stop"
+
+            myPrint(current_section, x=30, y=30)
+            myPrint(current_action, x=30, y=70)
+            
+            if last_action == "stop" and current_action != last_action: self.tele_control.emit(current_section, current_action)
+            
+            # 刷新
+            pygame.display.flip()
+            clock.tick(5)
+
+        pygame.quit()
+
 
     @staticmethod
     def __hex_list_to_int(data_list) -> int:
@@ -1534,138 +1623,138 @@ class JointSpeed(QThread):
                 getattr(self.robot, f"motor_{node_id}").disable_operation(is_pdo=True)
                 getattr(self.robot, f"motor_{node_id}").set_control_mode("position_control", check=False)
 
-''' 遥操作 '''
-class TeleOperation(QThread):
-    button_signal_0 = pyqtSignal(int)
-    button_signal_1 = pyqtSignal(int)
-    button_signal_2 = pyqtSignal(int)
-    button_signal_3 = pyqtSignal(int)
-    button_signal_4 = pyqtSignal(int)
-    button_signal_5 = pyqtSignal(int)
-    button_signal_6 = pyqtSignal(int)
-    button_signal_7 = pyqtSignal(int)
-    button_signal_8 = pyqtSignal(int)
-    button_signal_9 = pyqtSignal(int)
-    button_signal_10 = pyqtSignal(int)
-    button_signal_11 = pyqtSignal(int)
-    axis_signal_0 = pyqtSignal(float)
-    axis_signal_1 = pyqtSignal(float)
-    axis_signal_2 = pyqtSignal(float)
-    axis_signal_3 = pyqtSignal(float)
-    hat_signal_0 = pyqtSignal(tuple)
+# ''' 遥操作 '''
+# class TeleOperation(QThread):
+#     button_signal_0 = pyqtSignal(int)
+#     button_signal_1 = pyqtSignal(int)
+#     button_signal_2 = pyqtSignal(int)
+#     button_signal_3 = pyqtSignal(int)
+#     button_signal_4 = pyqtSignal(int)
+#     button_signal_5 = pyqtSignal(int)
+#     button_signal_6 = pyqtSignal(int)
+#     button_signal_7 = pyqtSignal(int)
+#     button_signal_8 = pyqtSignal(int)
+#     button_signal_9 = pyqtSignal(int)
+#     button_signal_10 = pyqtSignal(int)
+#     button_signal_11 = pyqtSignal(int)
+#     axis_signal_0 = pyqtSignal(float)
+#     axis_signal_1 = pyqtSignal(float)
+#     axis_signal_2 = pyqtSignal(float)
+#     axis_signal_3 = pyqtSignal(float)
+#     hat_signal_0 = pyqtSignal(tuple)
     
-    def __init__(self, robot: ContinuumRobot) -> None:
-        super().__init__()
+#     def __init__(self, robot: ContinuumRobot) -> None:
+#         super().__init__()
         
-        self.robot = robot
+#         self.robot = robot
 
-        self.__is_joystick = False
-        self.__is_stop = False
+#         self.__is_joystick = False
+#         self.__is_stop = False
         
-    def __setup(self):
-        self.__is_stop = False
+#     def __setup(self):
+#         self.__is_stop = False
 
-        pygame.init() # 初始化模块
+#         pygame.init() # 初始化模块
 
-        # 界面
-        self.screen = pygame.display.set_mode([800, 500])
-        # self.screen = pygame.display.set_mode((240, 180))
-        pygame.display.set_caption("遥操作界面")
-        self.screen.fill((255, 255, 255))
+#         # 界面
+#         self.screen = pygame.display.set_mode([800, 500])
+#         # self.screen = pygame.display.set_mode((240, 180))
+#         pygame.display.set_caption("遥操作界面")
+#         self.screen.fill((255, 255, 255))
 
-        self.font = pygame.font.SysFont(None, 40) # 字体
+#         self.font = pygame.font.SysFont(None, 40) # 字体
 
-        self.clock = pygame.time.Clock() # 时钟
+#         self.clock = pygame.time.Clock() # 时钟
 
-        # 等待joystick插入
-        while not self.__is_joystick:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT: pygame.quit()
-            if pygame.joystick.get_count() == 1:
-                self.__is_joystick = True
-                self.joystick = pygame.joystick.Joystick(0)
-            # 显示
-            self.screen.fill((255,255,255))
-            self.__print("No Joystick!", x=10, y=10)
-            # 刷新
-            pygame.display.flip()
-            self.clock.tick(20)
+#         # 等待joystick插入
+#         while not self.__is_joystick:
+#             for event in pygame.event.get():
+#                 if event.type == pygame.QUIT: pygame.quit()
+#             if pygame.joystick.get_count() == 1:
+#                 self.__is_joystick = True
+#                 self.joystick = pygame.joystick.Joystick(0)
+#             # 显示
+#             self.screen.fill((255,255,255))
+#             self.__print("No Joystick!", x=10, y=10)
+#             # 刷新
+#             pygame.display.flip()
+#             self.clock.tick(20)
 
-    def __print(self, text, /, *, x, y):
-        textBitmap = self.font.render(text, True, (0,0,0))
-        self.screen.blit(textBitmap, [x, y])
+#     def __print(self, text, /, *, x, y):
+#         textBitmap = self.font.render(text, True, (0,0,0))
+#         self.screen.blit(textBitmap, [x, y])
     
-    def run(self):
-        self.__setup() # 初始化
+#     def run(self):
+#         self.__setup() # 初始化
 
-        self.robot.rope_ready_speed("1","2","3","4","5","6","7","8","9")
+#         self.robot.rope_ready_speed("1","2","3","4","5","6","7","8","9")
 
-        while not self.__is_stop:
-            # 检测
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT: self.__is_stop = True
+#         while not self.__is_stop:
+#             # 检测
+#             for event in pygame.event.get():
+#                 if event.type == pygame.QUIT: self.__is_stop = True
             
-            # 显示
-            self.screen.fill((255,255,255))
-            x_current, y_current = 10, 10
-            self.__print("Joystick name: {}".format(self.joystick.get_name()), x=x_current, y=y_current)
+#             # 显示
+#             self.screen.fill((255,255,255))
+#             x_current, y_current = 10, 10
+#             self.__print("Joystick name: {}".format(self.joystick.get_name()), x=x_current, y=y_current)
             
-            button_num = self.joystick.get_numbuttons()
-            axis_num = self.joystick.get_numaxes()
-            hat_num = self.joystick.get_numhats()
+#             button_num = self.joystick.get_numbuttons()
+#             axis_num = self.joystick.get_numaxes()
+#             hat_num = self.joystick.get_numhats()
             
-            for i in range(button_num):
-                getattr(self, f"button_signal_{i}").emit(self.joystick.get_button(i))
-                y_current += 40
-                self.__print("Button {}:  {}".format(i, True if self.joystick.get_button(i) else False), x=x_current, y=y_current)
-            x_current, y_current = 310, 10
+#             for i in range(button_num):
+#                 getattr(self, f"button_signal_{i}").emit(self.joystick.get_button(i))
+#                 y_current += 40
+#                 self.__print("Button {}:  {}".format(i, True if self.joystick.get_button(i) else False), x=x_current, y=y_current)
+#             x_current, y_current = 310, 10
             
-            for i in range(axis_num):
-                getattr(self, f"axis_signal_{i}").emit(self.joystick.get_axis(i))
-                y_current += 40
-                self.__print("Axis {}:  {:.6f}".format(i, self.joystick.get_axis(i)), x=x_current, y=y_current)
-            x_current, y_current = 610, 10
+#             for i in range(axis_num):
+#                 getattr(self, f"axis_signal_{i}").emit(self.joystick.get_axis(i))
+#                 y_current += 40
+#                 self.__print("Axis {}:  {:.6f}".format(i, self.joystick.get_axis(i)), x=x_current, y=y_current)
+#             x_current, y_current = 610, 10
             
-            for i in range(hat_num):
-                y_current += 40
-                self.__print("Hat {}:  {}".format(i, str(self.joystick.get_hat(i))), x=x_current, y=y_current)
+#             for i in range(hat_num):
+#                 y_current += 40
+#                 self.__print("Hat {}:  {}".format(i, str(self.joystick.get_hat(i))), x=x_current, y=y_current)
             
-            # 操作
-            kappa_d = self.joystick.get_axis(1) * 0.001 if abs(self.joystick.get_axis(1)) > 0.01 else 0
-            phi_d = self.joystick.get_axis(2) * 0.25 if abs(self.joystick.get_axis(2)) > 0.01 else 0
+#             # 操作
+#             kappa_d = self.joystick.get_axis(1) * 0.001 if abs(self.joystick.get_axis(1)) > 0.01 else 0
+#             phi_d = self.joystick.get_axis(2) * 0.25 if abs(self.joystick.get_axis(2)) > 0.01 else 0
 
-            if self.joystick.get_button(2) and not self.joystick.get_button(3): # out
-                if kappa_d >= 0 and self.robot.backbone_curvature[2] > 0.01: kappa_d = 0
-                elif kappa_d < 0 and self.robot.backbone_curvature[2] < 0.00001: kappa_d = 0
-                print("outside ", kappa_d, phi_d)
-                l_1_d, l_2_d, l_3_d = self.robot.transferSpaceConfig2ActuatorJacobian("outside", 0, kappa_d, phi_d)
-                self.robot.rope_move_speed(("1", l_1_d), ("2", l_2_d), ("3", l_3_d))
-            elif self.joystick.get_button(3) and not self.joystick.get_button(2): # mid
-                if kappa_d >= 0 and self.robot.backbone_curvature[1] > 0.01: kappa_d = 0
-                elif kappa_d < 0 and self.robot.backbone_curvature[1] < 0.00001: kappa_d = 0
-                print("midside ", kappa_d, phi_d)
-                l_1_d, l_2_d, l_3_d, l_4_d, l_5_d, l_6_d = self.robot.transferSpaceConfig2ActuatorJacobian("midside", 0, kappa_d, phi_d)
-                self.robot.rope_move_speed(("1", l_1_d), ("2", l_2_d), ("3", l_3_d), ("4", l_4_d), ("5", l_5_d), ("6", l_6_d))
-            else:
-                self.robot.motor_1.set_speed(0, is_pdo=True)
-                self.robot.motor_2.set_speed(0, is_pdo=True)
-                self.robot.motor_3.set_speed(0, is_pdo=True)
-                self.robot.motor_4.set_speed(0, is_pdo=True)
-                self.robot.motor_5.set_speed(0, is_pdo=True)
-                self.robot.motor_6.set_speed(0, is_pdo=True)
-                self.robot.motor_7.set_speed(0, is_pdo=True)
-                self.robot.motor_8.set_speed(0, is_pdo=True)
-                self.robot.motor_9.set_speed(0, is_pdo=True)
+#             if self.joystick.get_button(2) and not self.joystick.get_button(3): # out
+#                 if kappa_d >= 0 and self.robot.backbone_curvature[2] > 0.01: kappa_d = 0
+#                 elif kappa_d < 0 and self.robot.backbone_curvature[2] < 0.00001: kappa_d = 0
+#                 print("outside ", kappa_d, phi_d)
+#                 l_1_d, l_2_d, l_3_d = self.robot.transferSpaceConfig2ActuatorJacobian("outside", 0, kappa_d, phi_d)
+#                 self.robot.rope_move_speed(("1", l_1_d), ("2", l_2_d), ("3", l_3_d))
+#             elif self.joystick.get_button(3) and not self.joystick.get_button(2): # mid
+#                 if kappa_d >= 0 and self.robot.backbone_curvature[1] > 0.01: kappa_d = 0
+#                 elif kappa_d < 0 and self.robot.backbone_curvature[1] < 0.00001: kappa_d = 0
+#                 print("midside ", kappa_d, phi_d)
+#                 l_1_d, l_2_d, l_3_d, l_4_d, l_5_d, l_6_d = self.robot.transferSpaceConfig2ActuatorJacobian("midside", 0, kappa_d, phi_d)
+#                 self.robot.rope_move_speed(("1", l_1_d), ("2", l_2_d), ("3", l_3_d), ("4", l_4_d), ("5", l_5_d), ("6", l_6_d))
+#             else:
+#                 self.robot.motor_1.set_speed(0, is_pdo=True)
+#                 self.robot.motor_2.set_speed(0, is_pdo=True)
+#                 self.robot.motor_3.set_speed(0, is_pdo=True)
+#                 self.robot.motor_4.set_speed(0, is_pdo=True)
+#                 self.robot.motor_5.set_speed(0, is_pdo=True)
+#                 self.robot.motor_6.set_speed(0, is_pdo=True)
+#                 self.robot.motor_7.set_speed(0, is_pdo=True)
+#                 self.robot.motor_8.set_speed(0, is_pdo=True)
+#                 self.robot.motor_9.set_speed(0, is_pdo=True)
             
-            # 刷新
-            pygame.display.flip()
-            self.clock.tick(20)
+#             # 刷新
+#             pygame.display.flip()
+#             self.clock.tick(20)
 
-        self.robot.rope_stop_speed("1","2","3","4","5","6","7","8","9")
-        pygame.quit()
+#         self.robot.rope_stop_speed("1","2","3","4","5","6","7","8","9")
+#         pygame.quit()
 
-    def stop(self):
-        self.__is_stop = True
+#     def stop(self):
+#         self.__is_stop = True
 
 ''' 内窥相机 '''
 class Camera(QThread):
@@ -1705,3 +1794,4 @@ class Camera(QThread):
 
     def stop(self):
         self.__is_stop = True
+
