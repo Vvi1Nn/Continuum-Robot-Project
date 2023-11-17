@@ -43,10 +43,9 @@ class ControlPanel(QMainWindow):
         self.connectCustomSignal()
         self.connectButton()
 
-        self.show() # 显示界面
-
         self.ui.pushButton.clicked.connect(self.plotParam)
-    
+
+        self.show() # 显示界面
 
     def connectMenu(self) -> None:
         self.ui.control_basic.triggered.connect(lambda: self.ui.pages.setCurrentIndex(0))
@@ -209,7 +208,7 @@ class ControlPanel(QMainWindow):
         ''' 
             teleoperation
         '''
-        self.ui.teleoperation.clicked.connect(self.robot.teleoperation_thread.start)
+        self.ui.teleoperation.clicked.connect(self.startTele)
 
         '''
             Camera
@@ -411,7 +410,7 @@ class ControlPanel(QMainWindow):
 
             if force > 0: color = "#0000ff"
             else:
-                if abs(force) <= self.robot.PARAMETER[f"tighten_ref_force_{node_id}"]["value"]: color = "#ffff00"
+                if node_id != 10 and abs(force) <= self.robot.PARAMETER[f"tighten_ref_force_{node_id}"]["value"]: color = "#ffff00"
                 elif abs(force) >= 20: color = "#ff0000"
                 else: color = "#00ff00"
 
@@ -854,6 +853,16 @@ class ControlPanel(QMainWindow):
     def stopSingleSection(self):
         self.robot.isControl = False
 
+    def startTele(self):
+        def control(section, action):
+            if action == "stop": self.stopSingleSection()
+            else: self.moveSingleSection(section, action)
+        
+        self.robot.tele_control.connect(control)
+
+        self.tele_control_thread = self.RobotFunctionThread(self.robot.startTele)
+        self.tele_control_thread.start()
+    
 
     ''' Motor '''
     def speed_forward_factory(self, node_id):
