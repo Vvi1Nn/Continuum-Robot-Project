@@ -1066,22 +1066,7 @@ QTableWidget{
               <attribute name="title">
                <string>Tele</string>
               </attribute>
-              <layout class="QVBoxLayout" name="verticalLayout_87">
-               <property name="spacing">
-                <number>10</number>
-               </property>
-               <property name="leftMargin">
-                <number>0</number>
-               </property>
-               <property name="topMargin">
-                <number>10</number>
-               </property>
-               <property name="rightMargin">
-                <number>0</number>
-               </property>
-               <property name="bottomMargin">
-                <number>0</number>
-               </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_5">
                <item>
                 <widget class="QPushButton" name="teleoperation">
                  <property name="enabled">
@@ -1095,6 +1080,16 @@ QTableWidget{
                  </property>
                  <property name="text">
                   <string>TeleOp</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QFrame" name="frame_30">
+                 <property name="frameShape">
+                  <enum>QFrame::StyledPanel</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Raised</enum>
                  </property>
                 </widget>
                </item>
