@@ -54,6 +54,3 @@ import numpy as np
 # ani = FuncAnimation(plt.gcf(), animate, interval=50)
 # plt.tight_layout()
 # plt.show()
-
-section = "a"
-print(section == "a" or section == "b")
