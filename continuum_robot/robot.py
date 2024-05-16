@@ -19,8 +19,6 @@ import cv2
 
 import time, json
 
-import sip
-
 from usbcan import UsbCan
 from processor import CanOpenBusProcessor
 from motor import Motor
