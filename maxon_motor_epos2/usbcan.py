@@ -6,12 +6,14 @@
 
 # 添加路径
 import sys, os
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(BASE_DIR)
+# BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# sys.path.append(BASE_DIR)
 
 # 导入动态库
 from ctypes import *
-USBCAN_Lib = cdll.LoadLibrary(BASE_DIR + "/libusbcan.so")
+# USBCAN_Lib = cdll.LoadLibrary(BASE_DIR + "/libusbcan.so")
+
+USBCAN_Lib = cdll.LoadLibrary(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'libusbcan.so'))
 
 # 导入自定义模块
 import maxon_motor_epos2.usbcan_struct as usbcan_struct
